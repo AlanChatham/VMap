@@ -174,22 +174,40 @@ public class SurfaceMapper {
 		}
 	}
 	
+	/**
+	 * Get font for drawing text
+	 * @return
+	 */
 	public PFont getIdFont(){
 		return idFont;
 	}
 	
+	/**
+	 * Unregisters Mouse Event listener for the SurfaceMapper
+	 */
 	public void disableMouseEvents(){
 		this.parent.unregisterMouseEvent(this);
 	}
 	
+	/**
+	 * Registers Mouse Event listener for the SurfaceMapper
+	 */
 	public void enableMouseEvents(){
 		this.parent.registerMouseEvent(this);
 	}
 	
+	/**
+	 * Get current max distance for an object to be selected
+	 * @return
+	 */
 	public int getSelectionDistance(){
 		return selectionDistance;
 	}
 	
+	/**
+	 * Set the max distance for an object to be selected
+	 * @param selectionDistance
+	 */
 	public void setSelectionDistance(int selectionDistance){
 		this.selectionDistance = selectionDistance;
 	}
