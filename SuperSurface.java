@@ -349,12 +349,16 @@ public class SuperSurface {
 	
 	/**
 	 * Rotate the corners of surface (0=ClockWise, 1=CounterClockWise)
+	 * TODO Broken for Bezier Surfaces
 	 * @param direction
 	 */
 	public void rotateCornerPoints(int direction){
 		switch(type){
 		case QUAD:
 			quadSurface.rotateCornerPoints(direction);
+			break;
+		case BEZIER:
+		//	bezierSurface.rotateCornerPoints(direction);
 			break;
 
 		}
