@@ -257,6 +257,30 @@ public class QuadSurface {
 		this.cornerPoints[pointIndex].y = y;
 		this.updateTransform();
 	}
+	
+	/**
+	 * Rotate the cornerpoints in direction (0=ClockWise 1=CounterClockWise)
+	 * @param direction
+	 */
+	public void rotateCornerPoints(int direction){
+		Point3D[] sourcePoints = cornerPoints.clone();
+		switch(direction){
+		case 0:
+			cornerPoints[0] = sourcePoints[1];
+			cornerPoints[1] = sourcePoints[2];
+			cornerPoints[2] = sourcePoints[3];
+			cornerPoints[3] = sourcePoints[0];
+			this.updateTransform();
+			break;
+		case 1:
+			cornerPoints[0] = sourcePoints[3];
+			cornerPoints[1] = sourcePoints[0];
+			cornerPoints[2] = sourcePoints[1];
+			cornerPoints[3] = sourcePoints[2];
+			this.updateTransform();
+			break;
+		}
+	}
 
 	public void setModeCalibrate() {
 		this.MODE = this.MODE_CALIBRATE;

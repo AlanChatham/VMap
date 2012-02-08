@@ -348,6 +348,19 @@ public class SuperSurface {
 	}
 	
 	/**
+	 * Rotate the corners of surface (0=ClockWise, 1=CounterClockWise)
+	 * @param direction
+	 */
+	public void rotateCornerPoints(int direction){
+		switch(type){
+		case QUAD:
+			quadSurface.rotateCornerPoints(direction);
+			break;
+
+		}
+	}
+	
+	/**
 	 * Get the surfaces ID
 	 * @return
 	 */
