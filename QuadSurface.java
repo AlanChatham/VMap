@@ -64,6 +64,8 @@ public class QuadSurface {
 	private boolean isSelected;
 	private boolean isLocked;
 	private int selectedCorner;
+	
+	private String surfaceName;
 
 	private int ccolor = 0;
 
@@ -769,6 +771,14 @@ public class QuadSurface {
 		g.ellipse(x, y, 16, 16);
 		g.line(x, y - 8, x, y + 8);
 		g.line(x - 8, y, x + 8, y);
+	}
+
+	public void setSurfaceName(String surfaceName) {
+		this.surfaceName = surfaceName;
+	}
+
+	public String getSurfaceName() {
+		return surfaceName;
 	}
 
 

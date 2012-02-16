@@ -54,6 +54,8 @@ public class BezierSurface {
 	
 	private int ccolor = 0; 
 	
+	private String surfaceName;
+	
 	private Polygon poly = new Polygon();
 	
 	/**
@@ -849,5 +851,13 @@ public class BezierSurface {
 		g.ellipse(x, y, 10, 10);
 		g.line(x, y - 5, x, y + 5);
 		g.line(x - 5, y, x + 5, y);
+	}
+
+	public void setSurfaceName(String surfaceName) {
+		this.surfaceName = surfaceName;
+	}
+
+	public String getSurfaceName() {
+		return surfaceName;
 	}
 }

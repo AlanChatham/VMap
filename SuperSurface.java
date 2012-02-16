@@ -65,6 +65,30 @@ public class SuperSurface {
 	}
 	
 	/**
+	 * Sets the name of the surface
+	 * @param name
+	 */
+	public void setSurfaceName(String name){
+		switch(type){
+		case QUAD:
+			quadSurface.setSurfaceName(name);
+			break;
+		case BEZIER:
+			bezierSurface.setSurfaceName(name);
+		}
+	}
+	
+	public String getSurfaceName(){
+		switch(type){
+		case QUAD:
+			return quadSurface.getSurfaceName();
+		case BEZIER:
+			return bezierSurface.getSurfaceName();
+		}
+		return null;
+	}
+	
+	/**
 	 * Set the fill color of the surface in calibration mode
 	 * @param ccolor
 	 */
