@@ -55,6 +55,7 @@ public class QuadSurface {
 	private int GRID_RESOLUTION;
 
 	private int surfaceId;
+	private String surfaceName;
 
 	// Metrics for the projected texture..
 	private float textureX = 0;
@@ -64,8 +65,6 @@ public class QuadSurface {
 	private boolean isSelected;
 	private boolean isLocked;
 	private int selectedCorner;
-	
-	private String surfaceName;
 
 	private int ccolor = 0;
 
