@@ -57,6 +57,8 @@ public class BezierSurface {
 	private String surfaceName;
 	
 	private Polygon poly = new Polygon();
+
+	private float currentZ;
 	
 	/**
 	 * Constructor for creating a new surface at X,Y with RES subdivision.
@@ -270,6 +272,11 @@ public class BezierSurface {
 	 */
 	public int getVerticalForce(){
 		return verticalForce;
+	}
+	
+	
+	public void setZ(float currentZ){
+		this.currentZ = currentZ;
 	}
 
 	/**
@@ -678,25 +685,25 @@ public class BezierSurface {
 				g.texture(tex);
 				g.vertex(vertexPoints[i][j].x, 
 						vertexPoints[i][j].y, 
-						vertexPoints[i][j].z,
+						vertexPoints[i][j].z+currentZ,
 						((float) i / GRID_RESOLUTION) * tex.width,
 						((float) j / GRID_RESOLUTION) * tex.height);
 				
 				g.vertex(vertexPoints[i + 1][j].x, 
 						vertexPoints[i + 1][j].y,
-						vertexPoints[i + 1][j].z, 
+						vertexPoints[i + 1][j].z+currentZ, 
 						(((float) i + 1) / GRID_RESOLUTION) * tex.width, 
 						((float) j / GRID_RESOLUTION) * tex.height);
 				
 				g.vertex(vertexPoints[i + 1][j + 1].x, 
 						vertexPoints[i + 1][j + 1].y,
-						vertexPoints[i + 1][j + 1].z, 
+						vertexPoints[i + 1][j + 1].z+currentZ, 
 						(((float) i + 1) / GRID_RESOLUTION) * tex.width, 
 						(((float) j + 1) / GRID_RESOLUTION) * tex.height);
 				
 				g.vertex(vertexPoints[i][j + 1].x, 
 						vertexPoints[i][j + 1].y,
-						vertexPoints[i][j + 1].z, 
+						vertexPoints[i][j + 1].z+currentZ, 
 						((float) i / GRID_RESOLUTION) * tex.width,
 						(((float) j + 1) / GRID_RESOLUTION) * tex.height);
 				g.endShape();

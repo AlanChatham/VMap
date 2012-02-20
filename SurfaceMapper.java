@@ -61,6 +61,12 @@ public class SurfaceMapper {
 	private PFont idFont;
 
 	private boolean debug = true;
+
+	private boolean shaking;
+	private int shakeStrength;
+	private int shakeSpeed;
+	private float shakeAngle;
+	private float shakeZ;
 	
 	/**
 	 * Create instance of IxKeystone
@@ -171,6 +177,27 @@ public class SurfaceMapper {
 			
 		} else {
 			parent.noCursor();
+		}
+	}
+	
+	public void setShake(int strength, int speed){
+		shaking = true;
+		this.shakeStrength = strength;
+		this.shakeSpeed = speed;
+		shakeAngle = 0;
+	}
+	
+	public void shake(){
+		if(shaking){
+			shakeAngle += (float)shakeSpeed/1000;
+			shakeStrength*=0.98;
+			shakeZ = (float)Math.sin(shakeAngle)*shakeStrength;
+			for(SuperSurface ss : surfaces){
+				ss.setZ(shakeZ);
+			}
+			if(shakeStrength < 0.001){
+				shaking = false;
+			}
 		}
 	}
 	

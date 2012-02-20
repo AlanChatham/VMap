@@ -242,6 +242,17 @@ public class SuperSurface {
 		}
 	}
 	
+	public void setZ(float z){
+		switch(type){
+		case QUAD:
+			quadSurface.setZ(z);
+			break;
+		case BEZIER:
+			bezierSurface.setZ(z);
+			break;
+		}
+	}
+	
 	/**
 	 * Set target bezier control point to coordinates
 	 * @param pointIndex
