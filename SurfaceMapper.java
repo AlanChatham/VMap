@@ -628,7 +628,7 @@ public class SurfaceMapper {
 			surf.setInt("type", s.getSurfaceType());
 			surf.setInt("id", s.getId());
 			surf.setInt("res", s.getRes());
-			surf.setBoolean("lock", s.getLocked());
+			surf.setBoolean("lock", s.isLocked());
 			surf.setInt("horizontalForce", s.getHorizontalForce());
 			surf.setInt("verticalForce", s.getVerticalForce());
 
@@ -898,7 +898,7 @@ public class SurfaceMapper {
 					
 					movingPolys[iteration] = false;
 					// Don't allow editing of surface if it's locked!
-					if (!ss.getLocked()) {
+					if (!ss.isLocked()) {
 						if(ss.getSelectedBezierControl() != -1){
 							ss.setBezierPoint(ss.getSelectedBezierControl(), ss.getBezierPoint(ss.getSelectedBezierControl()).x + deltaX, ss.getBezierPoint(ss.getSelectedBezierControl()).y + deltaY);
 						}else if (ss.getActivePoint() != -1) {
@@ -1170,7 +1170,7 @@ public class SurfaceMapper {
 		for (SuperSurface ss : selectedSurfaces) {
 			for (int i = surfaces.size() - 1; i >= 0; i--) {
 				if (ss.getId() == surfaces.get(i).getId()) {
-					if (ss.getLocked()) return;
+					if (ss.isLocked()) return;
 					if (this.getDebug())
 						PApplet.println("Keystone --> DELETED SURFACE with ID: #" + ss.getId());
 					surfaces.remove(i);

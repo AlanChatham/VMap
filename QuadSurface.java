@@ -76,6 +76,7 @@ public class QuadSurface {
 	private int shakeSpeed;
 	private float shakeAngle;
 
+	private boolean hidden = false;
 	
 	/**
 	 * Constructor for creating a new surface at X,Y with RES subdivision.
@@ -370,6 +371,14 @@ public class QuadSurface {
 		return this.surfaceId;
 	}
 
+	public void setHide(boolean hidden) {
+		this.hidden = hidden;
+	}
+
+	public boolean isHidden() {
+		return hidden;
+	}
+
 	/**
 	 * Toggle if surface is locked (a locked surface cannot be moved or manipulated in calibration mode, but other surfaces still snap to it)
 	 */
@@ -632,7 +641,7 @@ public class QuadSurface {
 	 * @param g
 	 */
 	public void render(GLGraphicsOffScreen g) {
-		if (this.MODE == this.MODE_CALIBRATE) {
+		if (this.MODE == this.MODE_CALIBRATE && !this.isHidden()) {
 			this.renderGrid(g);
 		}
 	}
@@ -644,6 +653,7 @@ public class QuadSurface {
 	 * @param tex
 	 */
 	public void render(GLGraphicsOffScreen g, GLTexture tex) {
+		if(this.isHidden()) return;
 		this.renderQuad(g, tex);
 	}
 

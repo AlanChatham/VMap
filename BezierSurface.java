@@ -64,6 +64,8 @@ public class BezierSurface {
 	private int shakeSpeed;
 	private float shakeAngle;
 	
+	private boolean hidden = false;
+	
 	/**
 	 * Constructor for creating a new surface at X,Y with RES subdivision.
 	 * @param parent
@@ -432,6 +434,14 @@ public class BezierSurface {
 		return this.surfaceId;
 	}
 
+	public void setHide(boolean hidden) {
+		this.hidden = hidden;
+	}
+
+	public boolean isHidden() {
+		return hidden;
+	}
+
 	/**
 	 * Toggle if surface is locked
 	 */
@@ -674,7 +684,7 @@ public class BezierSurface {
 	 * @param g
 	 */
 	public void render(GLGraphicsOffScreen g) {
-		if (this.MODE == this.MODE_CALIBRATE) {
+		if (this.MODE == this.MODE_CALIBRATE && !this.isHidden()) {
 			this.renderGrid(g);
 		}
 	}
@@ -686,6 +696,7 @@ public class BezierSurface {
 	 * @param tex
 	 */
 	public void render(GLGraphicsOffScreen g, GLTexture tex) {
+		if(this.isHidden()) return;
 		this.renderSurface(g, tex);
 	}
 

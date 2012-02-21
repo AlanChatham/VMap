@@ -242,6 +242,31 @@ public class SuperSurface {
 		}
 	}
 	
+	public void setHide(boolean hide){
+		switch(type){
+		case QUAD:
+			quadSurface.setHide(hide);
+			break;
+		case BEZIER:
+			bezierSurface.setHide(hide);
+			break;
+		}
+	}
+	
+	public boolean isHidden(){
+		switch(type){
+		case QUAD:
+			return quadSurface.isHidden();
+		case BEZIER:
+			return bezierSurface.isHidden();
+		}
+		return false;
+	}
+	
+	/**
+	 * Set the Z displacement for all coordinates of the surface
+	 * @param z
+	 */
 	public void setZ(float z){
 		switch(type){
 		case QUAD:
@@ -253,6 +278,11 @@ public class SuperSurface {
 		}
 	}
 	
+	/**
+	 * Set parameters for shaking the surface
+	 * @param strength
+	 * @param speed
+	 */
 	public void setShake(int strength, int speed){
 		switch(type){
 		case QUAD:
@@ -264,6 +294,9 @@ public class SuperSurface {
 		}
 	}
 	
+	/**
+	 * Tells surface to shake (will only do something if setShake has been called quite recently)
+	 */
 	public void shake(){
 		switch(type){
 		case QUAD:
@@ -453,7 +486,7 @@ public class SuperSurface {
 	 * See if the surface is locked
 	 * @return
 	 */
-	public boolean getLocked(){
+	public boolean isLocked(){
 		switch(type){
 			case QUAD:
 				return quadSurface.getLocked();
