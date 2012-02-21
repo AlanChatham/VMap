@@ -253,6 +253,28 @@ public class SuperSurface {
 		}
 	}
 	
+	public void setShake(int strength, int speed){
+		switch(type){
+		case QUAD:
+			quadSurface.setShake(strength, speed);
+			break;
+		case BEZIER:
+			bezierSurface.setShake(strength, speed);
+			break;
+		}
+	}
+	
+	public void shake(){
+		switch(type){
+		case QUAD:
+			quadSurface.shake();
+			break;
+		case BEZIER:
+			bezierSurface.shake();
+			break;
+		}
+	}
+	
 	/**
 	 * Set target bezier control point to coordinates
 	 * @param pointIndex

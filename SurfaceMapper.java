@@ -180,24 +180,15 @@ public class SurfaceMapper {
 		}
 	}
 	
-	public void setShake(int strength, int speed){
-		shaking = true;
-		this.shakeStrength = strength;
-		this.shakeSpeed = speed;
-		shakeAngle = 0;
+	public void setShakeAll(int strength, int speed){
+		for(SuperSurface ss : surfaces){
+			ss.setShake(strength, speed);
+		}
 	}
 	
 	public void shake(){
-		if(shaking){
-			shakeAngle += (float)shakeSpeed/1000;
-			shakeStrength*=0.98;
-			shakeZ = (float)Math.sin(shakeAngle)*shakeStrength;
-			for(SuperSurface ss : surfaces){
-				ss.setZ(shakeZ);
-			}
-			if(shakeStrength < 0.001){
-				shaking = false;
-			}
+		for(SuperSurface ss : surfaces){
+			ss.shake();
 		}
 	}
 	

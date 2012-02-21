@@ -59,6 +59,10 @@ public class BezierSurface {
 	private Polygon poly = new Polygon();
 
 	private float currentZ;
+	private boolean shaking;
+	private int shakeStrength;
+	private int shakeSpeed;
+	private float shakeAngle;
 	
 	/**
 	 * Constructor for creating a new surface at X,Y with RES subdivision.
@@ -274,6 +278,24 @@ public class BezierSurface {
 		return verticalForce;
 	}
 	
+	public void setShake(int strength, int speed){
+		shaking = true;
+		this.shakeStrength = strength;
+		this.shakeSpeed = speed;
+		shakeAngle = 0;
+	}
+	
+	public void shake(){
+		if(shaking){
+			shakeAngle += (float)shakeSpeed/1000;
+			shakeStrength*=0.98;
+			float shakeZ = (float) (Math.sin(shakeAngle)*shakeStrength);
+			this.setZ(shakeZ);
+			if(shakeStrength < 0.001){
+				shaking = false;
+			}
+		}
+	}
 	
 	public void setZ(float currentZ){
 		this.currentZ = currentZ;
