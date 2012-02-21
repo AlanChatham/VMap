@@ -784,8 +784,8 @@ public class BezierSurface {
 		g.textSize(40);
 		g.text("" + surfaceId, (float) (this.getCenter().x), (float) this.getCenter().y);
 		if (isLocked) {
-			g.textSize(40);
-			g.text("Surface locked", (float) this.getCenter().x, (float) this.getCenter().y+60);
+			g.textSize(12);
+			g.text("Surface locked", (float) this.getCenter().x, (float) this.getCenter().y+26);
 		}
 		
 
