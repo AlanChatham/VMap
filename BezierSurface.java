@@ -299,6 +299,10 @@ public class BezierSurface {
 		}
 	}
 	
+	/**
+	 * Set Z-displacement for all coordinates of surface
+	 * @param currentZ
+	 */
 	public void setZ(float currentZ){
 		this.currentZ = currentZ;
 	}
@@ -434,10 +438,18 @@ public class BezierSurface {
 		return this.surfaceId;
 	}
 
+	/**
+	 * Set if the surface should be hidden
+	 * @param hidden
+	 */
 	public void setHide(boolean hidden) {
 		this.hidden = hidden;
 	}
 
+	/**
+	 * See if surface is hidden
+	 * @return
+	 */
 	public boolean isHidden() {
 		return hidden;
 	}

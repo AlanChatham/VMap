@@ -242,6 +242,10 @@ public class SuperSurface {
 		}
 	}
 	
+	/**
+	 * Set if surface is hidden
+	 * @param hide
+	 */
 	public void setHide(boolean hide){
 		switch(type){
 		case QUAD:
@@ -253,6 +257,10 @@ public class SuperSurface {
 		}
 	}
 	
+	/**
+	 * See if surface is hidden
+	 * @return
+	 */
 	public boolean isHidden(){
 		switch(type){
 		case QUAD:
