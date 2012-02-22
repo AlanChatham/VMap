@@ -38,6 +38,8 @@ public class BezierSurface {
 	final private int MODE_CALIBRATE = 1;
 
 	private int MODE = MODE_RENDER;
+	
+	
 
 	private int activePoint = -1; // Which corner point is selected?
 
