@@ -119,7 +119,6 @@ public class SurfaceMapper {
 		    public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt) { 
 		      mouseWheelAction(evt.getWheelRotation());
 		  }}); 
-		
 	}
 	
 	/**
@@ -897,23 +896,6 @@ public class SurfaceMapper {
 					}
 				}
 				
-				int selection = 0;
-				for (SuperSurface cps : surfaces) {
-					cps.setActivePoint(-1);
-					if (cps.getActiveCornerPointIndex(mX, mY) != -1)
-						selection++;
-				}
-				
-				if (isDragging)
-					selection++;
-
-				if (selection == 0) {
-					for (SuperSurface ss : selectedSurfaces) {
-						ss.setSelected(false);
-					}
-					grouping = false;
-					selectedSurfaces.clear();
-				}
 			}
 
 			break;
@@ -1041,9 +1023,25 @@ public class SurfaceMapper {
 							}
 						}
 					}
+					int selection = 0;
+					for (SuperSurface cps : surfaces) {
+						cps.setActivePoint(-1);
+						if (cps.getActiveCornerPointIndex(mX, mY) != -1)
+							selection++;
+					}
+					
+					if (isDragging)
+						selection++;
+
+					if (selection == 0) {
+						for (SuperSurface ss : selectedSurfaces) {
+							ss.setSelected(false);
+						}
+						grouping = false;
+						selectedSurfaces.clear();
+					}
 				}
-
-
+				
 			}
 			startPos = new PVector(0, 0);
 			selectionTool = null;
