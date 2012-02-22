@@ -96,7 +96,7 @@ public class BezierSurface {
 	 * @param id
 	 */
 	BezierSurface(PApplet parent, SurfaceMapper ks, float x, float y, int res, int id) {
-		init(parent, ks, res, id);
+		init(parent, ks, res, id, null);
 
 		this.cornerPoints[0].x = (float) (x - (this.DEFAULT_SIZE * 0.5));
 		this.cornerPoints[0].y = (float) (y - (this.DEFAULT_SIZE * 0.5));
@@ -147,7 +147,7 @@ public class BezierSurface {
 	 */
 	BezierSurface(PApplet parent, SurfaceMapper ks, XMLElement xml) {
 
-		init(parent, ks, (xml.getInt("res")), xml.getInt("id"));
+		init(parent, ks, (xml.getInt("res")), xml.getInt("id"), xml.getString("name"));
 
 		if (xml.getBoolean("lock"))
 			this.toggleLocked();
@@ -174,9 +174,10 @@ public class BezierSurface {
 	 * @param res
 	 * @param id
 	 */
-	private void init(PApplet parent, SurfaceMapper ks, int res, int id) {
+	private void init(PApplet parent, SurfaceMapper ks, int res, int id, String name) {
 		this.parent = parent;
 		this.sm = ks;
+		this.surfaceName = name;
 		this.surfaceId = id;
 		this.GRID_RESOLUTION = res;
 		this.horizontalForce = 0;

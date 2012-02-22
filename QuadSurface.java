@@ -108,7 +108,7 @@ public class QuadSurface {
 	 * @param id
 	 */
 	QuadSurface(PApplet parent, SurfaceMapper ks, float x, float y, int res, int id) {
-		init(parent, ks, res, id);
+		init(parent, ks, res, id, null);
 		
 		this.setCornerPoints(	(float) (x - (this.DEFAULT_SIZE * 0.5)), (float) (y - (this.DEFAULT_SIZE * 0.5)), 
 								(float) (x + (this.DEFAULT_SIZE * 0.5)), (float) (y - (this.DEFAULT_SIZE * 0.5)), 
@@ -124,7 +124,7 @@ public class QuadSurface {
 	 */
 	QuadSurface(PApplet parent, SurfaceMapper ks, XMLElement xml) {
 
-		init(parent, ks, xml.getInt("res"), xml.getInt("id"));
+		init(parent, ks, xml.getInt("res"), xml.getInt("id"), xml.getString("name"));
 
 		if (xml.getBoolean("lock"))
 			this.setLocked(xml.getBoolean("lock"));
@@ -143,10 +143,11 @@ public class QuadSurface {
 	 * @param res
 	 * @param id
 	 */
-	private void init(PApplet parent, SurfaceMapper ks, int res, int id) {
+	private void init(PApplet parent, SurfaceMapper ks, int res, int id, String name) {
 		this.parent = parent;
 		this.sm = ks;
 		this.surfaceId = id;
+		this.surfaceName = name;
 		this.GRID_RESOLUTION = res + 1;
 		this.updateCalibrateTexture();
 

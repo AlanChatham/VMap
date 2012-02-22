@@ -646,6 +646,7 @@ public class SurfaceMapper {
 			surf.setName("surface");
 			surf.setInt("type", s.getSurfaceType());
 			surf.setInt("id", s.getId());
+			surf.setString("name", s.getSurfaceName());
 			surf.setInt("res", s.getRes());
 			surf.setBoolean("lock", s.isLocked());
 			surf.setInt("horizontalForce", s.getHorizontalForce());
