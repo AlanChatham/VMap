@@ -849,6 +849,7 @@ public class QuadSurface {
 	}
 
 	public String getSurfaceName() {
+		if(surfaceName == null) return String.valueOf(this.getId());
 		return surfaceName;
 	}
 

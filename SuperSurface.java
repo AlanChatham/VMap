@@ -105,7 +105,7 @@ public class SuperSurface {
 		case BEZIER:
 			return bezierSurface.getSurfaceName();
 		}
-		return null;
+		return "";
 	}
 	
 	/**
