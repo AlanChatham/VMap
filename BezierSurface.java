@@ -82,8 +82,9 @@ public class BezierSurface {
 
 	private float currentZ;
 	private boolean shaking;
-	private int shakeStrength;
+	private float shakeStrength;
 	private int shakeSpeed;
+	private int fallOfSpeed;
 	private float shakeAngle;
 	
 	private boolean hidden = false;
@@ -303,20 +304,21 @@ public class BezierSurface {
 		return verticalForce;
 	}
 	
-	public void setShake(int strength, int speed){
+	public void setShake(int strength, int speed, int fallOfSpeed){
 		shaking = true;
 		this.shakeStrength = strength;
 		this.shakeSpeed = speed;
+		this.fallOfSpeed = 1000-fallOfSpeed;
 		shakeAngle = 0;
 	}
 	
 	public void shake(){
 		if(shaking){
-			shakeAngle += (float)shakeSpeed/1000;
-			shakeStrength*=0.98;
+			shakeAngle += (float)(shakeSpeed/1000);
+			shakeStrength *= ((float)this.fallOfSpeed/1000);
 			float shakeZ = (float) (Math.sin(shakeAngle)*shakeStrength);
 			this.setZ(shakeZ);
-			if(shakeStrength < 0.001){
+			if(shakeStrength < 1){
 				shaking = false;
 			}
 		}

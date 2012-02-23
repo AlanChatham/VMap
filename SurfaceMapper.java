@@ -199,12 +199,21 @@ public class SurfaceMapper {
 		}
 	}
 	
-	public void setShakeAll(int strength, int speed){
+	/**
+	 * Shake all surfaces with max Z-displacement strength, vibration-speed speed, and shake decline fallOfSpeed. (min 0, max 1000 (1000 = un-ending shaking))
+	 * @param strength
+	 * @param speed
+	 * @param fallOfSpeed
+	 */
+	public void setShakeAll(int strength, int speed, int fallOfSpeed){
 		for(SuperSurface ss : surfaces){
-			ss.setShake(strength, speed);
+			ss.setShake(strength, speed, fallOfSpeed);
 		}
 	}
 	
+	/**
+	 * Update shaking for all surfaces
+	 */
 	public void shake(){
 		for(SuperSurface ss : surfaces){
 			ss.shake();

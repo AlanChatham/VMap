@@ -311,13 +311,15 @@ public class SuperSurface {
 	 * @param strength
 	 * @param speed
 	 */
-	public void setShake(int strength, int speed){
+	public void setShake(int strength, int speed, int fallOfSpeed){
+		if(fallOfSpeed < 1) fallOfSpeed = 1;
+		if(fallOfSpeed > 1000) fallOfSpeed = 1000;
 		switch(type){
 		case QUAD:
-			quadSurface.setShake(strength, speed);
+			quadSurface.setShake(strength, speed, fallOfSpeed);
 			break;
 		case BEZIER:
-			bezierSurface.setShake(strength, speed);
+			bezierSurface.setShake(strength, speed, fallOfSpeed);
 			break;
 		}
 	}
