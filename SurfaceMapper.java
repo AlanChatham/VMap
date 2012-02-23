@@ -832,7 +832,7 @@ public class SurfaceMapper {
 	 * @param e
 	 */
 	public void ksMouseEvent(MouseEvent e) {
-		if (this.MODE == SurfaceMapper.MODE_RENDER || e.getButton() != MouseEvent.BUTTON1)
+		if (this.MODE == SurfaceMapper.MODE_RENDER)
 			return;
 
 		int mX = e.getX();
