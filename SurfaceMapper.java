@@ -43,8 +43,8 @@ public class SurfaceMapper {
 	public final String VERSION = "1";
 
 	private PApplet parent;
-	private ArrayList<SuperSurface> surfaces;
-	private ArrayList<SuperSurface> selectedSurfaces;
+	protected ArrayList<SuperSurface> surfaces;
+	protected ArrayList<SuperSurface> selectedSurfaces;
 	
 	
 	private boolean allowUserInput;
@@ -60,20 +60,20 @@ public class SurfaceMapper {
 	final static public int CMD = 157;
 	private int numAddedSurfaces = 0;
 
-	private boolean snap = true;
+	protected boolean snap = true;
 
-	private PVector prevMouse = new PVector();
-	private boolean ctrlDown;
-	private boolean altDown;
-	private boolean grouping;
+	protected PVector prevMouse = new PVector();
+	protected boolean ctrlDown;
+	protected boolean altDown;
+	protected boolean grouping;
 	
 	private GLTexture backgroundTexture;
 	private boolean usingBackground = false;
 	
-	private Rectangle selectionTool;
-	private PVector startPos;
-	private boolean isDragging;
-	private boolean disableSelectionTool;
+	protected Rectangle selectionTool;
+	protected PVector startPos;
+	protected boolean isDragging;
+	protected boolean disableSelectionTool;
 	
 	private int[] ccolor;
 	private int width;
@@ -1240,4 +1240,5 @@ public class SurfaceMapper {
 			list.remove(--size);
 		}
 	}
+	
 }
