@@ -55,6 +55,7 @@ public class SurfaceMapper {
 	public int MODE = MODE_CALIBRATE;
 	private int snapDistance = 30;
 	private int selectionDistance = 15; 
+	private int selectionMouseColor;
 	
 	final static public int CMD = 157;
 	private int numAddedSurfaces = 0;
@@ -104,6 +105,7 @@ public class SurfaceMapper {
 		this.height = height;
 		this.ccolor = new int[0];
 		this.idFont = parent.createFont("Verdana", 80);
+		this.setSelectionMouseColor(0xFFCCCCCC);
 		surfaces = new ArrayList<SuperSurface>();
 		selectedSurfaces = new ArrayList<SuperSurface>();
 		allowUserInput = true;
@@ -183,7 +185,7 @@ public class SurfaceMapper {
 			glos.beginDraw();
 			if(!ctrlDown){
 				glos.ellipseMode(PApplet.CENTER);
-				glos.fill(255,50);
+				glos.fill(this.getSelectionMouseColor(),100);
 				glos.noStroke();
 				glos.ellipse(parent.mouseX, parent.mouseY, this.getSelectionDistance()*2, this.getSelectionDistance()*2);
 			}else{
@@ -258,6 +260,14 @@ public class SurfaceMapper {
 		this.selectionDistance = selectionDistance;
 	}
 	
+	public void setSelectionMouseColor(int selectionMouseColor) {
+		this.selectionMouseColor = selectionMouseColor;
+	}
+
+	public int getSelectionMouseColor() {
+		return selectionMouseColor;
+	}
+
 	/**
 	 * Returns the array of colors used in calibration mode for coloring the surfaces.
 	 * @return
@@ -832,7 +842,7 @@ public class SurfaceMapper {
 	 * @param e
 	 */
 	public void ksMouseEvent(MouseEvent e) {
-		if (this.MODE == SurfaceMapper.MODE_RENDER || e.getButton() != MouseEvent.BUTTON1)
+		if (this.MODE == SurfaceMapper.MODE_RENDER)
 			return;
 
 		int mX = e.getX();

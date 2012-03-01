@@ -307,9 +307,10 @@ public class SuperSurface {
 	}
 	
 	/**
-	 * Set parameters for shaking the surface
+	 * Set parameters for shaking the surface. Strength == max Z-displacement, Speed == vibration speed, FallOfSpeed 1-1000 == how fast strength is diminished
 	 * @param strength
 	 * @param speed
+	 * @param fallOfSpeed
 	 */
 	public void setShake(int strength, int speed, int fallOfSpeed){
 		if(fallOfSpeed < 1) fallOfSpeed = 1;
