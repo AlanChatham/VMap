@@ -576,6 +576,44 @@ public class SurfaceMapper {
 	}
 
 	/**
+	 * Check if coordinates is inside any of the quad surfaces.
+	 * 
+	 * @param mX
+	 * @param mY
+	 * @return
+	 */
+	public boolean findActiveQuadSurface(float mX, float mY) {
+		for (int i = 0; i < surfaces.size(); i++) {
+			SuperSurface surface = surfaces.get(i);
+
+			if (surface.isInside(mX, mY) && surface.getSurfaceType() == SuperSurface.QUAD) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Check if coordinates is inside any of the bezier surfaces.
+	 * 
+	 * @param mX
+	 * @param mY
+	 * @return
+	 */
+	public boolean findActiveBezierSurface(float mX, float mY) {
+		for (int i = 0; i < surfaces.size(); i++) {
+			SuperSurface surface = surfaces.get(i);
+
+			if (surface.isInside(mX, mY) && surface.getSurfaceType() == SuperSurface.BEZIER) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Check which mode is enabled (render or calibrate)
 	 * 
 	 * @return
