@@ -69,17 +69,19 @@ public class SuperSurface {
 	 * @param parent
 	 * @param ks
 	 * @param xml
+	 * @param name 
+	 * @param id 
 	 */
-	public SuperSurface(int type, PApplet parent, SurfaceMapper ks, XMLElement xml){
+	public SuperSurface(int type, PApplet parent, SurfaceMapper ks, XMLElement xml, int id, String name){
 		this.type = type;
 		
 		switch(type){
 		case QUAD:
-			quadSurface = new QuadSurface(parent, ks, xml);
+			quadSurface = new QuadSurface(parent, ks, xml, id, name);
 			break;
 			
 		case BEZIER:
-			bezierSurface = new BezierSurface(parent, ks, xml);
+			bezierSurface = new BezierSurface(parent, ks, xml, id, name);
 			break;
 		}
 	}

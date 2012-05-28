@@ -614,6 +614,22 @@ public class SurfaceMapper {
 	}
 
 	/**
+	 * Add a surface to surfaceMapper
+	 * 
+	 * @param superSurface
+	 * @return
+	 */
+	public void addSurface(SuperSurface superSurface) {
+		if (ccolor.length > 0)
+			superSurface.setColor(ccolor[superSurface.getId() % ccolor.length]);
+		superSurface.setModeCalibrate();
+		surfaces.add(superSurface);
+
+		if (superSurface.getId() >= numAddedSurfaces)
+			numAddedSurfaces = superSurface.getId() + 1;
+	}
+
+	/**
 	 * Check which mode is enabled (render or calibrate)
 	 * 
 	 * @return
@@ -802,7 +818,7 @@ public class SurfaceMapper {
 				XMLElement root = new XMLElement(parent, parent.dataPath(filename));
 				for (int i = 0; i < root.getChildCount(); i++) {
 					if (root.getChild(i).getName().equals("surface")) {
-						SuperSurface loaded = new SuperSurface(root.getChild(i).getInt("type"), parent, this, root.getChild(i));
+						SuperSurface loaded = new SuperSurface(root.getChild(i).getInt("type"), parent, this, root.getChild(i), root.getChild(i).getInt("id"), root.getChild(i).getString("name"));
 						if (ccolor.length > 0)
 							loaded.setColor(ccolor[numAddedSurfaces % ccolor.length]);
 						loaded.setModeCalibrate();
@@ -1072,7 +1088,7 @@ public class SurfaceMapper {
 				if (altDown)
 					disableSelectionTool = true;
 
-				if (!disableSelectionTool) {
+				if (!disableSelectionTool && startPos != null) {
 					selectionTool = new Rectangle((int) startPos.x, (int) startPos.y, (int) (mX - startPos.x), (int) (mY - startPos.y));
 
 					PVector sToolPos = new PVector(selectionTool.x, selectionTool.y);

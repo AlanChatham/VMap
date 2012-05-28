@@ -122,10 +122,12 @@ public class QuadSurface {
 	 * @param parent
 	 * @param ks
 	 * @param xml
+	 * @param name 
+	 * @param id 
 	 */
-	QuadSurface(PApplet parent, SurfaceMapper ks, XMLElement xml) {
-
-		init(parent, ks, xml.getInt("res"), xml.getInt("id"), xml.getString("name"));
+	QuadSurface(PApplet parent, SurfaceMapper ks, XMLElement xml, int id, String name) {
+		
+		init(parent, ks, xml.getInt("res"), id, name);
 
 		if (xml.getBoolean("lock"))
 			this.setLocked(xml.getBoolean("lock"));

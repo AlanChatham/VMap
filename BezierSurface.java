@@ -147,10 +147,12 @@ public class BezierSurface {
 	 * @param parent
 	 * @param ks
 	 * @param xml
+	 * @param name 
+	 * @param id 
 	 */
-	BezierSurface(PApplet parent, SurfaceMapper ks, XMLElement xml) {
+	BezierSurface(PApplet parent, SurfaceMapper ks, XMLElement xml, int id, String name) {
 
-		init(parent, ks, (xml.getInt("res")), xml.getInt("id"), xml.getString("name"));
+		init(parent, ks, (xml.getInt("res")), id, name);
 
 		if (xml.getBoolean("lock"))
 			this.toggleLocked();
