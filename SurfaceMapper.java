@@ -460,6 +460,15 @@ public class SurfaceMapper {
 	public boolean isCtrlDown() {
 		return ctrlDown;
 	}
+	
+	/**
+	 * Set CTRL pressed
+	 * 
+	 * @param pressed
+	 */
+	public void setCtrlDown(boolean pressed) {
+		ctrlDown = pressed;
+	}
 
 	/**
 	 * Is ALT pressed?
