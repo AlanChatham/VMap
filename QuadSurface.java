@@ -160,12 +160,12 @@ public class QuadSurface {
 			this.cornerPoints[i] = new Point3D();
 		}
 
-		GRID_LINE_COLOR = parent.color(128, 128, 128);
-		GRID_LINE_SELECTED_COLOR = parent.color(160, 160, 160);
-		SELECTED_OUTLINE_OUTER_COLOR = parent.color(255, 255, 255, 128);
-		SELECTED_OUTLINE_INNER_COLOR = parent.color(255, 255, 255);
-		CORNER_MARKER_COLOR = parent.color(255, 255, 255);
-		SELECTED_CORNER_MARKER_COLOR = parent.color(255, 0, 0);
+		GRID_LINE_COLOR = parent.color(160, 160, 160, 50);
+		GRID_LINE_SELECTED_COLOR = parent.color(0, 255, 255);
+		SELECTED_OUTLINE_OUTER_COLOR = parent.color(0, 255, 255, 128);
+		SELECTED_OUTLINE_INNER_COLOR = parent.color(50, 255, 255);
+		CORNER_MARKER_COLOR = parent.color(255, 255, 255, 100);
+		SELECTED_CORNER_MARKER_COLOR = parent.color(255, 0, 255);
 
 		this.initTransform();
 	}
@@ -757,14 +757,10 @@ public class QuadSurface {
 	 * @param g
 	 */
 	private void renderGrid(GLGraphicsOffScreen g) {
-		g.beginDraw();
-	
+		g.beginDraw();	
+		g.fill(20);
+		g.noStroke();
 		
-		if (ccolor == 0) {
-			g.fill(50, 80, 150);
-		} else {
-			g.fill(ccolor);
-		}
 		g.beginShape(PApplet.QUADS);
 		for(int i = 0; i < this.getCornerPoints().length; i++){
 			g.vertex(this.getCornerPoint(i).x, this.getCornerPoint(i).y);
@@ -772,14 +768,10 @@ public class QuadSurface {
 		g.endShape();
 		
 		g.textFont(sm.getIdFont());
-		if (ccolor == 0) {
-			g.fill(255);
-		} else {
-			g.fill(0);
-		}
+		g.fill(255);
 
 		g.textAlign(PApplet.CENTER, PApplet.CENTER);
-		g.textSize(40);
+		g.textSize(20);
 		g.text("" + surfaceId, (float) (this.getCenter().x), (float) this.getCenter().y);
 		if (isLocked) {
 			g.textSize(12);
@@ -789,7 +781,7 @@ public class QuadSurface {
 
 		g.noFill();
 		g.stroke(QuadSurface.GRID_LINE_COLOR);
-		g.strokeWeight(2);
+		g.strokeWeight(1);
 		if (isSelected)
 			g.stroke(QuadSurface.GRID_LINE_SELECTED_COLOR);
 
@@ -809,7 +801,7 @@ public class QuadSurface {
 
 		if (isSelected) {
 			g.stroke(SELECTED_OUTLINE_OUTER_COLOR);
-			g.strokeWeight(5);
+			g.strokeWeight(3);
 			g.line(cornerPoints[0].x, cornerPoints[0].y, cornerPoints[1].x, cornerPoints[1].y);
 			g.line(cornerPoints[1].x, cornerPoints[1].y, cornerPoints[2].x, cornerPoints[2].y);
 			g.line(cornerPoints[2].x, cornerPoints[2].y, cornerPoints[3].x, cornerPoints[3].y);
@@ -853,9 +845,9 @@ public class QuadSurface {
 			g.fill(QuadSurface.SELECTED_CORNER_MARKER_COLOR, 100);
 			g.stroke(QuadSurface.SELECTED_CORNER_MARKER_COLOR);
 		}
-		g.ellipse(x, y, 16, 16);
-		g.line(x, y - 8, x, y + 8);
-		g.line(x - 8, y, x + 8, y);
+		g.ellipse(x, y, 10, 10);
+		g.line(x, y - 5, x, y + 5);
+		g.line(x - 5, y, x + 5, y);
 	}
 
 	public void setSurfaceName(String surfaceName) {

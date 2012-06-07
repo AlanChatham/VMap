@@ -130,7 +130,7 @@ public class SurfaceMapper {
 	 */
 	public void render(GLGraphicsOffScreen glos) {
 		glos.beginDraw();
-		glos.clear(50);
+		glos.clear(0);
 		glos.endDraw();
 		if (MODE == MODE_CALIBRATE) {
 			parent.cursor();
@@ -145,6 +145,7 @@ public class SurfaceMapper {
 			glos.rect(-2, -2, width + 4, height + 4);
 			glos.stroke(255, 255, 255, 40);
 			glos.strokeWeight(1);
+			/*
 			float gridRes = 32.0f;
 
 			float step = (float) (width / gridRes);
@@ -158,22 +159,13 @@ public class SurfaceMapper {
 			for (float i = 1; i < width; i += step) {
 				glos.line(0, i, parent.width, i);
 			}
-
+*/
 			glos.stroke(255);
 			glos.strokeWeight(2);
 			glos.line(1, 1, width - 1, 1);
 			glos.line(width - 1, 1, width - 1, height - 1);
 			glos.line(1, height - 1, width - 1, height - 1);
 			glos.line(1, 1, 1, height - 1);
-
-			if (selectionTool != null && !disableSelectionTool) {
-				glos.stroke(255, 100);
-				glos.strokeWeight(1);
-				glos.fill(100, 100, 255, 50);
-				glos.rect(selectionTool.x, selectionTool.y, selectionTool.width, selectionTool.height);
-				glos.noStroke();
-			}
-
 			glos.endDraw();
 
 			for (int i = 0; i < surfaces.size(); i++) {
@@ -193,6 +185,15 @@ public class SurfaceMapper {
 				glos.noStroke();
 				glos.ellipse(parent.mouseX, parent.mouseY, this.getSnapDistance() * 2, this.getSnapDistance() * 2);
 			}
+			
+			if (selectionTool != null && !disableSelectionTool) {
+				glos.stroke(255, 100);
+				glos.strokeWeight(1);
+				glos.fill(0, 200, 255, 50);
+				glos.rect(selectionTool.x, selectionTool.y, selectionTool.width, selectionTool.height);
+				glos.noStroke();
+			}
+			
 			glos.endDraw();
 
 		} else {

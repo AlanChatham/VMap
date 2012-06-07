@@ -201,12 +201,12 @@ public class BezierSurface {
 			this.bezierPoints[i] = new Point3D();
 		}
 		
-		GRID_LINE_COLOR = parent.color(128, 128, 128);
-		GRID_LINE_SELECTED_COLOR = parent.color(160, 160, 160);
-		SELECTED_OUTLINE_OUTER_COLOR = parent.color(255, 255, 255, 128);
-		SELECTED_OUTLINE_INNER_COLOR = parent.color(255, 255, 255);
-		CORNER_MARKER_COLOR = parent.color(255, 255, 255);
-		SELECTED_CORNER_MARKER_COLOR = parent.color(255, 0, 0);
+		GRID_LINE_COLOR = parent.color(160, 160, 160, 50);
+		GRID_LINE_SELECTED_COLOR = parent.color(255, 128, 0);
+		SELECTED_OUTLINE_OUTER_COLOR = parent.color(255, 128, 0, 128);
+		SELECTED_OUTLINE_INNER_COLOR = parent.color(255, 128, 50);
+		CORNER_MARKER_COLOR = parent.color(255, 255, 255, 100);
+		SELECTED_CORNER_MARKER_COLOR = parent.color(0, 255, 255);
 
 		this.updateTransform();
 	}
@@ -802,11 +802,9 @@ public class BezierSurface {
 	private void renderGrid(GLGraphicsOffScreen g) {
 		g.beginDraw();
 		
-		if (ccolor == 0) {
-			g.fill(50, 80, 150);
-		} else {
-			g.fill(ccolor);
-		}
+		
+		g.fill(20);
+		
 		g.noStroke();
 		for (int i = 0; i < GRID_RESOLUTION; i++) {
 			for (int j = 0; j < GRID_RESOLUTION; j++) {
@@ -822,14 +820,9 @@ public class BezierSurface {
 		}
 		
 		g.textFont(sm.getIdFont());
-		if (ccolor == 0) {
-			g.fill(255);
-		} else {
-			g.fill(0);
-		}
-
+		g.fill(255);
 		g.textAlign(PApplet.CENTER, PApplet.CENTER);
-		g.textSize(40);
+		g.textSize(20);
 		g.text("" + surfaceId, (float) (this.getCenter().x), (float) this.getCenter().y);
 		if (isLocked) {
 			g.textSize(12);
@@ -911,9 +904,9 @@ public class BezierSurface {
 			g.fill(BezierSurface.SELECTED_CORNER_MARKER_COLOR, 100);
 			g.stroke(BezierSurface.SELECTED_CORNER_MARKER_COLOR);
 		}
-		g.ellipse(x, y, 16, 16);
-		g.line(x, y - 8, x, y + 8);
-		g.line(x - 8, y, x + 8, y);
+		g.ellipse(x, y, 10, 10);
+		g.line(x, y - 5, x, y + 5);
+		g.line(x - 5, y, x + 5, y);
 	}
 	
 	/**
