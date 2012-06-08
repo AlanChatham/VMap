@@ -124,7 +124,8 @@ public class SurfaceMapper {
 	}
 
 	/**
-	 * Render method used when calibrating. Shouldn't be used for final rendering.
+	 * Render method used when calibrating. Shouldn't be used for final
+	 * rendering.
 	 * 
 	 * @param glos
 	 */
@@ -146,20 +147,18 @@ public class SurfaceMapper {
 			glos.stroke(255, 255, 255, 40);
 			glos.strokeWeight(1);
 			/*
-			float gridRes = 32.0f;
-
-			float step = (float) (width / gridRes);
-
-			for (float i = 1; i < width; i += step) {
-				glos.line(i, 0, i, parent.height);
-			}
-
-			step = (float) (height / gridRes);
-
-			for (float i = 1; i < width; i += step) {
-				glos.line(0, i, parent.width, i);
-			}
-*/
+			 * float gridRes = 32.0f;
+			 * 
+			 * float step = (float) (width / gridRes);
+			 * 
+			 * for (float i = 1; i < width; i += step) { glos.line(i, 0, i,
+			 * parent.height); }
+			 * 
+			 * step = (float) (height / gridRes);
+			 * 
+			 * for (float i = 1; i < width; i += step) { glos.line(0, i,
+			 * parent.width, i); }
+			 */
 			glos.stroke(255);
 			glos.strokeWeight(2);
 			glos.line(1, 1, width - 1, 1);
@@ -172,7 +171,8 @@ public class SurfaceMapper {
 				surfaces.get(i).render(glos);
 			}
 
-			// Draw circles for SelectionDistance or SnapDistance (snap if CMD is down)
+			// Draw circles for SelectionDistance or SnapDistance (snap if CMD
+			// is down)
 			glos.beginDraw();
 			if (!ctrlDown) {
 				glos.ellipseMode(PApplet.CENTER);
@@ -185,7 +185,7 @@ public class SurfaceMapper {
 				glos.noStroke();
 				glos.ellipse(parent.mouseX, parent.mouseY, this.getSnapDistance() * 2, this.getSnapDistance() * 2);
 			}
-			
+
 			if (selectionTool != null && !disableSelectionTool) {
 				glos.stroke(255, 100);
 				glos.strokeWeight(1);
@@ -193,7 +193,7 @@ public class SurfaceMapper {
 				glos.rect(selectionTool.x, selectionTool.y, selectionTool.width, selectionTool.height);
 				glos.noStroke();
 			}
-			
+
 			glos.endDraw();
 
 		} else {
@@ -202,7 +202,9 @@ public class SurfaceMapper {
 	}
 
 	/**
-	 * Shake all surfaces with max Z-displacement strength, vibration-speed speed, and shake decline fallOfSpeed. (min 0, max 1000 (1000 = un-ending shaking))
+	 * Shake all surfaces with max Z-displacement strength, vibration-speed
+	 * speed, and shake decline fallOfSpeed. (min 0, max 1000 (1000 = un-ending
+	 * shaking))
 	 * 
 	 * @param strength
 	 * @param speed
@@ -273,7 +275,8 @@ public class SurfaceMapper {
 	}
 
 	/**
-	 * Returns the array of colors used in calibration mode for coloring the surfaces.
+	 * Returns the array of colors used in calibration mode for coloring the
+	 * surfaces.
 	 * 
 	 * @return
 	 */
@@ -282,7 +285,8 @@ public class SurfaceMapper {
 	}
 
 	/**
-	 * Set the array of colors used in calibration mode for coloring the surfaces.
+	 * Set the array of colors used in calibration mode for coloring the
+	 * surfaces.
 	 * 
 	 * @param ccolor
 	 */
@@ -310,7 +314,8 @@ public class SurfaceMapper {
 	}
 
 	/**
-	 * Boolean used to know if the background image should be rendered in calibration mode.
+	 * Boolean used to know if the background image should be rendered in
+	 * calibration mode.
 	 * 
 	 * @return
 	 */
@@ -328,7 +333,8 @@ public class SurfaceMapper {
 	}
 
 	/**
-	 * Creates a Quad surface with perspective transform. Res is the amount of subdivisioning. Returns the surface after it has been created.
+	 * Creates a Quad surface with perspective transform. Res is the amount of
+	 * subdivisioning. Returns the surface after it has been created.
 	 * 
 	 * @param res
 	 * @return
@@ -344,7 +350,8 @@ public class SurfaceMapper {
 	}
 
 	/**
-	 * Creates a Quad surface at X/Y with perspective transform. Res is the amount of subdivisioning. Returns the surface after it has been created.
+	 * Creates a Quad surface at X/Y with perspective transform. Res is the
+	 * amount of subdivisioning. Returns the surface after it has been created.
 	 * 
 	 * @param res
 	 * @param x
@@ -362,7 +369,8 @@ public class SurfaceMapper {
 	}
 
 	/**
-	 * Creates a Bezier surface with perspective transform. Res is the amount of subdivisioning. Returns the surface after it has been created.
+	 * Creates a Bezier surface with perspective transform. Res is the amount of
+	 * subdivisioning. Returns the surface after it has been created.
 	 * 
 	 * @param res
 	 * @return
@@ -378,7 +386,8 @@ public class SurfaceMapper {
 	}
 
 	/**
-	 * Creates a Bezier surface at X/Y with perspective transform. Res is the amount of subdivisioning. Returns the surface after it has been created.
+	 * Creates a Bezier surface at X/Y with perspective transform. Res is the
+	 * amount of subdivisioning. Returns the surface after it has been created.
 	 * 
 	 * @param res
 	 * @param x
@@ -461,7 +470,7 @@ public class SurfaceMapper {
 	public boolean isCtrlDown() {
 		return ctrlDown;
 	}
-	
+
 	/**
 	 * Set CTRL pressed
 	 * 
@@ -941,7 +950,8 @@ public class SurfaceMapper {
 	}
 
 	/**
-	 * MouseEvent method. Forwards the MouseEvent to ksMouseEvent if user input is allowed
+	 * MouseEvent method. Forwards the MouseEvent to ksMouseEvent if user input
+	 * is allowed
 	 * 
 	 * @param e
 	 */
@@ -1050,7 +1060,7 @@ public class SurfaceMapper {
 
 				boolean[] movingPolys = new boolean[surfaces.size()];
 				int iteration = 0;
-				for (SuperSurface ss : surfaces) {
+				for (SuperSurface ss : selectedSurfaces) {
 
 					movingPolys[iteration] = false;
 					// Don't allow editing of surface if it's locked!
@@ -1065,14 +1075,17 @@ public class SurfaceMapper {
 								// If multiple surfaces are selected, ALT need
 								// to be pressed in order to move them.
 								if ((grouping && altDown) || selectedSurfaces.size() == 1) {
+
 									for (int i = 0; i < 4; i++) {
 										ss.setCornerPoint(i, ss.getCornerPoint(i).x + deltaX, ss.getCornerPoint(i).y + deltaY);
 										ss.setBezierPoint(i, ss.getBezierPoint(i).x + deltaX, ss.getBezierPoint(i).y + deltaY);
 										ss.setBezierPoint(i + 4, ss.getBezierPoint(i + 4).x + deltaX, ss.getBezierPoint(i + 4).y + deltaY);
 									}
 									movingPolys[iteration] = true;
+
 								}
 							} else {
+
 								// Move a corner point.
 								int index = ss.getActivePoint();
 								ss.setCornerPoint(index, ss.getCornerPoint(ss.getActivePoint()).x + deltaX, ss.getCornerPoint(ss.getActivePoint()).y + deltaY);
@@ -1081,6 +1094,7 @@ public class SurfaceMapper {
 								index = index + 1;
 								ss.setBezierPoint(index, ss.getBezierPoint(index).x + deltaX, ss.getBezierPoint(index).y + deltaY);
 								movingPolys[iteration] = true;
+
 							}
 						}
 
@@ -1260,19 +1274,26 @@ public class SurfaceMapper {
 				}
 				break;
 			/*
-			 * case KeyEvent.VK_O: for (SuperSurface ss : selectedSurfaces) { ss.increaseResolution(); } break;
+			 * case KeyEvent.VK_O: for (SuperSurface ss : selectedSurfaces) {
+			 * ss.increaseResolution(); } break;
 			 * 
-			 * case KeyEvent.VK_P: for (SuperSurface ss : selectedSurfaces) { ss.decreaseResolution(); } break;
+			 * case KeyEvent.VK_P: for (SuperSurface ss : selectedSurfaces) {
+			 * ss.decreaseResolution(); } break;
 			 * 
-			 * case KeyEvent.VK_U: for (SuperSurface ss : selectedSurfaces) { ss.increaseHorizontalForce(); } break;
+			 * case KeyEvent.VK_U: for (SuperSurface ss : selectedSurfaces) {
+			 * ss.increaseHorizontalForce(); } break;
 			 * 
-			 * case KeyEvent.VK_I: for (SuperSurface ss : selectedSurfaces) { ss.decreaseHorizontalForce(); } break;
+			 * case KeyEvent.VK_I: for (SuperSurface ss : selectedSurfaces) {
+			 * ss.decreaseHorizontalForce(); } break;
 			 * 
-			 * case KeyEvent.VK_J: for (SuperSurface ss : selectedSurfaces) { ss.increaseVerticalForce(); } break;
+			 * case KeyEvent.VK_J: for (SuperSurface ss : selectedSurfaces) {
+			 * ss.increaseVerticalForce(); } break;
 			 * 
-			 * case KeyEvent.VK_K: for (SuperSurface ss : selectedSurfaces) { ss.decreaseVerticalForce(); } break;
+			 * case KeyEvent.VK_K: for (SuperSurface ss : selectedSurfaces) {
+			 * ss.decreaseVerticalForce(); } break;
 			 * 
-			 * case KeyEvent.VK_T: for (SuperSurface ss : selectedSurfaces) { ss.toggleLocked(); } break;
+			 * case KeyEvent.VK_T: for (SuperSurface ss : selectedSurfaces) {
+			 * ss.toggleLocked(); } break;
 			 * 
 			 * case KeyEvent.VK_BACK_SPACE: removeSelectedSurfaces(); break;
 			 */

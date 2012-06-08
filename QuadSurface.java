@@ -29,6 +29,7 @@ import java.awt.Polygon;
 import javax.media.jai.PerspectiveTransform;
 
 import processing.core.PApplet;
+import processing.core.PVector;
 import processing.xml.XMLElement;
 import codeanticode.glgraphics.GLGraphicsOffScreen;
 import codeanticode.glgraphics.GLTexture;
@@ -45,7 +46,7 @@ public class QuadSurface {
 	private int MODE = MODE_RENDER;
 
 	private int activePoint = -1; // Which corner point is selected?
-	
+
 	static private int GRID_LINE_COLOR;
 	static private int GRID_LINE_SELECTED_COLOR;
 	static private int SELECTED_OUTLINE_OUTER_COLOR;
@@ -85,6 +86,7 @@ public class QuadSurface {
 	private boolean isSelected;
 	private boolean isLocked;
 	private int selectedCorner;
+	private boolean cornerMovementAllowed = true;
 
 	private int ccolor = 0;
 
@@ -98,9 +100,10 @@ public class QuadSurface {
 	private int fallOfSpeed;
 
 	private boolean hidden = false;
-	
+
 	/**
 	 * Constructor for creating a new surface at X,Y with RES subdivision.
+	 * 
 	 * @param parent
 	 * @param ks
 	 * @param x
@@ -110,37 +113,33 @@ public class QuadSurface {
 	 */
 	QuadSurface(PApplet parent, SurfaceMapper ks, float x, float y, int res, int id) {
 		init(parent, ks, res, id, null);
-		
-		this.setCornerPoints(	(float) (x - (this.DEFAULT_SIZE * 0.5)), (float) (y - (this.DEFAULT_SIZE * 0.5)), 
-								(float) (x + (this.DEFAULT_SIZE * 0.5)), (float) (y - (this.DEFAULT_SIZE * 0.5)), 
-								(float) (x + (this.DEFAULT_SIZE * 0.5)), (float) (y + (this.DEFAULT_SIZE * 0.5)),
-								(float) (x - (this.DEFAULT_SIZE * 0.5)), (float) (y + (this.DEFAULT_SIZE * 0.5)));
+
+		this.setCornerPoints((float) (x - (this.DEFAULT_SIZE * 0.5)), (float) (y - (this.DEFAULT_SIZE * 0.5)), (float) (x + (this.DEFAULT_SIZE * 0.5)), (float) (y - (this.DEFAULT_SIZE * 0.5)), (float) (x + (this.DEFAULT_SIZE * 0.5)), (float) (y + (this.DEFAULT_SIZE * 0.5)), (float) (x - (this.DEFAULT_SIZE * 0.5)), (float) (y + (this.DEFAULT_SIZE * 0.5)));
 	}
 
 	/**
 	 * Constructor used when loading a surface from file
+	 * 
 	 * @param parent
 	 * @param ks
 	 * @param xml
-	 * @param name 
-	 * @param id 
+	 * @param name
+	 * @param id
 	 */
 	QuadSurface(PApplet parent, SurfaceMapper ks, XMLElement xml, int id, String name) {
-		
+
 		init(parent, ks, xml.getInt("res"), id, name);
 
 		if (xml.getBoolean("lock"))
 			this.setLocked(xml.getBoolean("lock"));
 
-		this.setCornerPoints(	xml.getChild(0).getFloat("x"), xml.getChild(0).getFloat("y"), 
-								xml.getChild(1).getFloat("x"), xml.getChild(1).getFloat("y"), 
-								xml.getChild(2).getFloat("x"), xml.getChild(2).getFloat("y"),
-								xml.getChild(3).getFloat("x"), xml.getChild(3).getFloat("y"));
+		this.setCornerPoints(xml.getChild(0).getFloat("x"), xml.getChild(0).getFloat("y"), xml.getChild(1).getFloat("x"), xml.getChild(1).getFloat("y"), xml.getChild(2).getFloat("x"), xml.getChild(2).getFloat("y"), xml.getChild(3).getFloat("x"), xml.getChild(3).getFloat("y"));
 
 	}
 
 	/**
 	 * Convenience method used by the constructors.
+	 * 
 	 * @param parent
 	 * @param ks
 	 * @param res
@@ -182,44 +181,36 @@ public class QuadSurface {
 		}
 
 		for (int i = 0; i < this.GRID_RESOLUTION; i++) {
-			for(int j = 0; j < this.GRID_RESOLUTION; j++)
-			this.vertexPoints[i][j] = new Point3D();
+			for (int j = 0; j < this.GRID_RESOLUTION; j++)
+				this.vertexPoints[i][j] = new Point3D();
 		}
 	}
 
 	/**
-	 * Used to update the calibration texture when a surface's settings have changed.
+	 * Used to update the calibration texture when a surface's settings have
+	 * changed.
 	 */
 	private void updateCalibrateTexture() {
 		/*
-		if (calibrateTex == null)
-			this.calibrateTex = new GLGraphicsOffScreen(parent, 600, 600);
-		calibrateTex.beginDraw();
-		if (ccolor == 0) {
-			calibrateTex.clear(50, 80, 150);
-		} else {
-			calibrateTex.clear(ccolor);
-		}
-		calibrateTex.textFont(idFont);
-		if (ccolor == 0) {
-			calibrateTex.fill(255);
-		} else {
-			calibrateTex.fill(0);
-		}
-
-		calibrateTex.textAlign(PApplet.CENTER, PApplet.CENTER);
-		calibrateTex.textSize(80);
-		calibrateTex.text("" + surfaceId, (float) (calibrateTex.width * 0.5), (float) (calibrateTex.height * 0.5));
-		if (isLocked) {
-			calibrateTex.textSize(40);
-			calibrateTex.text("Surface locked", (float) (calibrateTex.width * 0.5), (float) (calibrateTex.height * 0.7));
-		}
-		calibrateTex.endDraw();
-		*/
+		 * if (calibrateTex == null) this.calibrateTex = new
+		 * GLGraphicsOffScreen(parent, 600, 600); calibrateTex.beginDraw(); if
+		 * (ccolor == 0) { calibrateTex.clear(50, 80, 150); } else {
+		 * calibrateTex.clear(ccolor); } calibrateTex.textFont(idFont); if
+		 * (ccolor == 0) { calibrateTex.fill(255); } else {
+		 * calibrateTex.fill(0); }
+		 * 
+		 * calibrateTex.textAlign(PApplet.CENTER, PApplet.CENTER);
+		 * calibrateTex.textSize(80); calibrateTex.text("" + surfaceId, (float)
+		 * (calibrateTex.width * 0.5), (float) (calibrateTex.height * 0.5)); if
+		 * (isLocked) { calibrateTex.textSize(40);
+		 * calibrateTex.text("Surface locked", (float) (calibrateTex.width *
+		 * 0.5), (float) (calibrateTex.height * 0.7)); } calibrateTex.endDraw();
+		 */
 	}
 
 	/**
 	 * Sets the fill color of the surface in calibration mode
+	 * 
 	 * @param ccolor
 	 */
 	public void setColor(int ccolor) {
@@ -229,6 +220,7 @@ public class QuadSurface {
 
 	/**
 	 * Get the fill color of the surface in calibration mode
+	 * 
 	 * @return
 	 */
 	public int getColor() {
@@ -237,6 +229,7 @@ public class QuadSurface {
 
 	/**
 	 * Get the amount of subdivision used in the surface
+	 * 
 	 * @return
 	 */
 	public int getRes() {
@@ -264,77 +257,146 @@ public class QuadSurface {
 			this.updateTransform();
 		}
 	}
-	
+
 	/**
 	 * Set Z-displacement for all coordinates of surface
+	 * 
 	 * @param currentZ
 	 */
-	public void setZ(float currentZ){
+	public void setZ(float currentZ) {
 		this.currentZ = currentZ;
 	}
-	
+
 	/**
-	 * Set parameters for shaking the surface. Strength == max Z-displacement, Speed == vibration speed, FallOfSpeed 1-1000 == how fast strength is diminished
+	 * Set parameters for shaking the surface. Strength == max Z-displacement,
+	 * Speed == vibration speed, FallOfSpeed 1-1000 == how fast strength is
+	 * diminished
+	 * 
 	 * @param strength
 	 * @param speed
 	 * @param fallOfSpeed
 	 */
-	public void setShake(int strength, int speed, int fallOfSpeed){
+	public void setShake(int strength, int speed, int fallOfSpeed) {
 		shaking = true;
 		this.shakeStrength = strength;
 		this.shakeSpeed = speed;
-		this.fallOfSpeed = 1000-fallOfSpeed;
+		this.fallOfSpeed = 1000 - fallOfSpeed;
 		shakeAngle = 0;
 	}
-	
+
 	/**
-	 * Tells surface to shake (will only do something if setShake has been called quite recently)
+	 * Tells surface to shake (will only do something if setShake has been
+	 * called quite recently)
 	 */
-	public void shake(){
-		if(shaking){
-			shakeAngle += (float)shakeSpeed/1000;
-			shakeStrength *= ((float)this.fallOfSpeed/1000);
-			float shakeZ = (float) (Math.sin(shakeAngle)*shakeStrength);
+	public void shake() {
+		if (shaking) {
+			shakeAngle += (float) shakeSpeed / 1000;
+			shakeStrength *= ((float) this.fallOfSpeed / 1000);
+			float shakeZ = (float) (Math.sin(shakeAngle) * shakeStrength);
 			this.setZ(shakeZ);
-			if(shakeStrength < 1){
+			if (shakeStrength < 1) {
 				shaking = false;
 			}
 		}
 	}
 
 	/**
-	 *  Manually set coordinates for mapping the texture. This allows for easy cropping and 
-	 *  enables a single texture to span more than one surface. CURRENTLY DISABLED!
+	 * Manually set coordinates for mapping the texture. This allows for easy
+	 * cropping and enables a single texture to span more than one surface.
+	 * CURRENTLY DISABLED!
 	 */
 	public void setTextureRect(float x, float y, float w, float h) {
 		/*
-		this.textureX = x;
-		this.textureY = y;
-		this.textureWidth = w;
-		this.textureHeight = h;
-		this.updateTransform();
-		*/
+		 * this.textureX = x; this.textureY = y; this.textureWidth = w;
+		 * this.textureHeight = h; this.updateTransform();
+		 */
 	}
 
 	/**
 	 * Set the coordinates of one of the target corner points.
+	 * But first check that all angles are clockwise, to avoid  concave shapes (collinearity is not allowed either as it freaks out the matrix calculation)
 	 * @param pointIndex
 	 * @param x
 	 * @param y
 	 */
-	public void setCornerPoint(int pointIndex, float x, float y) {
-		this.cornerPoints[pointIndex].x = x;
-		this.cornerPoints[pointIndex].y = y;
-		this.updateTransform();
+	public void setCornerPoint(int pointIndex, float inX, float inY) {
+		Point3D[] cTemp =  new Point3D[4];
+		for(int i = 0; i < 4; i++){
+			cTemp[i] = new Point3D(cornerPoints[i].x, cornerPoints[i].y);
+		}
+		
+		cTemp[pointIndex].x = inX;
+		cTemp[pointIndex].y = inY; 	
+		
+		cornerMovementAllowed = true;
+		for(int i = 0; i < cTemp.length; i++){
+			if(CCW( cTemp[(i + 2) % cTemp.length], cTemp[(i + 1) % cTemp.length], cTemp[i % cTemp.length] ) >= 0){
+				cornerMovementAllowed = false;
+			}
+		}
+		
+		// no intersection
+		if(cornerMovementAllowed){
+			this.cornerPoints[pointIndex].x = inX;
+			this.cornerPoints[pointIndex].y = inY;
+			this.updateTransform();
+		}
 	}
 	
+	/**Three points are a counter-clockwise turn if ccw > 0, clockwise if
+	* ccw < 0, and collinear if ccw = 0 because ccw is a determinant that
+	* gives the signed area of the triangle formed by p1, p2 and p3. */
+	public float CCW(Point3D p1, Point3D p2, Point3D p3){
+	    return (p2.x - p1.x)*(p3.y - p1.y) - (p2.y - p1.y)*(p3.x - p1.x);
+	}
+	
+	
+	
+	private boolean lineIntersects(int pointIndex, Point3D[] corners){
+		float aX = 0, aY = 0, bX = 0, bY = 0;
+
+		if (pointIndex >= 1 && pointIndex < this.cornerPoints.length - 1) {
+			aX = corners[pointIndex - 1].x;
+			aY = corners[pointIndex - 1].y;
+			bX = corners[pointIndex + 1].x;
+			bY = corners[pointIndex + 1].y;
+		} else if (pointIndex == 0) { // det e hŠr jag Šr
+			aX = corners[3].x;
+			aY = corners[3].y;
+			bX = corners[pointIndex + 1].x;
+			bY = corners[pointIndex + 1].y;
+		} else if (pointIndex == 3) {
+			aX = corners[pointIndex - 1].x;
+			aY = corners[pointIndex - 1].y;
+			bX = corners[0].x;
+			bY = corners[0].y;
+		}
+
+		PVector d = new PVector(bX, bY);
+		d.sub(aX, aY, 0);
+		PVector f = new PVector(aX, aY);
+		f.sub(corners[pointIndex].x, corners[pointIndex].y, 0);
+
+		float a = d.dot(d);
+		float b = 2 * f.dot(d);
+		float c = f.dot(f) - (10 * 10);
+
+		float discriminant = b * b - 4 * a * c;
+		if (discriminant < 0) {
+			return false;
+		}
+		
+		return true;
+	}
+
 	/**
 	 * Rotate the cornerpoints in direction (0=ClockWise 1=CounterClockWise)
+	 * 
 	 * @param direction
 	 */
-	public void rotateCornerPoints(int direction){
+	public void rotateCornerPoints(int direction) {
 		Point3D[] sourcePoints = cornerPoints.clone();
-		switch(direction){
+		switch (direction) {
 		case 0:
 			cornerPoints[0] = sourcePoints[1];
 			cornerPoints[1] = sourcePoints[2];
@@ -370,6 +432,7 @@ public class QuadSurface {
 
 	/**
 	 * Get the index of the active corner
+	 * 
 	 * @return
 	 */
 	public int getActivePoint() {
@@ -378,6 +441,7 @@ public class QuadSurface {
 
 	/**
 	 * Set index of which corner is active
+	 * 
 	 * @param activePoint
 	 */
 	public void setActivePoint(int activePoint) {
@@ -386,6 +450,7 @@ public class QuadSurface {
 
 	/**
 	 * Get all corners
+	 * 
 	 * @return
 	 */
 	public Point3D[] getCornerPoints() {
@@ -394,6 +459,7 @@ public class QuadSurface {
 
 	/**
 	 * Get a specific corner
+	 * 
 	 * @param index
 	 * @return
 	 */
@@ -403,6 +469,7 @@ public class QuadSurface {
 
 	/**
 	 * Get the surfaces ID
+	 * 
 	 * @return
 	 */
 	public int getId() {
@@ -410,7 +477,8 @@ public class QuadSurface {
 	}
 
 	/**
-	 * Set if the surface should be hidden 
+	 * Set if the surface should be hidden
+	 * 
 	 * @param hidden
 	 */
 	public void setHide(boolean hidden) {
@@ -419,14 +487,20 @@ public class QuadSurface {
 
 	/**
 	 * See if the surface is hidden
+	 * 
 	 * @return
 	 */
 	public boolean isHidden() {
 		return hidden;
 	}
 
+	public boolean isCornerMovementAllowed() {
+		return cornerMovementAllowed;
+	}
+
 	/**
-	 * Toggle if surface is locked (a locked surface cannot be moved or manipulated in calibration mode, but other surfaces still snap to it)
+	 * Toggle if surface is locked (a locked surface cannot be moved or
+	 * manipulated in calibration mode, but other surfaces still snap to it)
 	 */
 	public void toggleLocked() {
 		this.isLocked = !this.isLocked;
@@ -435,6 +509,7 @@ public class QuadSurface {
 
 	/**
 	 * See if the surface is locked
+	 * 
 	 * @return
 	 */
 	public boolean getLocked() {
@@ -443,6 +518,7 @@ public class QuadSurface {
 
 	/**
 	 * Set if the surface is locked
+	 * 
 	 * @param isLocked
 	 */
 	public void setLocked(boolean isLocked) {
@@ -452,6 +528,7 @@ public class QuadSurface {
 
 	/**
 	 * See if the surface is selected
+	 * 
 	 * @return
 	 */
 	public boolean isSelected() {
@@ -460,6 +537,7 @@ public class QuadSurface {
 
 	/**
 	 * Set if the surface is selected
+	 * 
 	 * @param selected
 	 */
 	public void setSelected(boolean selected) {
@@ -468,14 +546,16 @@ public class QuadSurface {
 
 	/**
 	 * Get the currently selected corner
+	 * 
 	 * @return
 	 */
 	public int getSelectedCorner() {
 		return this.selectedCorner;
 	}
-	
+
 	/**
 	 * Set the currently selected corner
+	 * 
 	 * @param selectedCorner
 	 */
 	public void setSelectedCorner(int selectedCorner) {
@@ -484,6 +564,7 @@ public class QuadSurface {
 
 	/**
 	 * Get the surface as a polygon
+	 * 
 	 * @return
 	 */
 	public Polygon getPolygon() {
@@ -491,8 +572,10 @@ public class QuadSurface {
 	}
 
 	/**
-	 * Checks if the coordinates is close to any of the corners, and if not, checks if the coordinates are inside the surface.
-	 * Returns the index of the corner (0,1,2,3) or (4) if coordinates was inside the surface 
+	 * Checks if the coordinates is close to any of the corners, and if not,
+	 * checks if the coordinates are inside the surface. Returns the index of
+	 * the corner (0,1,2,3) or (4) if coordinates was inside the surface
+	 * 
 	 * @param mX
 	 * @param mY
 	 * @return
@@ -505,12 +588,13 @@ public class QuadSurface {
 			}
 		}
 		if (this.isInside(mX, mY))
-			return 2000; 
+			return 2000;
 		return -1;
 	}
 
 	/**
 	 * Check if coordinates are inside the surface
+	 * 
 	 * @param mX
 	 * @param mY
 	 * @return
@@ -523,6 +607,7 @@ public class QuadSurface {
 
 	/**
 	 * Set all four corners of the surface
+	 * 
 	 * @param x0
 	 * @param y0
 	 * @param x1
@@ -549,15 +634,13 @@ public class QuadSurface {
 	}
 
 	/**
-	 * Recalculates all coordinates using the perspective transform.
-	 * Must be called whenever any change has been done to the surface.
+	 * Recalculates all coordinates using the perspective transform. Must be
+	 * called whenever any change has been done to the surface.
 	 */
 	private void updateTransform() {
 		// Update the PerspectiveTransform with the current width, height, and
 		// destination coordinates.
-		this.transform = PerspectiveTransform.getQuadToQuad(0, 0, this.DEFAULT_SIZE, 0, this.DEFAULT_SIZE, this.DEFAULT_SIZE, 0, this.DEFAULT_SIZE, 
-															this.cornerPoints[0].x, this.cornerPoints[0].y, this.cornerPoints[1].x, this.cornerPoints[1].y, 
-															this.cornerPoints[2].x, this.cornerPoints[2].y, this.cornerPoints[3].x, this.cornerPoints[3].y);
+		this.transform = PerspectiveTransform.getQuadToQuad(0, 0, this.DEFAULT_SIZE, 0, this.DEFAULT_SIZE, this.DEFAULT_SIZE, 0, this.DEFAULT_SIZE, this.cornerPoints[0].x, this.cornerPoints[0].y, this.cornerPoints[1].x, this.cornerPoints[1].y, this.cornerPoints[2].x, this.cornerPoints[2].y, this.cornerPoints[3].x, this.cornerPoints[3].y);
 
 		// calculate the x and y interval to subdivide the source rectangle into
 		// the desired resolution.
@@ -581,8 +664,8 @@ public class QuadSurface {
 
 				this.gridPoints[x + y * this.GRID_RESOLUTION].u = this.DEFAULT_SIZE * percentX + this.textureX;
 				this.gridPoints[x + y * this.GRID_RESOLUTION].v = this.DEFAULT_SIZE * percentY + this.textureY; // y
-																													// *
-																													// stepY;
+																												// *
+																												// stepY;
 
 				srcPoints[i++] = x * stepX;
 				srcPoints[i++] = y * stepY;
@@ -611,12 +694,12 @@ public class QuadSurface {
 				offset = x + y * this.GRID_RESOLUTION;
 
 				this.vertexPoints[x][y].copyPoint(this.gridPoints[offset]);
-				this.vertexPoints[x+1][y].copyPoint(this.gridPoints[offset + 1]);
+				this.vertexPoints[x + 1][y].copyPoint(this.gridPoints[offset + 1]);
 
 				offset = x + (y + 1) * this.GRID_RESOLUTION;
 
-				this.vertexPoints[x+1][y+1].copyPoint(this.gridPoints[offset + 1]);
-				this.vertexPoints[x][y+1].copyPoint(this.gridPoints[offset]);
+				this.vertexPoints[x + 1][y + 1].copyPoint(this.gridPoints[offset + 1]);
+				this.vertexPoints[x][y + 1].copyPoint(this.gridPoints[offset]);
 			}
 		}
 
@@ -643,11 +726,13 @@ public class QuadSurface {
 	}
 
 	/**
-	 *  Find the average position of all the control points, use that as the center point.
+	 * Find the average position of all the control points, use that as the
+	 * center point.
+	 * 
 	 * @return
 	 */
 	public Point3D getCenter() {
-		
+
 		float avgX = 0;
 		float avgY = 0;
 		for (int c = 0; c < 4; c++) {
@@ -662,6 +747,7 @@ public class QuadSurface {
 
 	/**
 	 * Translate a point on the screen into a point in the surface.
+	 * 
 	 * @param x
 	 * @param y
 	 * @return
@@ -684,6 +770,7 @@ public class QuadSurface {
 
 	/**
 	 * Render method for rendering while in calibration mode
+	 * 
 	 * @param g
 	 */
 	public void render(GLGraphicsOffScreen g) {
@@ -693,19 +780,23 @@ public class QuadSurface {
 	}
 
 	/**
-	 * Render method for rendering in RENDER mode. 
-	 * Takes one GLGraphicsOffScreen and one GLTexture. The GLTexture is the texture used for the surface, and is drawn to the offscreen buffer.
+	 * Render method for rendering in RENDER mode. Takes one GLGraphicsOffScreen
+	 * and one GLTexture. The GLTexture is the texture used for the surface, and
+	 * is drawn to the offscreen buffer.
+	 * 
 	 * @param g
 	 * @param tex
 	 */
 	public void render(GLGraphicsOffScreen g, GLTexture tex) {
-		if(this.isHidden()) return;
+		if (this.isHidden())
+			return;
 		this.renderQuad(g, tex);
 	}
 
 	/**
-	 * Actual rendering of the QUAD. Is called from the render method.
-	 * Should normally not be accessed directly.
+	 * Actual rendering of the QUAD. Is called from the render method. Should
+	 * normally not be accessed directly.
+	 * 
 	 * @param g
 	 * @param tex
 	 */
@@ -715,36 +806,18 @@ public class QuadSurface {
 		g.beginShape(PApplet.QUADS);
 
 		g.texture(tex);
-		
-		for (int i = 0; i < GRID_RESOLUTION-1; i++) {
-			for (int j = 0; j < GRID_RESOLUTION-1; j++) {
-				
-				
-				g.vertex(vertexPoints[i][j].x, 
-						vertexPoints[i][j].y, 
-						vertexPoints[i][j].z+currentZ,
-						((float) i / (GRID_RESOLUTION-1)) * tex.width,
-						((float) j / (GRID_RESOLUTION-1)) * tex.height);
-				
-				g.vertex(vertexPoints[i + 1][j].x, 
-						vertexPoints[i + 1][j].y,
-						vertexPoints[i + 1][j].z+currentZ, 
-						(((float) i + 1) / (GRID_RESOLUTION-1)) * tex.width, 
-						((float) j / (GRID_RESOLUTION-1)) * tex.height);
-				
-				g.vertex(vertexPoints[i + 1][j + 1].x, 
-						vertexPoints[i + 1][j + 1].y,
-						vertexPoints[i + 1][j + 1].z+currentZ, 
-						(((float) i + 1) / (GRID_RESOLUTION-1)) * tex.width, 
-						(((float) j + 1) / (GRID_RESOLUTION-1)) * tex.height);
-				
-				g.vertex(vertexPoints[i][j + 1].x, 
-						vertexPoints[i][j + 1].y,
-						vertexPoints[i][j + 1].z+currentZ, 
-						((float) i / (GRID_RESOLUTION-1)) * tex.width,
-						(((float) j + 1) / (GRID_RESOLUTION-1)) * tex.height);
-				
-				
+
+		for (int i = 0; i < GRID_RESOLUTION - 1; i++) {
+			for (int j = 0; j < GRID_RESOLUTION - 1; j++) {
+
+				g.vertex(vertexPoints[i][j].x, vertexPoints[i][j].y, vertexPoints[i][j].z + currentZ, ((float) i / (GRID_RESOLUTION - 1)) * tex.width, ((float) j / (GRID_RESOLUTION - 1)) * tex.height);
+
+				g.vertex(vertexPoints[i + 1][j].x, vertexPoints[i + 1][j].y, vertexPoints[i + 1][j].z + currentZ, (((float) i + 1) / (GRID_RESOLUTION - 1)) * tex.width, ((float) j / (GRID_RESOLUTION - 1)) * tex.height);
+
+				g.vertex(vertexPoints[i + 1][j + 1].x, vertexPoints[i + 1][j + 1].y, vertexPoints[i + 1][j + 1].z + currentZ, (((float) i + 1) / (GRID_RESOLUTION - 1)) * tex.width, (((float) j + 1) / (GRID_RESOLUTION - 1)) * tex.height);
+
+				g.vertex(vertexPoints[i][j + 1].x, vertexPoints[i][j + 1].y, vertexPoints[i][j + 1].z + currentZ, ((float) i / (GRID_RESOLUTION - 1)) * tex.width, (((float) j + 1) / (GRID_RESOLUTION - 1)) * tex.height);
+
 			}
 		}
 
@@ -754,19 +827,20 @@ public class QuadSurface {
 
 	/**
 	 * Renders the grid in the surface. (useful in calibration mode)
+	 * 
 	 * @param g
 	 */
 	private void renderGrid(GLGraphicsOffScreen g) {
-		g.beginDraw();	
+		g.beginDraw();
 		g.fill(20);
 		g.noStroke();
-		
+
 		g.beginShape(PApplet.QUADS);
-		for(int i = 0; i < this.getCornerPoints().length; i++){
+		for (int i = 0; i < this.getCornerPoints().length; i++) {
 			g.vertex(this.getCornerPoint(i).x, this.getCornerPoint(i).y);
 		}
 		g.endShape();
-		
+
 		g.textFont(sm.getIdFont());
 		g.fill(255);
 
@@ -775,9 +849,8 @@ public class QuadSurface {
 		g.text("" + surfaceId, (float) (this.getCenter().x), (float) this.getCenter().y);
 		if (isLocked) {
 			g.textSize(12);
-			g.text("Surface locked", (float) this.getCenter().x, (float) this.getCenter().y+26);
+			g.text("Surface locked", (float) this.getCenter().x, (float) this.getCenter().y + 26);
 		}
-		
 
 		g.noFill();
 		g.stroke(QuadSurface.GRID_LINE_COLOR);
@@ -827,6 +900,7 @@ public class QuadSurface {
 
 	/**
 	 * Draws the Cornerpoints
+	 * 
 	 * @param g
 	 * @param x
 	 * @param y
@@ -855,9 +929,9 @@ public class QuadSurface {
 	}
 
 	public String getSurfaceName() {
-		if(surfaceName == null) return String.valueOf(this.getId());
+		if (surfaceName == null)
+			return String.valueOf(this.getId());
 		return surfaceName;
 	}
-
 
 }

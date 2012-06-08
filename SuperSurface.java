@@ -488,6 +488,20 @@ public class SuperSurface {
 	}
 	
 	/**
+	 * See if we can move the cornerpoint of the surface
+	 * @return
+	 */
+	public boolean isCornerMovementAllowed(){
+		switch(type){
+			case QUAD:
+				return quadSurface.isCornerMovementAllowed();
+			case BEZIER:
+				return true;	
+		}
+		return true;
+	}
+	
+	/**
 	 * Get the surfaces ID
 	 * @return
 	 */
