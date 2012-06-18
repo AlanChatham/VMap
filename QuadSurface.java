@@ -73,6 +73,8 @@ public class QuadSurface {
 	// http://download.oracle.com/docs/cd/E17802_01/products/products/java-media/jai/forDevelopers/jai-apidocs/javax/media/jai/PerspectiveTransform.html
 	private PerspectiveTransform transform;
 
+	private PVector[] textureWindow= new PVector[2];
+	
 	private int GRID_RESOLUTION;
 
 	private int surfaceId;
@@ -115,6 +117,7 @@ public class QuadSurface {
 		init(parent, ks, res, id, null);
 
 		this.setCornerPoints((float) (x - (this.DEFAULT_SIZE * 0.5)), (float) (y - (this.DEFAULT_SIZE * 0.5)), (float) (x + (this.DEFAULT_SIZE * 0.5)), (float) (y - (this.DEFAULT_SIZE * 0.5)), (float) (x + (this.DEFAULT_SIZE * 0.5)), (float) (y + (this.DEFAULT_SIZE * 0.5)), (float) (x - (this.DEFAULT_SIZE * 0.5)), (float) (y + (this.DEFAULT_SIZE * 0.5)));
+		this.setTextureWindow(new PVector(0 ,0), new PVector(1,1));
 	}
 
 	/**
@@ -134,6 +137,17 @@ public class QuadSurface {
 			this.setLocked(xml.getBoolean("lock"));
 
 		this.setCornerPoints(xml.getChild(0).getFloat("x"), xml.getChild(0).getFloat("y"), xml.getChild(1).getFloat("x"), xml.getChild(1).getFloat("y"), xml.getChild(2).getFloat("x"), xml.getChild(2).getFloat("y"), xml.getChild(3).getFloat("x"), xml.getChild(3).getFloat("y"));
+		PVector offset = new PVector(0, 0);
+		PVector size = new PVector(1, 1);
+		for(XMLElement xo : xml.getChildren()){
+			if(xo.getName().equalsIgnoreCase("texturewindowoffset")){
+				offset = new PVector(xo.getFloat("x"), xo.getFloat("y"));
+			}
+			if(xo.getName().equalsIgnoreCase("texturewindowsize")){
+				size = new PVector(xo.getFloat("x"), xo.getFloat("y"));
+			}
+		}
+		this.setTextureWindow(offset, size);
 
 	}
 
@@ -303,74 +317,78 @@ public class QuadSurface {
 	/**
 	 * Manually set coordinates for mapping the texture. This allows for easy
 	 * cropping and enables a single texture to span more than one surface.
-	 * CURRENTLY DISABLED!
+	 * Use normalized values for the values! (i.e 0-1)
+	 * 
+	 * @param PVector[2] where PVector[0] is offset(x,y) and PVector[1] is width/height(x, y) 
 	 */
-	public void setTextureRect(float x, float y, float w, float h) {
-		/*
-		 * this.textureX = x; this.textureY = y; this.textureWidth = w;
-		 * this.textureHeight = h; this.updateTransform();
-		 */
+	public void setTextureWindow(PVector offset, PVector size) {
+		offset.x = (offset.x > 0) ? offset.x : 0;
+		offset.x = (offset.x < 1) ? offset.x : 1;
+		offset.y = (offset.y > 0) ? offset.y : 0;
+		offset.y = (offset.y < 1) ? offset.y : 1;
+		
+		size.x = (size.x > 0) ? size.x : 0;
+		size.x = (size.x < 1) ? size.x : 1;
+		size.y = (size.y > 0) ? size.y : 0;
+		size.y = (size.y < 1) ? size.y : 1;
+		
+		textureWindow[0] = new PVector(offset.x, offset.y);
+		textureWindow[1] = new PVector(size.x, size.y);
+	}
+	
+	public PVector[] getTextureWindow(){
+		return this.textureWindow;
 	}
 
 	/**
-	 * Set the coordinates of one of the target corner points.
-	 * But first check that all angles are clockwise, to avoid  concave shapes (collinearity is not allowed either as it freaks out the matrix calculation)
+	 * Set the coordinates of one of the target corner points. But first check
+	 * that all angles are clockwise, to avoid concave shapes (collinearity is
+	 * not allowed either as it freaks out the matrix calculation)
+	 * 
 	 * @param pointIndex
 	 * @param x
 	 * @param y
 	 */
 	public void setCornerPoint(int pointIndex, float inX, float inY) {
-		Point3D[] cTemp =  new Point3D[4];
-		for(int i = 0; i < 4; i++){
+		Point3D[] cTemp = new Point3D[4];
+		for (int i = 0; i < 4; i++) {
 			cTemp[i] = new Point3D(cornerPoints[i].x, cornerPoints[i].y);
 		}
-		
+
 		cTemp[pointIndex].x = inX;
-		cTemp[pointIndex].y = inY; 	
-		
+		cTemp[pointIndex].y = inY;
+
 		cornerMovementAllowed = true;
-		for(int i = 0; i < cTemp.length; i++){
-			if(CCW( cTemp[(i + 2) % cTemp.length], cTemp[(i + 1) % cTemp.length], cTemp[i % cTemp.length] ) >= 0){
+		for (int i = 0; i < cTemp.length; i++) {
+			if (CCW(cTemp[(i + 2) % cTemp.length], cTemp[(i + 1) % cTemp.length], cTemp[i % cTemp.length]) >= 0) {
 				cornerMovementAllowed = false;
 			}
 		}
-		
+
 		// no intersection
-		if(cornerMovementAllowed){
+		if (cornerMovementAllowed) {
 			this.cornerPoints[pointIndex].x = inX;
 			this.cornerPoints[pointIndex].y = inY;
 			this.updateTransform();
 		}
 	}
-	
-	/**Three points are a counter-clockwise turn if ccw > 0, clockwise if
-	* ccw < 0, and collinear if ccw = 0 because ccw is a determinant that
-	* gives the signed area of the triangle formed by p1, p2 and p3. */
-	public float CCW(Point3D p1, Point3D p2, Point3D p3){
-	    return (p2.x - p1.x)*(p3.y - p1.y) - (p2.y - p1.y)*(p3.x - p1.x);
+
+	/**
+	 * Three points are a counter-clockwise turn if ccw > 0, clockwise if ccw <
+	 * 0, and collinear if ccw = 0 because ccw is a determinant that gives the
+	 * signed area of the triangle formed by p1, p2 and p3.
+	 */
+	public float CCW(Point3D p1, Point3D p2, Point3D p3) {
+		return (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
 	}
-	
-	
-	
-	private boolean lineIntersects(int pointIndex, Point3D[] corners){
+
+	private boolean lineIntersects(int pointIndex, Point3D[] corners) {
 		float aX = 0, aY = 0, bX = 0, bY = 0;
 
-		if (pointIndex >= 1 && pointIndex < this.cornerPoints.length - 1) {
-			aX = corners[pointIndex - 1].x;
-			aY = corners[pointIndex - 1].y;
-			bX = corners[pointIndex + 1].x;
-			bY = corners[pointIndex + 1].y;
-		} else if (pointIndex == 0) { // det e hŠr jag Šr
-			aX = corners[3].x;
-			aY = corners[3].y;
-			bX = corners[pointIndex + 1].x;
-			bY = corners[pointIndex + 1].y;
-		} else if (pointIndex == 3) {
-			aX = corners[pointIndex - 1].x;
-			aY = corners[pointIndex - 1].y;
-			bX = corners[0].x;
-			bY = corners[0].y;
-		}
+		aX = corners[(pointIndex - 1) % corners.length].x;
+		aY = corners[(pointIndex - 1) % corners.length].y;
+		bX = corners[(pointIndex + 1) % corners.length].x;
+		bY = corners[(pointIndex - +1) % corners.length].y;
 
 		PVector d = new PVector(bX, bY);
 		d.sub(aX, aY, 0);
@@ -385,7 +403,6 @@ public class QuadSurface {
 		if (discriminant < 0) {
 			return false;
 		}
-		
 		return true;
 	}
 
@@ -474,6 +491,15 @@ public class QuadSurface {
 	 */
 	public int getId() {
 		return this.surfaceId;
+	}
+	
+	/**
+	 * Set the surfaces ID
+	 * 
+	 * @param id
+	 */
+	public void setId(int id) {
+		this.surfaceId = id;
 	}
 
 	/**
@@ -806,17 +832,37 @@ public class QuadSurface {
 		g.beginShape(PApplet.QUADS);
 
 		g.texture(tex);
+		
+		float tWidth = tex.width * (textureWindow[1].x - textureWindow[0].x);
+		float tHeight= tex.width * (textureWindow[1].y - textureWindow[0].y);
+
 
 		for (int i = 0; i < GRID_RESOLUTION - 1; i++) {
 			for (int j = 0; j < GRID_RESOLUTION - 1; j++) {
 
-				g.vertex(vertexPoints[i][j].x, vertexPoints[i][j].y, vertexPoints[i][j].z + currentZ, ((float) i / (GRID_RESOLUTION - 1)) * tex.width, ((float) j / (GRID_RESOLUTION - 1)) * tex.height);
+				g.vertex(vertexPoints[i][j].x, 
+						vertexPoints[i][j].y, 
+						vertexPoints[i][j].z + currentZ, 
+						((float) i / (GRID_RESOLUTION - 1)) * (tWidth) + ((tex.width * textureWindow[0].x)), 
+						((float) j / (GRID_RESOLUTION - 1)) * tHeight+ ((tex.height * textureWindow[0].y)));
 
-				g.vertex(vertexPoints[i + 1][j].x, vertexPoints[i + 1][j].y, vertexPoints[i + 1][j].z + currentZ, (((float) i + 1) / (GRID_RESOLUTION - 1)) * tex.width, ((float) j / (GRID_RESOLUTION - 1)) * tex.height);
+				g.vertex(vertexPoints[i + 1][j].x, 
+						vertexPoints[i + 1][j].y, 
+						vertexPoints[i + 1][j].z + currentZ, 
+						(((float) i + 1) / (GRID_RESOLUTION - 1)) * (tWidth) + ((tex.width * textureWindow[0].x)), 
+						((float) j / (GRID_RESOLUTION - 1)) * tHeight+ ((tex.height * textureWindow[0].y)));
 
-				g.vertex(vertexPoints[i + 1][j + 1].x, vertexPoints[i + 1][j + 1].y, vertexPoints[i + 1][j + 1].z + currentZ, (((float) i + 1) / (GRID_RESOLUTION - 1)) * tex.width, (((float) j + 1) / (GRID_RESOLUTION - 1)) * tex.height);
+				g.vertex(vertexPoints[i + 1][j + 1].x, 
+						vertexPoints[i + 1][j + 1].y, 
+						vertexPoints[i + 1][j + 1].z + currentZ, 
+						(((float) i + 1) / (GRID_RESOLUTION - 1)) * (tWidth) + ((tex.width * textureWindow[0].x)), 
+						(((float) j + 1) / (GRID_RESOLUTION - 1)) * tHeight+ ((tex.height * textureWindow[0].y)));
 
-				g.vertex(vertexPoints[i][j + 1].x, vertexPoints[i][j + 1].y, vertexPoints[i][j + 1].z + currentZ, ((float) i / (GRID_RESOLUTION - 1)) * tex.width, (((float) j + 1) / (GRID_RESOLUTION - 1)) * tex.height);
+				g.vertex(vertexPoints[i][j + 1].x, 
+						vertexPoints[i][j + 1].y, 
+						vertexPoints[i][j + 1].z + currentZ, 
+						((float) i / (GRID_RESOLUTION - 1)) *  (tWidth) + ((tex.width * textureWindow[0].x)), 
+						(((float) j + 1) / (GRID_RESOLUTION - 1)) * tHeight+ ((tex.height * textureWindow[0].y)));
 
 			}
 		}

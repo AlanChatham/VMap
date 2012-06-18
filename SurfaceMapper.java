@@ -113,7 +113,7 @@ public class SurfaceMapper {
 		// issue a warning if its PGraphics2D
 		PGraphics pg = (PGraphics) parent.g;
 		if ((pg instanceof PGraphics2D)) {
-			PApplet.println("Keystone --> The keystone library will not work with PGraphics2D as the renderer because it relies on texture mapping.");
+			PApplet.println("SurfaceMapper --> The keystone library will not work with PGraphics2D as the renderer because it relies on texture mapping.");
 		}
 
 		parent.addMouseWheelListener(new java.awt.event.MouseWheelListener() {
@@ -1248,29 +1248,98 @@ public class SurfaceMapper {
 			case '4':
 				if (selectedSurfaces.size() == 1)
 					selectedSurfaces.get(0).setSelectedCorner(3);
+			
+			case '9':
+				if (selectedSurfaces.size() == 1)
+					selectedSurfaces.get(0).setId(0);
 				break;
 
 			case KeyEvent.VK_UP:
-				for (SuperSurface ss : selectedSurfaces) {
-					movePoint(ss, 0, -1);
+				if (!altDown && !ctrlDown) {
+					for (SuperSurface ss : selectedSurfaces) {
+						movePoint(ss, 0, -1);
+					}
 				}
+				//ALT is Offset!
+				if(altDown && !ctrlDown){
+					for (SuperSurface ss : selectedSurfaces) {
+						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y + 0.05f), new PVector(ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y));
+					}
+				}
+				
+				//CTRL is Size!
+				if(!altDown && ctrlDown){
+					for (SuperSurface ss : selectedSurfaces) {
+						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y), new PVector(ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y + 0.05f));
+					}
+				}
+				
 				break;
 
 			case KeyEvent.VK_DOWN:
-				for (SuperSurface ss : selectedSurfaces) {
-					movePoint(ss, 0, 1);
+				if (!altDown && !ctrlDown) {
+					for (SuperSurface ss : selectedSurfaces) {
+						movePoint(ss, 0, 1);
+					}
 				}
+				//ALT is Offset!
+				if(altDown && !ctrlDown){
+					for (SuperSurface ss : selectedSurfaces) {
+						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y - 0.05f), new PVector(ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y));
+					}
+				}
+				
+				//CTRL is Size!
+				if(!altDown && ctrlDown){
+					for (SuperSurface ss : selectedSurfaces) {
+						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y), new PVector(ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y - 0.05f));
+					}
+				}
+				
 				break;
 
 			case KeyEvent.VK_LEFT:
-				for (SuperSurface ss : selectedSurfaces) {
-					movePoint(ss, -1, 0);
+				if (!altDown && !ctrlDown) {
+					for (SuperSurface ss : selectedSurfaces) {
+						movePoint(ss, -1, 0);
+					}
 				}
+				
+				//ALT is Offset!
+				if(altDown && !ctrlDown){
+					for (SuperSurface ss : selectedSurfaces) {
+						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x + 0.05f, ss.getTextureWindow()[0].y), new PVector(ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y));
+					}
+				}
+				
+				//CTRL is Size!
+				if(!altDown && ctrlDown){
+					for (SuperSurface ss : selectedSurfaces) {
+						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y), new PVector(ss.getTextureWindow()[1].x + 0.05f, ss.getTextureWindow()[1].y));
+					}
+				}
+				
 				break;
 
 			case KeyEvent.VK_RIGHT:
-				for (SuperSurface ss : selectedSurfaces) {
-					movePoint(ss, 1, 0);
+				if (!altDown && !ctrlDown) {
+					for (SuperSurface ss : selectedSurfaces) {
+						movePoint(ss, 1, 0);
+					}
+				}
+				
+				//ALT is Offset!
+				if(altDown && !ctrlDown){
+					for (SuperSurface ss : selectedSurfaces) {
+						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x - 0.05f, ss.getTextureWindow()[0].y), new PVector(ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y));
+					}
+				}
+				
+				//CTRL is Size!
+				if(!altDown && ctrlDown){
+					for (SuperSurface ss : selectedSurfaces) {
+						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y), new PVector(ss.getTextureWindow()[1].x - 0.05f, ss.getTextureWindow()[1].y));
+					}
 				}
 				break;
 			/*
@@ -1320,7 +1389,7 @@ public class SurfaceMapper {
 					if (ss.isLocked())
 						return;
 					if (this.getDebug())
-						PApplet.println("Keystone --> DELETED SURFACE with ID: #" + ss.getId());
+						PApplet.println("SurfaceMapper --> DELETED SURFACE with ID: #" + ss.getId());
 					surfaces.remove(i);
 				}
 			}

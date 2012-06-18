@@ -22,6 +22,7 @@ package ixagon.SurfaceMapper;
 
 import java.awt.Polygon;
 import processing.core.PApplet;
+import processing.core.PVector;
 import processing.xml.XMLElement;
 import codeanticode.glgraphics.GLGraphicsOffScreen;
 import codeanticode.glgraphics.GLTexture;
@@ -58,6 +59,8 @@ public class BezierSurface {
 
 	// Coordinates of the bezier vectors
 	private Point3D[] bezierPoints;
+	
+	private PVector[] textureWindow= new PVector[2];
 	
 	// Displacement forces
 
@@ -138,6 +141,8 @@ public class BezierSurface {
 
 		this.bezierPoints[7].x = (float) (this.cornerPoints[3].x - (this.DEFAULT_SIZE * 0.0));
 		this.bezierPoints[7].y = (float) (this.cornerPoints[3].y - (this.DEFAULT_SIZE * 0.3));
+		
+		this.setTextureWindow(new PVector(0 ,0), new PVector(1,1));
 
 		this.updateTransform();
 	}
@@ -168,6 +173,19 @@ public class BezierSurface {
 		
 		horizontalForce = xml.getInt("horizontalForce");
 		verticalForce = xml.getInt("verticalForce");
+		
+		PVector offset = new PVector(0, 0);
+		PVector size = new PVector(1, 1);
+		for(XMLElement xo : xml.getChildren()){
+			if(xo.getName().equalsIgnoreCase("texturewindowoffset")){
+				offset = new PVector(xo.getFloat("x"), xo.getFloat("y"));
+			}
+			if(xo.getName().equalsIgnoreCase("texturewindowsize")){
+				size = new PVector(xo.getFloat("x"), xo.getFloat("y"));
+			}
+		}
+		this.setTextureWindow(offset, size);
+
 
 		this.updateTransform();
 	}
@@ -409,6 +427,33 @@ public class BezierSurface {
 	}
 	
 	/**
+	 * Manually set coordinates for mapping the texture. This allows for easy
+	 * cropping and enables a single texture to span more than one surface.
+	 * Use normalized values for the values! (i.e 0-1)
+	 * 
+	 * @param PVector[2] where PVector[0] is offset(x,y) and PVector[1] is width/height(x, y) 
+	 */
+	public void setTextureWindow(PVector offset, PVector size) {
+		offset.x = (offset.x > 0) ? offset.x : 0;
+		offset.x = (offset.x < 1) ? offset.x : 1;
+		offset.y = (offset.y > 0) ? offset.y : 0;
+		offset.y = (offset.y < 1) ? offset.y : 1;
+		
+		size.x = (size.x > 0) ? size.x : 0;
+		size.x = (size.x < 1) ? size.x : 1;
+		size.y = (size.y > 0) ? size.y : 0;
+		size.y = (size.y < 1) ? size.y : 1;
+		
+		textureWindow[0] = new PVector(offset.x, offset.y);
+		textureWindow[1] = new PVector(size.x, size.y);
+	}
+	
+	public PVector[] getTextureWindow(){
+		return this.textureWindow;
+	}
+	
+	
+	/**
 	 * Get all corner points
 	 * @return
 	 */
@@ -472,6 +517,15 @@ public class BezierSurface {
 	 */
 	public int getId() {
 		return this.surfaceId;
+	}
+	
+	/**
+	 * Set the surfaces ID
+	 * 
+	 * @param id
+	 */
+	public void setId(int id) {
+		this.surfaceId = id;
 	}
 
 	/**
@@ -759,6 +813,9 @@ public class BezierSurface {
 		//g.hint(PApplet.DISABLE_DEPTH_TEST); //this is probably needed, but could cause problems with surfaces adjacent to each other
 		g.noStroke();
 		
+		float tWidth = tex.width * (textureWindow[1].x - textureWindow[0].x);
+		float tHeight= tex.width * (textureWindow[1].y - textureWindow[0].y);
+		
 		for (int i = 0; i < GRID_RESOLUTION; i++) {
 			for (int j = 0; j < GRID_RESOLUTION; j++) {
 				
@@ -767,26 +824,26 @@ public class BezierSurface {
 				g.vertex(vertexPoints[i][j].x, 
 						vertexPoints[i][j].y, 
 						vertexPoints[i][j].z+currentZ,
-						((float) i / GRID_RESOLUTION) * tex.width,
-						((float) j / GRID_RESOLUTION) * tex.height);
+						((float) i / GRID_RESOLUTION) * (tWidth) + ((tex.width * textureWindow[0].x)),
+						((float) j / GRID_RESOLUTION) * tHeight+ ((tex.height * textureWindow[0].y)));
 				
 				g.vertex(vertexPoints[i + 1][j].x, 
 						vertexPoints[i + 1][j].y,
 						vertexPoints[i + 1][j].z+currentZ, 
-						(((float) i + 1) / GRID_RESOLUTION) * tex.width, 
-						((float) j / GRID_RESOLUTION) * tex.height);
+						(((float) i + 1) / GRID_RESOLUTION) * (tWidth) + ((tex.width * textureWindow[0].x)), 
+						((float) j / GRID_RESOLUTION) * tHeight+ ((tex.height * textureWindow[0].y)));
 				
 				g.vertex(vertexPoints[i + 1][j + 1].x, 
 						vertexPoints[i + 1][j + 1].y,
 						vertexPoints[i + 1][j + 1].z+currentZ, 
-						(((float) i + 1) / GRID_RESOLUTION) * tex.width, 
-						(((float) j + 1) / GRID_RESOLUTION) * tex.height);
+						(((float) i + 1) / GRID_RESOLUTION) * (tWidth) + ((tex.width * textureWindow[0].x)), 
+						(((float) j + 1) / GRID_RESOLUTION) * tHeight+ ((tex.height * textureWindow[0].y)));
 				
 				g.vertex(vertexPoints[i][j + 1].x, 
 						vertexPoints[i][j + 1].y,
 						vertexPoints[i][j + 1].z+currentZ, 
-						((float) i / GRID_RESOLUTION) * tex.width,
-						(((float) j + 1) / GRID_RESOLUTION) * tex.height);
+						((float) i / GRID_RESOLUTION) * (tWidth) + ((tex.width * textureWindow[0].x)),
+						(((float) j + 1) / GRID_RESOLUTION) * tHeight+ ((tex.height * textureWindow[0].y)));
 				g.endShape();
 				
 			}

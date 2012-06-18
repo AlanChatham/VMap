@@ -153,6 +153,27 @@ public class SuperSurface {
 		return 0;
 	}
 	
+	public void setTextureWindow(PVector offset, PVector size){
+		switch(type){
+		case QUAD:
+			quadSurface.setTextureWindow(offset, size);
+			break;
+		case BEZIER:
+			bezierSurface.setTextureWindow(offset, size);
+			break;
+		}
+	}
+	
+	public PVector[] getTextureWindow(){
+		switch(type){
+		case QUAD:
+			return quadSurface.getTextureWindow();
+		case BEZIER:
+			return bezierSurface.getTextureWindow();
+		}
+		return null;
+	}
+	
 	/**
 	 * Increase the amount of subdivision
 	 */
@@ -291,6 +312,21 @@ public class SuperSurface {
 			return bezierSurface.isHidden();
 		}
 		return false;
+	}
+	
+	/**
+	 * Set the ID of the surface
+	 * @param id
+	 */
+	public void setId(int id){
+		switch(type){
+		case QUAD:
+			quadSurface.setId(id);
+			break;
+		case BEZIER:
+			bezierSurface.setId(id);
+			break;
+		}
 	}
 	
 	/**
