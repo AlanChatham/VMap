@@ -813,8 +813,8 @@ public class BezierSurface {
 		//g.hint(PApplet.DISABLE_DEPTH_TEST); //this is probably needed, but could cause problems with surfaces adjacent to each other
 		g.noStroke();
 		
-		float tWidth = tex.width * (textureWindow[1].x - textureWindow[0].x);
-		float tHeight= tex.width * (textureWindow[1].y - textureWindow[0].y);
+		float tWidth = tex.width * (textureWindow[1].x);
+		float tHeight= tex.width * (textureWindow[1].y);
 		
 		for (int i = 0; i < GRID_RESOLUTION; i++) {
 			for (int j = 0; j < GRID_RESOLUTION; j++) {
@@ -880,7 +880,7 @@ public class BezierSurface {
 		g.fill(255);
 		g.textAlign(PApplet.CENTER, PApplet.CENTER);
 		g.textSize(20);
-		g.text("" + surfaceId, (float) (this.getCenter().x), (float) this.getCenter().y);
+		g.text("" + this.getSurfaceName(), (float) (this.getCenter().x), (float) this.getCenter().y);
 		if (isLocked) {
 			g.textSize(12);
 			g.text("Surface locked", (float) this.getCenter().x, (float) this.getCenter().y+26);
