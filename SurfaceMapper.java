@@ -638,7 +638,7 @@ public class SurfaceMapper {
 	 * @param superSurface
 	 * @return
 	 */
-	public void addSurface(SuperSurface superSurface) {
+	public SuperSurface addSurface(SuperSurface superSurface) {
 		if (ccolor.length > 0)
 			superSurface.setColor(ccolor[superSurface.getId() % ccolor.length]);
 		superSurface.setModeCalibrate();
@@ -646,6 +646,8 @@ public class SurfaceMapper {
 
 		if (superSurface.getId() >= numAddedSurfaces)
 			numAddedSurfaces = superSurface.getId() + 1;
+		
+		return surfaces.get(surfaces.size() - 1);
 	}
 
 	/**
