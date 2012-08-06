@@ -87,7 +87,7 @@ public class SurfaceMapper {
 	private float shakeAngle;
 	private float shakeZ;
 
-	private boolean selectionMouse;
+	private boolean enableSelectionMouse;
 
 	/**
 	 * Create instance of IxKeystone
@@ -124,7 +124,7 @@ public class SurfaceMapper {
 			}
 		});
 		
-		selectionMouse = true;
+		enableSelectionMouse = true;
 	}
 
 	/**
@@ -175,7 +175,7 @@ public class SurfaceMapper {
 			// Draw circles for SelectionDistance or SnapDistance (snap if CMD
 			// is down)
 			glos.beginDraw();
-			if (selectionMouse) {
+			if (enableSelectionMouse) {
 				if (!ctrlDown) {
 					glos.ellipseMode(PApplet.CENTER);
 					glos.fill(this.getSelectionMouseColor(), 100);
@@ -204,12 +204,12 @@ public class SurfaceMapper {
 		}
 	}
 
-	public boolean isSelectionMouse() {
-		return selectionMouse;
+	public boolean isEnableSelectionMouse() {
+		return enableSelectionMouse;
 	}
 
-	public void setSelectionMouse(boolean selectionMouse) {
-		this.selectionMouse = selectionMouse;
+	public void setEnableSelectionMouse(boolean enableSelectionMouse) {
+		this.enableSelectionMouse = enableSelectionMouse;
 	}
 
 	/**
