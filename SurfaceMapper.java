@@ -87,6 +87,8 @@ public class SurfaceMapper {
 	private float shakeAngle;
 	private float shakeZ;
 
+	private boolean selectionMouse;
+
 	/**
 	 * Create instance of IxKeystone
 	 * 
@@ -121,11 +123,12 @@ public class SurfaceMapper {
 				mouseWheelAction(evt.getWheelRotation());
 			}
 		});
+		
+		selectionMouse = true;
 	}
 
 	/**
-	 * Render method used when calibrating. Shouldn't be used for final
-	 * rendering.
+	 * Render method used when calibrating. Shouldn't be used for final rendering.
 	 * 
 	 * @param glos
 	 */
@@ -151,13 +154,11 @@ public class SurfaceMapper {
 			 * 
 			 * float step = (float) (width / gridRes);
 			 * 
-			 * for (float i = 1; i < width; i += step) { glos.line(i, 0, i,
-			 * parent.height); }
+			 * for (float i = 1; i < width; i += step) { glos.line(i, 0, i, parent.height); }
 			 * 
 			 * step = (float) (height / gridRes);
 			 * 
-			 * for (float i = 1; i < width; i += step) { glos.line(0, i,
-			 * parent.width, i); }
+			 * for (float i = 1; i < width; i += step) { glos.line(0, i, parent.width, i); }
 			 */
 			glos.stroke(255);
 			glos.strokeWeight(2);
@@ -174,16 +175,18 @@ public class SurfaceMapper {
 			// Draw circles for SelectionDistance or SnapDistance (snap if CMD
 			// is down)
 			glos.beginDraw();
-			if (!ctrlDown) {
-				glos.ellipseMode(PApplet.CENTER);
-				glos.fill(this.getSelectionMouseColor(), 100);
-				glos.noStroke();
-				glos.ellipse(parent.mouseX, parent.mouseY, this.getSelectionDistance() * 2, this.getSelectionDistance() * 2);
-			} else {
-				glos.ellipseMode(PApplet.CENTER);
-				glos.fill(255, 0, 0, 100);
-				glos.noStroke();
-				glos.ellipse(parent.mouseX, parent.mouseY, this.getSnapDistance() * 2, this.getSnapDistance() * 2);
+			if (selectionMouse) {
+				if (!ctrlDown) {
+					glos.ellipseMode(PApplet.CENTER);
+					glos.fill(this.getSelectionMouseColor(), 100);
+					glos.noStroke();
+					glos.ellipse(parent.mouseX, parent.mouseY, this.getSelectionDistance() * 2, this.getSelectionDistance() * 2);
+				} else {
+					glos.ellipseMode(PApplet.CENTER);
+					glos.fill(255, 0, 0, 100);
+					glos.noStroke();
+					glos.ellipse(parent.mouseX, parent.mouseY, this.getSnapDistance() * 2, this.getSnapDistance() * 2);
+				}
 			}
 
 			if (selectionTool != null && !disableSelectionTool) {
@@ -201,10 +204,16 @@ public class SurfaceMapper {
 		}
 	}
 
+	public boolean isSelectionMouse() {
+		return selectionMouse;
+	}
+
+	public void setSelectionMouse(boolean selectionMouse) {
+		this.selectionMouse = selectionMouse;
+	}
+
 	/**
-	 * Shake all surfaces with max Z-displacement strength, vibration-speed
-	 * speed, and shake decline fallOfSpeed. (min 0, max 1000 (1000 = un-ending
-	 * shaking))
+	 * Shake all surfaces with max Z-displacement strength, vibration-speed speed, and shake decline fallOfSpeed. (min 0, max 1000 (1000 = un-ending shaking))
 	 * 
 	 * @param strength
 	 * @param speed
@@ -275,8 +284,7 @@ public class SurfaceMapper {
 	}
 
 	/**
-	 * Returns the array of colors used in calibration mode for coloring the
-	 * surfaces.
+	 * Returns the array of colors used in calibration mode for coloring the surfaces.
 	 * 
 	 * @return
 	 */
@@ -285,8 +293,7 @@ public class SurfaceMapper {
 	}
 
 	/**
-	 * Set the array of colors used in calibration mode for coloring the
-	 * surfaces.
+	 * Set the array of colors used in calibration mode for coloring the surfaces.
 	 * 
 	 * @param ccolor
 	 */
@@ -314,8 +321,7 @@ public class SurfaceMapper {
 	}
 
 	/**
-	 * Boolean used to know if the background image should be rendered in
-	 * calibration mode.
+	 * Boolean used to know if the background image should be rendered in calibration mode.
 	 * 
 	 * @return
 	 */
@@ -333,8 +339,7 @@ public class SurfaceMapper {
 	}
 
 	/**
-	 * Creates a Quad surface with perspective transform. Res is the amount of
-	 * subdivisioning. Returns the surface after it has been created.
+	 * Creates a Quad surface with perspective transform. Res is the amount of subdivisioning. Returns the surface after it has been created.
 	 * 
 	 * @param res
 	 * @return
@@ -350,8 +355,7 @@ public class SurfaceMapper {
 	}
 
 	/**
-	 * Creates a Quad surface at X/Y with perspective transform. Res is the
-	 * amount of subdivisioning. Returns the surface after it has been created.
+	 * Creates a Quad surface at X/Y with perspective transform. Res is the amount of subdivisioning. Returns the surface after it has been created.
 	 * 
 	 * @param res
 	 * @param x
@@ -369,8 +373,7 @@ public class SurfaceMapper {
 	}
 
 	/**
-	 * Creates a Bezier surface with perspective transform. Res is the amount of
-	 * subdivisioning. Returns the surface after it has been created.
+	 * Creates a Bezier surface with perspective transform. Res is the amount of subdivisioning. Returns the surface after it has been created.
 	 * 
 	 * @param res
 	 * @return
@@ -386,8 +389,7 @@ public class SurfaceMapper {
 	}
 
 	/**
-	 * Creates a Bezier surface at X/Y with perspective transform. Res is the
-	 * amount of subdivisioning. Returns the surface after it has been created.
+	 * Creates a Bezier surface at X/Y with perspective transform. Res is the amount of subdivisioning. Returns the surface after it has been created.
 	 * 
 	 * @param res
 	 * @param x
@@ -646,7 +648,7 @@ public class SurfaceMapper {
 
 		if (superSurface.getId() >= numAddedSurfaces)
 			numAddedSurfaces = superSurface.getId() + 1;
-		
+
 		return surfaces.get(surfaces.size() - 1);
 	}
 
@@ -952,8 +954,7 @@ public class SurfaceMapper {
 	}
 
 	/**
-	 * MouseEvent method. Forwards the MouseEvent to ksMouseEvent if user input
-	 * is allowed
+	 * MouseEvent method. Forwards the MouseEvent to ksMouseEvent if user input is allowed
 	 * 
 	 * @param e
 	 */
@@ -1250,7 +1251,7 @@ public class SurfaceMapper {
 			case '4':
 				if (selectedSurfaces.size() == 1)
 					selectedSurfaces.get(0).setSelectedCorner(3);
-			
+
 			case '9':
 				if (selectedSurfaces.size() == 1)
 					selectedSurfaces.get(0).setId(0);
@@ -1262,20 +1263,20 @@ public class SurfaceMapper {
 						movePoint(ss, 0, -1);
 					}
 				}
-				//ALT is Offset!
-				if(altDown && !ctrlDown){
+				// ALT is Offset!
+				if (altDown && !ctrlDown) {
 					for (SuperSurface ss : selectedSurfaces) {
 						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y + 0.05f), new PVector(ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y));
 					}
 				}
-				
-				//CTRL is Size!
-				if(!altDown && ctrlDown){
+
+				// CTRL is Size!
+				if (!altDown && ctrlDown) {
 					for (SuperSurface ss : selectedSurfaces) {
 						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y), new PVector(ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y + 0.05f));
 					}
 				}
-				
+
 				break;
 
 			case KeyEvent.VK_DOWN:
@@ -1284,20 +1285,20 @@ public class SurfaceMapper {
 						movePoint(ss, 0, 1);
 					}
 				}
-				//ALT is Offset!
-				if(altDown && !ctrlDown){
+				// ALT is Offset!
+				if (altDown && !ctrlDown) {
 					for (SuperSurface ss : selectedSurfaces) {
 						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y - 0.05f), new PVector(ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y));
 					}
 				}
-				
-				//CTRL is Size!
-				if(!altDown && ctrlDown){
+
+				// CTRL is Size!
+				if (!altDown && ctrlDown) {
 					for (SuperSurface ss : selectedSurfaces) {
 						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y), new PVector(ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y - 0.05f));
 					}
 				}
-				
+
 				break;
 
 			case KeyEvent.VK_LEFT:
@@ -1306,21 +1307,21 @@ public class SurfaceMapper {
 						movePoint(ss, -1, 0);
 					}
 				}
-				
-				//ALT is Offset!
-				if(altDown && !ctrlDown){
+
+				// ALT is Offset!
+				if (altDown && !ctrlDown) {
 					for (SuperSurface ss : selectedSurfaces) {
 						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x + 0.05f, ss.getTextureWindow()[0].y), new PVector(ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y));
 					}
 				}
-				
-				//CTRL is Size!
-				if(!altDown && ctrlDown){
+
+				// CTRL is Size!
+				if (!altDown && ctrlDown) {
 					for (SuperSurface ss : selectedSurfaces) {
 						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y), new PVector(ss.getTextureWindow()[1].x + 0.05f, ss.getTextureWindow()[1].y));
 					}
 				}
-				
+
 				break;
 
 			case KeyEvent.VK_RIGHT:
@@ -1329,42 +1330,35 @@ public class SurfaceMapper {
 						movePoint(ss, 1, 0);
 					}
 				}
-				
-				//ALT is Offset!
-				if(altDown && !ctrlDown){
+
+				// ALT is Offset!
+				if (altDown && !ctrlDown) {
 					for (SuperSurface ss : selectedSurfaces) {
 						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x - 0.05f, ss.getTextureWindow()[0].y), new PVector(ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y));
 					}
 				}
-				
-				//CTRL is Size!
-				if(!altDown && ctrlDown){
+
+				// CTRL is Size!
+				if (!altDown && ctrlDown) {
 					for (SuperSurface ss : selectedSurfaces) {
 						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y), new PVector(ss.getTextureWindow()[1].x - 0.05f, ss.getTextureWindow()[1].y));
 					}
 				}
 				break;
 			/*
-			 * case KeyEvent.VK_O: for (SuperSurface ss : selectedSurfaces) {
-			 * ss.increaseResolution(); } break;
+			 * case KeyEvent.VK_O: for (SuperSurface ss : selectedSurfaces) { ss.increaseResolution(); } break;
 			 * 
-			 * case KeyEvent.VK_P: for (SuperSurface ss : selectedSurfaces) {
-			 * ss.decreaseResolution(); } break;
+			 * case KeyEvent.VK_P: for (SuperSurface ss : selectedSurfaces) { ss.decreaseResolution(); } break;
 			 * 
-			 * case KeyEvent.VK_U: for (SuperSurface ss : selectedSurfaces) {
-			 * ss.increaseHorizontalForce(); } break;
+			 * case KeyEvent.VK_U: for (SuperSurface ss : selectedSurfaces) { ss.increaseHorizontalForce(); } break;
 			 * 
-			 * case KeyEvent.VK_I: for (SuperSurface ss : selectedSurfaces) {
-			 * ss.decreaseHorizontalForce(); } break;
+			 * case KeyEvent.VK_I: for (SuperSurface ss : selectedSurfaces) { ss.decreaseHorizontalForce(); } break;
 			 * 
-			 * case KeyEvent.VK_J: for (SuperSurface ss : selectedSurfaces) {
-			 * ss.increaseVerticalForce(); } break;
+			 * case KeyEvent.VK_J: for (SuperSurface ss : selectedSurfaces) { ss.increaseVerticalForce(); } break;
 			 * 
-			 * case KeyEvent.VK_K: for (SuperSurface ss : selectedSurfaces) {
-			 * ss.decreaseVerticalForce(); } break;
+			 * case KeyEvent.VK_K: for (SuperSurface ss : selectedSurfaces) { ss.decreaseVerticalForce(); } break;
 			 * 
-			 * case KeyEvent.VK_T: for (SuperSurface ss : selectedSurfaces) {
-			 * ss.toggleLocked(); } break;
+			 * case KeyEvent.VK_T: for (SuperSurface ss : selectedSurfaces) { ss.toggleLocked(); } break;
 			 * 
 			 * case KeyEvent.VK_BACK_SPACE: removeSelectedSurfaces(); break;
 			 */
