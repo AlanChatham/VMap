@@ -153,6 +153,18 @@ public class SuperSurface {
 		return 0;
 	}
 	
+	/**
+	 * Calculates and returns the surfaces area in squarepixels.
+	 * @return
+	 */
+	public double getArea(){
+		switch(type){
+		case QUAD:
+			return quadSurface.getArea();
+		}
+		return 0;
+	}
+	
 	public void setTextureWindow(PVector offset, PVector size){
 		switch(type){
 		case QUAD:

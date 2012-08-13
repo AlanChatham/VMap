@@ -598,6 +598,22 @@ public class QuadSurface {
 	}
 
 	/**
+	 * Calculate the area in squarepixels
+	 * @return returns the area as N squarepixels
+	 */
+	public double getArea(){
+		double area = 0;
+		
+		for(int i = 0; i < cornerPoints.length; i++){
+			int j = (i + 1) % cornerPoints.length;
+			area += cornerPoints[i].x * cornerPoints[j].y;
+			area -= cornerPoints[j].x * cornerPoints[i].y;
+		}
+		area = Math.abs(area) / 2.0;
+		return area;
+	}
+	
+	/**
 	 * Checks if the coordinates is close to any of the corners, and if not,
 	 * checks if the coordinates are inside the surface. Returns the index of
 	 * the corner (0,1,2,3) or (4) if coordinates was inside the surface
