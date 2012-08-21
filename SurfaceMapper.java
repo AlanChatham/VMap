@@ -25,6 +25,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -89,6 +90,10 @@ public class SurfaceMapper {
 
 	private boolean enableSelectionMouse;
 
+	private Object eventHandlerObject;
+	private Method eventHandlerMethod;
+	private String eventHandlerMethodName;
+
 	/**
 	 * Create instance of IxKeystone
 	 * 
@@ -123,7 +128,7 @@ public class SurfaceMapper {
 				mouseWheelAction(evt.getWheelRotation());
 			}
 		});
-		
+
 		enableSelectionMouse = true;
 	}
 
@@ -1195,6 +1200,9 @@ public class SurfaceMapper {
 				}
 
 			}
+			for (SuperSurface ss : selectedSurfaces) {
+				fireEvent(ss.getId());
+			}
 			startPos = new PVector(0, 0);
 			selectionTool = null;
 			disableSelectionTool = false;
@@ -1372,6 +1380,31 @@ public class SurfaceMapper {
 				altDown = true;
 				break;
 			}
+		}
+	}
+
+	/**
+	 * Fire event to object
+	 */
+	public void fireEvent(int id) {
+		if (eventHandlerMethod != null) {
+			try {
+				eventHandlerMethod.invoke(eventHandlerObject, new Object[] { id });
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public void addEventHandler(Object object, String methodName) {
+		eventHandlerObject = object;
+		eventHandlerMethodName = methodName;
+		try {
+			eventHandlerMethod = object.getClass().getMethod(methodName, new Class[] { int.class });
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
 		}
 	}
 
