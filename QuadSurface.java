@@ -83,7 +83,6 @@ public class QuadSurface {
 	// Metrics for the projected texture..
 	private float textureX = 0;
 	private float textureY = 0;
-	private float DEFAULT_SIZE = 100;
 
 	private boolean isSelected;
 	private boolean isLocked;
@@ -116,7 +115,7 @@ public class QuadSurface {
 	QuadSurface(PApplet parent, SurfaceMapper ks, float x, float y, int res, int id) {
 		init(parent, ks, res, id, null);
 
-		this.setCornerPoints((float) (x - (this.DEFAULT_SIZE * 0.5)), (float) (y - (this.DEFAULT_SIZE * 0.5)), (float) (x + (this.DEFAULT_SIZE * 0.5)), (float) (y - (this.DEFAULT_SIZE * 0.5)), (float) (x + (this.DEFAULT_SIZE * 0.5)), (float) (y + (this.DEFAULT_SIZE * 0.5)), (float) (x - (this.DEFAULT_SIZE * 0.5)), (float) (y + (this.DEFAULT_SIZE * 0.5)));
+		this.setCornerPoints((float) (x - (SuperSurface.DEFAULT_SIZE * 0.5)), (float) (y - (SuperSurface.DEFAULT_SIZE * 0.5)), (float) (x + (SuperSurface.DEFAULT_SIZE * 0.5)), (float) (y - (SuperSurface.DEFAULT_SIZE * 0.5)), (float) (x + (SuperSurface.DEFAULT_SIZE * 0.5)), (float) (y + (SuperSurface.DEFAULT_SIZE * 0.5)), (float) (x - (SuperSurface.DEFAULT_SIZE * 0.5)), (float) (y + (SuperSurface.DEFAULT_SIZE * 0.5)));
 		this.setTextureWindow(new PVector(0 ,0), new PVector(1,1));
 	}
 
@@ -682,12 +681,12 @@ public class QuadSurface {
 	private void updateTransform() {
 		// Update the PerspectiveTransform with the current width, height, and
 		// destination coordinates.
-		this.transform = PerspectiveTransform.getQuadToQuad(0, 0, this.DEFAULT_SIZE, 0, this.DEFAULT_SIZE, this.DEFAULT_SIZE, 0, this.DEFAULT_SIZE, this.cornerPoints[0].x, this.cornerPoints[0].y, this.cornerPoints[1].x, this.cornerPoints[1].y, this.cornerPoints[2].x, this.cornerPoints[2].y, this.cornerPoints[3].x, this.cornerPoints[3].y);
+		this.transform = PerspectiveTransform.getQuadToQuad(0, 0, SuperSurface.DEFAULT_SIZE, 0, SuperSurface.DEFAULT_SIZE, SuperSurface.DEFAULT_SIZE, 0, SuperSurface.DEFAULT_SIZE, this.cornerPoints[0].x, this.cornerPoints[0].y, this.cornerPoints[1].x, this.cornerPoints[1].y, this.cornerPoints[2].x, this.cornerPoints[2].y, this.cornerPoints[3].x, this.cornerPoints[3].y);
 
 		// calculate the x and y interval to subdivide the source rectangle into
 		// the desired resolution.
-		float stepX = this.DEFAULT_SIZE / (float) (this.GRID_RESOLUTION - 1);
-		float stepY = this.DEFAULT_SIZE / (float) (this.GRID_RESOLUTION - 1);
+		float stepX = SuperSurface.DEFAULT_SIZE / (float) (this.GRID_RESOLUTION - 1);
+		float stepY = SuperSurface.DEFAULT_SIZE / (float) (this.GRID_RESOLUTION - 1);
 
 		// figure out the number of points in the whole grid.
 		int numPoints = this.GRID_RESOLUTION * this.GRID_RESOLUTION;
@@ -701,11 +700,11 @@ public class QuadSurface {
 		int i = 0;
 		for (int y = 0; y < this.GRID_RESOLUTION; y++) {
 			for (int x = 0; x < this.GRID_RESOLUTION; x++) {
-				float percentX = (x * stepX) / this.DEFAULT_SIZE;
-				float percentY = (y * stepY) / this.DEFAULT_SIZE;
+				float percentX = (x * stepX) / SuperSurface.DEFAULT_SIZE;
+				float percentY = (y * stepY) / SuperSurface.DEFAULT_SIZE;
 
-				this.gridPoints[x + y * this.GRID_RESOLUTION].u = this.DEFAULT_SIZE * percentX + this.textureX;
-				this.gridPoints[x + y * this.GRID_RESOLUTION].v = this.DEFAULT_SIZE * percentY + this.textureY; // y
+				this.gridPoints[x + y * this.GRID_RESOLUTION].u = SuperSurface.DEFAULT_SIZE * percentX + this.textureX;
+				this.gridPoints[x + y * this.GRID_RESOLUTION].v = SuperSurface.DEFAULT_SIZE * percentY + this.textureY; // y
 																												// *
 																												// stepY;
 

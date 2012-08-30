@@ -36,6 +36,7 @@ public class SuperSurface {
 	
 	QuadSurface quadSurface;
 	BezierSurface bezierSurface;
+	public static int DEFAULT_SIZE = 100;
 	
 	/**
 	 * Constructor used to create a new Surface. This should always be used when creating a new surface.

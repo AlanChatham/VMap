@@ -68,8 +68,6 @@ public class BezierSurface {
 	private int verticalForce = 0;
 
 	private int GRID_RESOLUTION;
-	private int DEFAULT_SIZE = 100;
-
 	private int surfaceId;
 
 	private boolean isSelected;
@@ -104,43 +102,43 @@ public class BezierSurface {
 	BezierSurface(PApplet parent, SurfaceMapper ks, float x, float y, int res, int id) {
 		init(parent, ks, res, id, null);
 
-		this.cornerPoints[0].x = (float) (x - (this.DEFAULT_SIZE * 0.5));
-		this.cornerPoints[0].y = (float) (y - (this.DEFAULT_SIZE * 0.5));
+		this.cornerPoints[0].x = (float) (x - (SuperSurface.DEFAULT_SIZE * 0.5));
+		this.cornerPoints[0].y = (float) (y - (SuperSurface.DEFAULT_SIZE * 0.5));
 
-		this.cornerPoints[1].x = (float) (x + (this.DEFAULT_SIZE * 0.5));
-		this.cornerPoints[1].y = (float) (y - (this.DEFAULT_SIZE * 0.5));
+		this.cornerPoints[1].x = (float) (x + (SuperSurface.DEFAULT_SIZE * 0.5));
+		this.cornerPoints[1].y = (float) (y - (SuperSurface.DEFAULT_SIZE * 0.5));
 
-		this.cornerPoints[2].x = (float) (x + (this.DEFAULT_SIZE * 0.5));
-		this.cornerPoints[2].y = (float) (y + (this.DEFAULT_SIZE * 0.5));
+		this.cornerPoints[2].x = (float) (x + (SuperSurface.DEFAULT_SIZE * 0.5));
+		this.cornerPoints[2].y = (float) (y + (SuperSurface.DEFAULT_SIZE * 0.5));
 
-		this.cornerPoints[3].x = (float) (x - (this.DEFAULT_SIZE * 0.5));
-		this.cornerPoints[3].y = (float) (y + (this.DEFAULT_SIZE * 0.5));
+		this.cornerPoints[3].x = (float) (x - (SuperSurface.DEFAULT_SIZE * 0.5));
+		this.cornerPoints[3].y = (float) (y + (SuperSurface.DEFAULT_SIZE * 0.5));
 		
 		//bezier points init
 		
-		this.bezierPoints[0].x = (float) (this.cornerPoints[0].x + (this.DEFAULT_SIZE * 0.0));
-		this.bezierPoints[0].y = (float) (this.cornerPoints[0].y + (this.DEFAULT_SIZE * 0.3));
+		this.bezierPoints[0].x = (float) (this.cornerPoints[0].x + (SuperSurface.DEFAULT_SIZE * 0.0));
+		this.bezierPoints[0].y = (float) (this.cornerPoints[0].y + (SuperSurface.DEFAULT_SIZE * 0.3));
 
-		this.bezierPoints[1].x = (float) (this.cornerPoints[0].x + (this.DEFAULT_SIZE * 0.3));
-		this.bezierPoints[1].y = (float) (this.cornerPoints[0].y + (this.DEFAULT_SIZE * 0.0));
+		this.bezierPoints[1].x = (float) (this.cornerPoints[0].x + (SuperSurface.DEFAULT_SIZE * 0.3));
+		this.bezierPoints[1].y = (float) (this.cornerPoints[0].y + (SuperSurface.DEFAULT_SIZE * 0.0));
 
-		this.bezierPoints[2].x = (float) (this.cornerPoints[1].x - (this.DEFAULT_SIZE * 0.3));
-		this.bezierPoints[2].y = (float) (this.cornerPoints[1].y + (this.DEFAULT_SIZE * 0.0));
+		this.bezierPoints[2].x = (float) (this.cornerPoints[1].x - (SuperSurface.DEFAULT_SIZE * 0.3));
+		this.bezierPoints[2].y = (float) (this.cornerPoints[1].y + (SuperSurface.DEFAULT_SIZE * 0.0));
 
-		this.bezierPoints[3].x = (float) (this.cornerPoints[1].x - (this.DEFAULT_SIZE * 0.0));
-		this.bezierPoints[3].y = (float) (this.cornerPoints[1].y + (this.DEFAULT_SIZE * 0.3));
+		this.bezierPoints[3].x = (float) (this.cornerPoints[1].x - (SuperSurface.DEFAULT_SIZE * 0.0));
+		this.bezierPoints[3].y = (float) (this.cornerPoints[1].y + (SuperSurface.DEFAULT_SIZE * 0.3));
 		
-		this.bezierPoints[4].x = (float) (this.cornerPoints[2].x - (this.DEFAULT_SIZE * 0.0));
-		this.bezierPoints[4].y = (float) (this.cornerPoints[2].y - (this.DEFAULT_SIZE * 0.3));
+		this.bezierPoints[4].x = (float) (this.cornerPoints[2].x - (SuperSurface.DEFAULT_SIZE * 0.0));
+		this.bezierPoints[4].y = (float) (this.cornerPoints[2].y - (SuperSurface.DEFAULT_SIZE * 0.3));
 
-		this.bezierPoints[5].x = (float) (this.cornerPoints[2].x - (this.DEFAULT_SIZE * 0.3));
-		this.bezierPoints[5].y = (float) (this.cornerPoints[2].y - (this.DEFAULT_SIZE * 0.0));
+		this.bezierPoints[5].x = (float) (this.cornerPoints[2].x - (SuperSurface.DEFAULT_SIZE * 0.3));
+		this.bezierPoints[5].y = (float) (this.cornerPoints[2].y - (SuperSurface.DEFAULT_SIZE * 0.0));
 
-		this.bezierPoints[6].x = (float) (this.cornerPoints[3].x + (this.DEFAULT_SIZE * 0.3));
-		this.bezierPoints[6].y = (float) (this.cornerPoints[3].y + (this.DEFAULT_SIZE * 0.0));
+		this.bezierPoints[6].x = (float) (this.cornerPoints[3].x + (SuperSurface.DEFAULT_SIZE * 0.3));
+		this.bezierPoints[6].y = (float) (this.cornerPoints[3].y + (SuperSurface.DEFAULT_SIZE * 0.0));
 
-		this.bezierPoints[7].x = (float) (this.cornerPoints[3].x - (this.DEFAULT_SIZE * 0.0));
-		this.bezierPoints[7].y = (float) (this.cornerPoints[3].y - (this.DEFAULT_SIZE * 0.3));
+		this.bezierPoints[7].x = (float) (this.cornerPoints[3].x - (SuperSurface.DEFAULT_SIZE * 0.0));
+		this.bezierPoints[7].y = (float) (this.cornerPoints[3].y - (SuperSurface.DEFAULT_SIZE * 0.3));
 		
 		this.setTextureWindow(new PVector(0 ,0), new PVector(1,1));
 

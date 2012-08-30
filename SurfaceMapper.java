@@ -1447,4 +1447,12 @@ public class SurfaceMapper {
 		}
 	}
 
+	public int getNumAddedSurfaces() {
+		return numAddedSurfaces;
+	}
+
+	public void setNumAddedSurfaces(int numAddedSurfaces) {
+		this.numAddedSurfaces = numAddedSurfaces;
+	}
+
 }
