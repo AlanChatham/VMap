@@ -31,8 +31,10 @@ import javax.media.jai.PerspectiveTransform;
 import processing.core.PApplet;
 import processing.core.PVector;
 import processing.xml.XMLElement;
+import codeanticode.glgraphics.GLGraphics;
 import codeanticode.glgraphics.GLGraphicsOffScreen;
 import codeanticode.glgraphics.GLTexture;
+import codeanticode.glgraphics.GLTextureFilter;
 
 public class QuadSurface {
 
@@ -101,6 +103,9 @@ public class QuadSurface {
 	private int fallOfSpeed;
 
 	private boolean hidden = false;
+	private GLTexture surfaceMask;
+	private GLTexture maskedTex;
+	private GLTextureFilter maskFilter;
 
 	/**
 	 * Constructor for creating a new surface at X,Y with RES subdivision.
@@ -180,6 +185,8 @@ public class QuadSurface {
 		SELECTED_CORNER_MARKER_COLOR = parent.color(255, 0, 255);
 
 		this.initTransform();
+		
+		maskFilter = new GLTextureFilter(parent, "Mask.xml");
 	}
 
 	/**
@@ -831,7 +838,9 @@ public class QuadSurface {
 	public void render(GLGraphicsOffScreen g, GLTexture tex) {
 		if (this.isHidden())
 			return;
+		
 		this.renderQuad(g, tex);
+		
 	}
 
 	/**
@@ -842,15 +851,35 @@ public class QuadSurface {
 	 * @param tex
 	 */
 	private void renderQuad(GLGraphicsOffScreen g, GLTexture tex) {
+		if(this.isUsingSurfaceMask()){
+			maskFilter.setParameterValue("mask_factor", 0.5f);
+			maskFilter.apply(new GLTexture[]{tex, surfaceMask}, maskedTex);
+		}
 		g.beginDraw();
 		g.noStroke();
 		g.beginShape(PApplet.QUADS);
-
-		g.texture(tex);
 		
-		float tWidth = tex.width * (textureWindow[1].x );
-		float tHeight= tex.width * (textureWindow[1].y );
-
+		float tWidth = 1;
+		float tHeight = 1;
+		
+		float tOffX = 0;
+		float tOffY = 0;
+		
+		if(this.isUsingSurfaceMask()){
+			g.texture(maskedTex);
+			tWidth = maskedTex.width * (textureWindow[1].x );
+			tHeight= maskedTex.width * (textureWindow[1].y );
+			tOffX = maskedTex.width * textureWindow[0].x;
+			tOffY = maskedTex.height * textureWindow[0].y;
+		}else{
+			g.texture(tex);
+			tWidth = tex.width * (textureWindow[1].x );
+			tHeight= tex.width * (textureWindow[1].y );
+			tOffX = tex.width * textureWindow[0].x;
+			tOffY = tex.height * textureWindow[0].y;
+		}
+		
+		
 
 		for (int i = 0; i < GRID_RESOLUTION - 1; i++) {
 			for (int j = 0; j < GRID_RESOLUTION - 1; j++) {
@@ -858,30 +887,29 @@ public class QuadSurface {
 				g.vertex(vertexPoints[i][j].x, 
 						vertexPoints[i][j].y, 
 						vertexPoints[i][j].z + currentZ, 
-						((float) i / (GRID_RESOLUTION - 1)) * (tWidth) + ((tex.width * textureWindow[0].x)), 
-						((float) j / (GRID_RESOLUTION - 1)) * tHeight+ ((tex.height * textureWindow[0].y)));
+						((float) i / (GRID_RESOLUTION - 1)) * tWidth + tOffX, 
+						((float) j / (GRID_RESOLUTION - 1)) * tHeight+ tOffY);
 
 				g.vertex(vertexPoints[i + 1][j].x, 
 						vertexPoints[i + 1][j].y, 
 						vertexPoints[i + 1][j].z + currentZ, 
-						(((float) i + 1) / (GRID_RESOLUTION - 1)) * (tWidth) + ((tex.width * textureWindow[0].x)), 
-						((float) j / (GRID_RESOLUTION - 1)) * tHeight+ ((tex.height * textureWindow[0].y)));
+						(((float) i + 1) / (GRID_RESOLUTION - 1)) * tWidth + tOffX, 
+						((float) j / (GRID_RESOLUTION - 1)) * tHeight+ tOffY);
 
 				g.vertex(vertexPoints[i + 1][j + 1].x, 
 						vertexPoints[i + 1][j + 1].y, 
 						vertexPoints[i + 1][j + 1].z + currentZ, 
-						(((float) i + 1) / (GRID_RESOLUTION - 1)) * (tWidth) + ((tex.width * textureWindow[0].x)), 
-						(((float) j + 1) / (GRID_RESOLUTION - 1)) * tHeight+ ((tex.height * textureWindow[0].y)));
+						(((float) i + 1) / (GRID_RESOLUTION - 1)) * tWidth + tOffX, 
+						(((float) j + 1) / (GRID_RESOLUTION - 1)) * tHeight+ tOffY);
 
 				g.vertex(vertexPoints[i][j + 1].x, 
 						vertexPoints[i][j + 1].y, 
 						vertexPoints[i][j + 1].z + currentZ, 
-						((float) i / (GRID_RESOLUTION - 1)) *  (tWidth) + ((tex.width * textureWindow[0].x)), 
-						(((float) j + 1) / (GRID_RESOLUTION - 1)) * tHeight+ ((tex.height * textureWindow[0].y)));
+						((float) i / (GRID_RESOLUTION - 1)) *  tWidth + tOffX, 
+						(((float) j + 1) / (GRID_RESOLUTION - 1)) * tHeight + tOffY);
 
 			}
 		}
-
 		g.endShape(PApplet.CLOSE);
 		g.endDraw();
 	}
@@ -955,6 +983,51 @@ public class QuadSurface {
 			}
 
 		}
+		
+		if(this.isUsingSurfaceMask()){
+			g.beginShape(PApplet.QUADS);
+			g.texture(surfaceMask);
+			g.noStroke();
+			g.tint(255,150);
+			
+			float tWidth = surfaceMask.width;
+			float tHeight = surfaceMask.height;
+			float tOffX = 0;
+			float tOffY = 0;
+			
+			for (int i = 0; i < GRID_RESOLUTION - 1; i++) {
+				for (int j = 0; j < GRID_RESOLUTION - 1; j++) {
+
+					g.vertex(vertexPoints[i][j].x, 
+							vertexPoints[i][j].y, 
+							vertexPoints[i][j].z + currentZ, 
+							((float) i / (GRID_RESOLUTION - 1)) * tWidth + tOffX, 
+							((float) j / (GRID_RESOLUTION - 1)) * tHeight+ tOffY);
+
+					g.vertex(vertexPoints[i + 1][j].x, 
+							vertexPoints[i + 1][j].y, 
+							vertexPoints[i + 1][j].z + currentZ, 
+							(((float) i + 1) / (GRID_RESOLUTION - 1)) * tWidth + tOffX, 
+							((float) j / (GRID_RESOLUTION - 1)) * tHeight+ tOffY);
+
+					g.vertex(vertexPoints[i + 1][j + 1].x, 
+							vertexPoints[i + 1][j + 1].y, 
+							vertexPoints[i + 1][j + 1].z + currentZ, 
+							(((float) i + 1) / (GRID_RESOLUTION - 1)) * tWidth + tOffX, 
+							(((float) j + 1) / (GRID_RESOLUTION - 1)) * tHeight+ tOffY);
+
+					g.vertex(vertexPoints[i][j + 1].x, 
+							vertexPoints[i][j + 1].y, 
+							vertexPoints[i][j + 1].z + currentZ, 
+							((float) i / (GRID_RESOLUTION - 1)) *  tWidth + tOffX, 
+							(((float) j + 1) / (GRID_RESOLUTION - 1)) * tHeight + tOffY);
+
+				}
+			}
+			
+			g.endShape(PApplet.CLOSE);
+			g.noTint();
+		}
 
 		g.endDraw();
 	}
@@ -983,6 +1056,24 @@ public class QuadSurface {
 		g.ellipse(x, y, 10, 10);
 		g.line(x, y - 5, x, y + 5);
 		g.line(x - 5, y, x + 5, y);
+	}
+	
+	public boolean isUsingSurfaceMask(){
+		if(surfaceMask != null) return true;
+		return false;
+	}
+	
+	public GLTexture getSurfaceMask(){
+		return surfaceMask;
+	}
+	
+	public void setSurfaceMask(GLTexture mask){
+		surfaceMask = mask;
+		maskedTex = new GLTexture(parent);
+	}
+	
+	public void clearSurfaceMask(){
+		surfaceMask = null;
 	}
 
 	public void setSurfaceName(String surfaceName) {

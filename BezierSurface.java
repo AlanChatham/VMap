@@ -26,6 +26,7 @@ import processing.core.PVector;
 import processing.xml.XMLElement;
 import codeanticode.glgraphics.GLGraphicsOffScreen;
 import codeanticode.glgraphics.GLTexture;
+import codeanticode.glgraphics.GLTextureFilter;
 
 //Parts derived from MappingTools library
 
@@ -89,6 +90,10 @@ public class BezierSurface {
 	private float shakeAngle;
 	
 	private boolean hidden = false;
+	
+	private GLTexture surfaceMask;
+	private GLTexture maskedTex;
+	private GLTextureFilter maskFilter;
 	
 	/**
 	 * Constructor for creating a new surface at X,Y with RES subdivision.
@@ -225,6 +230,8 @@ public class BezierSurface {
 		SELECTED_CORNER_MARKER_COLOR = parent.color(0, 255, 255);
 
 		this.updateTransform();
+		
+		maskFilter = new GLTextureFilter(parent, "Mask.xml");
 	}
 	
 	/**
@@ -808,45 +815,68 @@ public class BezierSurface {
 	 */
 	private void renderSurface(GLGraphicsOffScreen g, GLTexture tex) {
 		g.beginDraw();
-		//g.hint(PApplet.DISABLE_DEPTH_TEST); //this is probably needed, but could cause problems with surfaces adjacent to each other
 		g.noStroke();
 		
-		float tWidth = tex.width * (textureWindow[1].x);
-		float tHeight= tex.width * (textureWindow[1].y);
+		if(this.isUsingSurfaceMask()){
+			maskFilter.setParameterValue("mask_factor", 0.0f);
+			maskFilter.apply(new GLTexture[]{tex, surfaceMask}, maskedTex);
+		}
+
+
+		g.beginShape(PApplet.QUADS);
+		
+		float tWidth = 1;
+		float tHeight = 1;
+		
+		float tOffX = 0;
+		float tOffY = 0;
+		
+		if(this.isUsingSurfaceMask()){
+			g.texture(maskedTex);
+			tWidth = maskedTex.width * (textureWindow[1].x );
+			tHeight= maskedTex.width * (textureWindow[1].y );
+			tOffX = maskedTex.width * textureWindow[0].x;
+			tOffY = maskedTex.height * textureWindow[0].y;
+		}else{
+			g.texture(tex);
+			tWidth = tex.width * (textureWindow[1].x );
+			tHeight= tex.width * (textureWindow[1].y );
+			tOffX = tex.width * textureWindow[0].x;
+			tOffY = tex.height * textureWindow[0].y;
+		}
 		
 		for (int i = 0; i < GRID_RESOLUTION; i++) {
 			for (int j = 0; j < GRID_RESOLUTION; j++) {
 				
-				g.beginShape();
-				g.texture(tex);
+				
 				g.vertex(vertexPoints[i][j].x, 
 						vertexPoints[i][j].y, 
 						vertexPoints[i][j].z+currentZ,
-						((float) i / GRID_RESOLUTION) * (tWidth) + ((tex.width * textureWindow[0].x)),
-						((float) j / GRID_RESOLUTION) * tHeight+ ((tex.height * textureWindow[0].y)));
+						((float) i / GRID_RESOLUTION) * (tWidth) + tOffX,
+						((float) j / GRID_RESOLUTION) * tHeight+ tOffY);
 				
 				g.vertex(vertexPoints[i + 1][j].x, 
 						vertexPoints[i + 1][j].y,
 						vertexPoints[i + 1][j].z+currentZ, 
-						(((float) i + 1) / GRID_RESOLUTION) * (tWidth) + ((tex.width * textureWindow[0].x)), 
-						((float) j / GRID_RESOLUTION) * tHeight+ ((tex.height * textureWindow[0].y)));
+						(((float) i + 1) / GRID_RESOLUTION) * (tWidth) + tOffX, 
+						((float) j / GRID_RESOLUTION) * tHeight+ tOffY);
 				
 				g.vertex(vertexPoints[i + 1][j + 1].x, 
 						vertexPoints[i + 1][j + 1].y,
 						vertexPoints[i + 1][j + 1].z+currentZ, 
-						(((float) i + 1) / GRID_RESOLUTION) * (tWidth) + ((tex.width * textureWindow[0].x)), 
-						(((float) j + 1) / GRID_RESOLUTION) * tHeight+ ((tex.height * textureWindow[0].y)));
+						(((float) i + 1) / GRID_RESOLUTION) * (tWidth) + tOffX, 
+						(((float) j + 1) / GRID_RESOLUTION) * tHeight+ tOffY);
 				
 				g.vertex(vertexPoints[i][j + 1].x, 
 						vertexPoints[i][j + 1].y,
 						vertexPoints[i][j + 1].z+currentZ, 
-						((float) i / GRID_RESOLUTION) * (tWidth) + ((tex.width * textureWindow[0].x)),
-						(((float) j + 1) / GRID_RESOLUTION) * tHeight+ ((tex.height * textureWindow[0].y)));
-				g.endShape();
+						((float) i / GRID_RESOLUTION) * (tWidth) + tOffX,
+						(((float) j + 1) / GRID_RESOLUTION) * tHeight+ tOffY);
+				
 				
 			}
 		}
-		
+		g.endShape(PApplet.CLOSE);
 		g.endDraw();
 	}
 
@@ -987,6 +1017,24 @@ public class BezierSurface {
 		g.ellipse(x, y, 10, 10);
 		g.line(x, y - 5, x, y + 5);
 		g.line(x - 5, y, x + 5, y);
+	}
+	
+	public boolean isUsingSurfaceMask(){
+		if(surfaceMask != null) return true;
+		return false;
+	}
+	
+	public GLTexture getSurfaceMask(){
+		return surfaceMask;
+	}
+	
+	public void setSurfaceMask(GLTexture mask){
+		surfaceMask = mask;
+		maskedTex = new GLTexture(parent);
+	}
+	
+	public void clearSurfaceMask(){
+		surfaceMask = null;
 	}
 
 	public void setSurfaceName(String surfaceName) {

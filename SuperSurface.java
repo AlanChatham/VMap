@@ -111,6 +111,46 @@ public class SuperSurface {
 		return "";
 	}
 	
+	public void setSurfaceMask(GLTexture mask){
+		switch(type){
+		case QUAD:
+			quadSurface.setSurfaceMask(mask);
+			break;
+		case BEZIER:
+			bezierSurface.setSurfaceMask(mask);
+		}
+	}
+	
+	public void clearSurfaceMask(){
+		switch(type){
+		case QUAD:
+			quadSurface.clearSurfaceMask();
+			break;
+		case BEZIER:
+			bezierSurface.clearSurfaceMask();
+		}
+	}
+	
+	public GLTexture getSurfaceMask(){
+		switch(type){
+		case QUAD:
+			return quadSurface.getSurfaceMask();
+		case BEZIER:
+			return bezierSurface.getSurfaceMask();
+		}
+		return null;
+	}
+	
+	public boolean isUsingSurfaceMask(){
+		switch(type){
+		case QUAD:
+			return quadSurface.isUsingSurfaceMask();
+		case BEZIER:
+			return bezierSurface.isUsingSurfaceMask();
+		}
+		return false;
+	}
+	
 	/**
 	 * Set the fill color of the surface in calibration mode
 	 * @param ccolor
