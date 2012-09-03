@@ -1084,16 +1084,32 @@ public class SurfaceMapper {
 								// to be pressed in order to move them.
 								if ((grouping && altDown) || selectedSurfaces.size() == 1) {
 
+									boolean cornerMovementAllowed = true;
 									for (int i = 0; i < 4; i++) {
-										ss.setCornerPoint(i, ss.getCornerPoint(i).x + deltaX, ss.getCornerPoint(i).y + deltaY);
-										ss.setBezierPoint(i, ss.getBezierPoint(i).x + deltaX, ss.getBezierPoint(i).y + deltaY);
-										ss.setBezierPoint(i + 4, ss.getBezierPoint(i + 4).x + deltaX, ss.getBezierPoint(i + 4).y + deltaY);
+										Point3D[] cTemp = new Point3D[4];
+										for (int j = 0; j < 4; j++) {
+											cTemp[j] = new Point3D(ss.getCornerPoint(j).x, ss.getCornerPoint(j).y);
+										}
+
+										cTemp[i].x = ss.getCornerPoint(i).x + deltaX;
+										cTemp[i].y = ss.getCornerPoint(i).y + deltaY;
+
+										for (int j = 0; j < cTemp.length; j++) {
+											if (QuadSurface.CCW(cTemp[(j + 2) % cTemp.length], cTemp[(j + 1) % cTemp.length], cTemp[j % cTemp.length]) >= 0) {
+												cornerMovementAllowed = false;
+											}
+										}
+									}
+									if (cornerMovementAllowed) {
+										for (int i = 0; i < 4; i++) {
+											ss.setCornerPoint(i, ss.getCornerPoint(i).x + deltaX, ss.getCornerPoint(i).y + deltaY);
+											ss.setBezierPoint(i, ss.getBezierPoint(i).x + deltaX, ss.getBezierPoint(i).y + deltaY);
+											ss.setBezierPoint(i + 4, ss.getBezierPoint(i + 4).x + deltaX, ss.getBezierPoint(i + 4).y + deltaY);
+										}
 									}
 									movingPolys[iteration] = true;
-
 								}
 							} else {
-
 								// Move a corner point.
 								int index = ss.getActivePoint();
 								ss.setCornerPoint(index, ss.getCornerPoint(ss.getActivePoint()).x + deltaX, ss.getCornerPoint(ss.getActivePoint()).y + deltaY);

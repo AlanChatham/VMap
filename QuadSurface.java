@@ -377,7 +377,7 @@ public class QuadSurface {
 	 * 0, and collinear if ccw = 0 because ccw is a determinant that gives the
 	 * signed area of the triangle formed by p1, p2 and p3.
 	 */
-	public float CCW(Point3D p1, Point3D p2, Point3D p3) {
+	public static float CCW(Point3D p1, Point3D p2, Point3D p3) {
 		return (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
 	}
 
