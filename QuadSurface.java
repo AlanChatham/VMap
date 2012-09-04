@@ -852,7 +852,7 @@ public class QuadSurface {
 	 */
 	private void renderQuad(GLGraphicsOffScreen g, GLTexture tex) {
 		if(this.isUsingSurfaceMask()){
-			maskFilter.setParameterValue("mask_factor", 0.5f);
+			maskFilter.setParameterValue("mask_factor", 0.0f);
 			maskFilter.apply(new GLTexture[]{tex, surfaceMask}, maskedTex);
 		}
 		g.beginDraw();
