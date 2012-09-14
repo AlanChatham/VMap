@@ -107,6 +107,13 @@ public class QuadSurface {
 	private GLTexture maskedTex;
 	private GLTextureFilter maskFilter;
 
+	private GLTexture edgeBlendTex;
+	private boolean blendRight = false, blendLeft = false;
+	private float blendRightSize = 0.1f, blendLeftSize = 0.1f;
+	private GLGraphicsOffScreen blendScreen;
+	private GLGraphicsOffScreen bufferScreen;
+	private int bufferScreenWidth = 0;
+
 	/**
 	 * Constructor for creating a new surface at X,Y with RES subdivision.
 	 * 
@@ -187,6 +194,7 @@ public class QuadSurface {
 		this.initTransform();
 		
 		maskFilter = new GLTextureFilter(parent, "Mask.xml");
+		edgeBlendTex = new GLTexture(parent, "edgeblendmask.png");
 	}
 
 	/**
@@ -617,6 +625,25 @@ public class QuadSurface {
 		}
 		area = Math.abs(area) / 2.0;
 		return area;
+	
+	}
+	
+	/**
+	 * Get the longest side as double
+	 * @return
+	 */
+	public double getLongestSide(){
+		double[] longest = new double[4];
+		longest[0] = PVector.dist(new PVector(cornerPoints[0].x, cornerPoints[0].y), new PVector(cornerPoints[1].x, cornerPoints[1].y));
+		longest[1] = PVector.dist(new PVector(cornerPoints[2].x, cornerPoints[2].y), new PVector(cornerPoints[3].x, cornerPoints[3].y));
+		longest[2] = PVector.dist(new PVector(cornerPoints[0].x, cornerPoints[0].y), new PVector(cornerPoints[3].x, cornerPoints[3].y));
+		longest[3] = PVector.dist(new PVector(cornerPoints[1].x, cornerPoints[1].y), new PVector(cornerPoints[2].x, cornerPoints[2].y));
+		
+		double longer = 0;
+		for(int i = 0; i < longest.length; i++){
+			if(longest[i] > longer) longer = longest[i];
+		}
+		return longer;
 	}
 	
 	/**
@@ -850,36 +877,56 @@ public class QuadSurface {
 	 * @param g
 	 * @param tex
 	 */
-	private void renderQuad(GLGraphicsOffScreen g, GLTexture tex) {
-		if(this.isUsingSurfaceMask()){
-			maskFilter.setParameterValue("mask_factor", 0.0f);
-			maskFilter.apply(new GLTexture[]{tex, surfaceMask}, maskedTex);
+	private void renderQuad(GLGraphicsOffScreen g, GLTexture tex) {	
+		float tWidth = 1;
+		float tHeight = 1;
+		float tOffX = 0;
+		float tOffY = 0;
+		
+		tWidth = tex.width * (textureWindow[1].x );
+		tHeight= tex.width * (textureWindow[1].y );
+		tOffX = tex.width * textureWindow[0].x;
+		tOffY = tex.height * textureWindow[0].y;
+		
+		if(this.isUsingEdgeBlend() || this.isUsingSurfaceMask()){
+		
+			if(bufferScreen == null || bufferScreen.width != this.getBufferScreenWidth()){
+				bufferScreen = new GLGraphicsOffScreen(parent, this.getBufferScreenWidth(), this.getBufferScreenWidth());
+			}
+			bufferScreen.beginDraw();
+			bufferScreen.clear(0);
+			bufferScreen.beginShape(PApplet.QUADS);
+			bufferScreen.texture(tex);
+			bufferScreen.vertex(0,0, tOffX, tOffY);
+			bufferScreen.vertex(bufferScreen.width, 0, tWidth+tOffX, tOffY);
+			bufferScreen.vertex(bufferScreen.width, bufferScreen.height, tWidth+tOffX, tHeight+tOffY);
+			bufferScreen.vertex(0, bufferScreen.height, tOffX, tHeight+tOffY);
+			bufferScreen.endShape(PApplet.CLOSE);
+			bufferScreen.endDraw();
+			
+			
+			
+			if(this.isUsingSurfaceMask()){
+				maskFilter.setParameterValue("mask_factor", 0.0f);
+				maskFilter.apply(new GLTexture[]{bufferScreen.getTexture(), surfaceMask}, maskedTex);
+				applyEdgeBlendToTexture(maskedTex);
+			}else{
+				applyEdgeBlendToTexture(bufferScreen.getTexture());
+			}
 		}
 		g.beginDraw();
 		g.noStroke();
 		g.beginShape(PApplet.QUADS);
 		
-		float tWidth = 1;
-		float tHeight = 1;
-		
-		float tOffX = 0;
-		float tOffY = 0;
-		
-		if(this.isUsingSurfaceMask()){
+		if(this.isUsingSurfaceMask() || this.isUsingEdgeBlend()){
 			g.texture(maskedTex);
-			tWidth = maskedTex.width * (textureWindow[1].x );
-			tHeight= maskedTex.width * (textureWindow[1].y );
-			tOffX = maskedTex.width * textureWindow[0].x;
-			tOffY = maskedTex.height * textureWindow[0].y;
+			tOffX = 0;
+			tOffY = 0;
+			tWidth = maskedTex.width;
+			tHeight = maskedTex.height;
 		}else{
 			g.texture(tex);
-			tWidth = tex.width * (textureWindow[1].x );
-			tHeight= tex.width * (textureWindow[1].y );
-			tOffX = tex.width * textureWindow[0].x;
-			tOffY = tex.height * textureWindow[0].y;
 		}
-		
-		
 
 		for (int i = 0; i < GRID_RESOLUTION - 1; i++) {
 			for (int j = 0; j < GRID_RESOLUTION - 1; j++) {
@@ -912,6 +959,49 @@ public class QuadSurface {
 		}
 		g.endShape(PApplet.CLOSE);
 		g.endDraw();
+	}
+	
+	private void applyEdgeBlendToTexture(GLTexture tex){
+		if(this.isUsingEdgeBlend()){
+		
+			if(maskedTex == null){
+				maskedTex = new GLTexture(parent);
+			}
+			maskFilter.setParameterValue("mask_factor", 0.0f);
+			maskFilter.apply(new GLTexture[]{tex, blendScreen.getTexture()}, maskedTex);
+		}
+	}
+	
+	private void updateBlendScreen(){
+		if(blendScreen == null){
+			blendScreen = new GLGraphicsOffScreen(parent, 512, 512);	
+		}
+		
+		blendScreen.beginDraw();
+		blendScreen.clear(0,0);
+		
+		if(this.isBlendLeft()){
+			blendScreen.noStroke();
+			blendScreen.beginShape(PApplet.QUADS);
+			blendScreen.texture(edgeBlendTex);
+			blendScreen.vertex(-2, 0, 0, 0);
+			blendScreen.vertex(blendScreen.width * this.getBlendLeftSize(), 0, edgeBlendTex.width, 0);
+			blendScreen.vertex(blendScreen.width * this.getBlendLeftSize(), blendScreen.height, edgeBlendTex.width, edgeBlendTex.height);
+			blendScreen.vertex(-2, blendScreen.height, 0, edgeBlendTex.height);
+			blendScreen.endShape(PApplet.CLOSE);
+		}
+		if(this.isBlendRight()){
+			blendScreen.noStroke();
+			blendScreen.beginShape(PApplet.QUADS);
+			blendScreen.texture(edgeBlendTex);
+			blendScreen.vertex(blendScreen.width-(blendScreen.width*this.getBlendRightSize()), 0, edgeBlendTex.width, 0);
+			blendScreen.vertex(blendScreen.width+2, 0, 0, 0);
+			blendScreen.vertex(blendScreen.width+2, blendScreen.height, 0, edgeBlendTex.height);
+			blendScreen.vertex(blendScreen.width-(blendScreen.width*this.getBlendRightSize()), blendScreen.height, edgeBlendTex.width, edgeBlendTex.height);
+			blendScreen.endShape(PApplet.CLOSE);
+		}
+		
+		blendScreen.endDraw();
 	}
 
 	/**
@@ -1084,6 +1174,56 @@ public class QuadSurface {
 		if (surfaceName == null)
 			return String.valueOf(this.getId());
 		return surfaceName;
+	}
+
+	public boolean isUsingEdgeBlend() {
+		if(this.isBlendLeft() || this.isBlendRight()) return true;
+		return false;
+	}
+
+
+	public boolean isBlendRight() {
+		return blendRight;
+	}
+
+	public void setBlendRight(boolean blendRight) {
+		this.blendRight = blendRight;
+		updateBlendScreen();
+	}
+
+	public boolean isBlendLeft() {
+		return blendLeft;
+	}
+
+	public void setBlendLeft(boolean blendLeft) {
+		this.blendLeft = blendLeft;
+		updateBlendScreen();
+	}
+
+	public float getBlendRightSize() {
+		return blendRightSize;
+	}
+
+	public void setBlendRightSize(float blendRightSize) {
+		this.blendRightSize = blendRightSize;
+		updateBlendScreen();
+	}
+
+	public float getBlendLeftSize() {
+		return blendLeftSize;
+	}
+
+	public void setBlendLeftSize(float blendLeftSize) {
+		this.blendLeftSize = blendLeftSize;
+		updateBlendScreen();
+	}
+
+	public int getBufferScreenWidth() {
+		return bufferScreenWidth;
+	}
+
+	public void setBufferScreenWidth(int bufferScreenWidth) {
+		this.bufferScreenWidth = bufferScreenWidth;
 	}
 
 }

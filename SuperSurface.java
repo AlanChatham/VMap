@@ -206,6 +206,17 @@ public class SuperSurface {
 		return 0;
 	}
 	
+	public double getLongestSide(){
+		switch(type){
+		case QUAD:
+			return quadSurface.getLongestSide();
+			
+		case BEZIER:
+			return bezierSurface.getLongestSide();
+		}
+		return 0;
+	}
+	
 	public void setTextureWindow(PVector offset, PVector size){
 		switch(type){
 		case QUAD:
@@ -879,4 +890,161 @@ public class SuperSurface {
 	public int getSurfaceType(){
 		return type;
 	}
+	
+	/**
+	 * See if the surface is using edge blend
+	 * @return
+	 */
+	
+	public boolean isUsingEdgeBlend() {
+		switch(type){
+		case QUAD:
+			return quadSurface.isUsingEdgeBlend();
+
+		case BEZIER:
+			return bezierSurface.isUsingEdgeBlend();	
+			
+		}
+		return false;
+	}
+
+	/**
+	 * See if the surface has been set to blend on the right
+	 * @return
+	 */
+	public boolean isBlendRight() {
+		switch(type){
+		case QUAD:
+			return quadSurface.isBlendRight();
+			
+		case BEZIER:
+			return bezierSurface.isBlendRight();	
+			
+		}
+		return false;
+	}
+
+	/**
+	 * Set if the right side should be blended
+	 * @param blendRight
+	 */
+	public void setBlendRight(boolean blendRight) {
+		switch(type){
+		case QUAD:
+			quadSurface.setBlendRight(blendRight);
+			break;
+		case BEZIER:
+			bezierSurface.setBlendRight(blendRight);
+			break;
+		}
+	}
+
+	
+	/**
+	 * See if the surface has been set to blend on the left
+	 * @return
+	 */
+	public boolean isBlendLeft() {
+		switch(type){
+		case QUAD:
+			return quadSurface.isBlendLeft();
+			
+		case BEZIER:
+			return bezierSurface.isBlendLeft();	
+			
+		}
+		return false;
+	}
+
+	/**
+	 * Set if the left side should be blended
+	 * @param blendLeft
+	 */
+	public void setBlendLeft(boolean blendLeft) {
+		switch(type){
+		case QUAD:
+			quadSurface.setBlendLeft(blendLeft);
+			break;
+		case BEZIER:
+			bezierSurface.setBlendLeft(blendLeft);
+			break;
+		}
+	}
+
+	/**
+	 * Get the width of the right edge blend
+	 * @return
+	 */
+	public float getBlendRightSize() {
+		switch(type){
+		case QUAD:
+			return quadSurface.getBlendRightSize();
+			
+		case BEZIER:
+			return bezierSurface.getBlendRightSize();	
+			
+		}
+		return 0;
+	}
+
+	/**
+	 * Set the width of the right edge blend
+	 * @return
+	 */
+	public void setBlendRightSize(float blendRightSize) {
+		switch(type){
+		case QUAD:
+			quadSurface.setBlendRightSize(blendRightSize);
+			break;
+		case BEZIER:
+			bezierSurface.setBlendRightSize(blendRightSize);	
+			break;
+		}
+	}
+
+	/**
+	 * Get the width of the left edge blend
+	 * @return
+	 */
+	public float getBlendLeftSize() {
+		switch(type){
+		case QUAD:
+			return quadSurface.getBlendLeftSize();
+			
+		case BEZIER:
+			return bezierSurface.getBlendLeftSize();	
+			
+		}
+		return 0;
+	}
+	
+	/**
+	 * Set the width of the left edge blend
+	 * @return
+	 */
+	public void setBlendLeftSize(float blendLeftSize) {
+		switch(type){
+		case QUAD:
+			quadSurface.setBlendLeftSize(blendLeftSize);
+			break;
+		case BEZIER:
+			bezierSurface.setBlendLeftSize(blendLeftSize);	
+			break;
+		}
+	}
+	
+	/**
+	 * Set the width of the buffer offscreen
+	 */
+	public void setBufferScreenWidth(int width){
+		switch(type){
+		case QUAD:
+			quadSurface.setBufferScreenWidth(width);
+			break;
+		case BEZIER:
+			bezierSurface.setBufferScreenWidth(width);	
+			break;
+		}
+	}
+	
 }
