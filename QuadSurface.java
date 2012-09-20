@@ -113,6 +113,11 @@ public class QuadSurface {
 	private GLGraphicsOffScreen blendScreen;
 	private GLGraphicsOffScreen bufferScreen;
 	private int bufferScreenWidth = 0;
+	
+	float tWidth = 1;
+	float tHeight = 1;
+	float tOffX = 0;
+	float tOffY = 0;
 
 	/**
 	 * Constructor for creating a new surface at X,Y with RES subdivision.
@@ -878,13 +883,9 @@ public class QuadSurface {
 	 * @param tex
 	 */
 	private void renderQuad(GLGraphicsOffScreen g, GLTexture tex) {	
-		float tWidth = 1;
-		float tHeight = 1;
-		float tOffX = 0;
-		float tOffY = 0;
-		
+
 		tWidth = tex.width * (textureWindow[1].x );
-		tHeight= tex.width * (textureWindow[1].y );
+		tHeight= tex.height * (textureWindow[1].y );
 		tOffX = tex.width * textureWindow[0].x;
 		tOffY = tex.height * textureWindow[0].y;
 		
@@ -914,9 +915,11 @@ public class QuadSurface {
 				applyEdgeBlendToTexture(bufferScreen.getTexture());
 			}
 		}
+		
 		g.beginDraw();
 		g.noStroke();
 		g.beginShape(PApplet.QUADS);
+		g.texture(tex);
 		
 		if(this.isUsingSurfaceMask() || this.isUsingEdgeBlend()){
 			g.texture(maskedTex);
@@ -926,6 +929,14 @@ public class QuadSurface {
 			tHeight = maskedTex.height;
 		}else{
 			g.texture(tex);
+			if(bufferScreen != null){
+				bufferScreen.delete();
+				bufferScreen = null;
+			}
+			if(blendScreen != null){
+				blendScreen.delete();
+				blendScreen = null;
+			}
 		}
 
 		for (int i = 0; i < GRID_RESOLUTION - 1; i++) {
@@ -934,26 +945,26 @@ public class QuadSurface {
 				g.vertex(vertexPoints[i][j].x, 
 						vertexPoints[i][j].y, 
 						vertexPoints[i][j].z + currentZ, 
-						((float) i / (GRID_RESOLUTION - 1)) * tWidth + tOffX, 
-						((float) j / (GRID_RESOLUTION - 1)) * tHeight+ tOffY);
+						((float) i / (GRID_RESOLUTION - 1)) * (tWidth + tOffX), 
+						((float) j / (GRID_RESOLUTION - 1)) * (tHeight+ tOffY));
 
 				g.vertex(vertexPoints[i + 1][j].x, 
 						vertexPoints[i + 1][j].y, 
 						vertexPoints[i + 1][j].z + currentZ, 
-						(((float) i + 1) / (GRID_RESOLUTION - 1)) * tWidth + tOffX, 
-						((float) j / (GRID_RESOLUTION - 1)) * tHeight+ tOffY);
+						(((float) i + 1) / (GRID_RESOLUTION - 1)) * (tWidth + tOffX), 
+						((float) j / (GRID_RESOLUTION - 1)) * (tHeight+ tOffY));
 
 				g.vertex(vertexPoints[i + 1][j + 1].x, 
 						vertexPoints[i + 1][j + 1].y, 
 						vertexPoints[i + 1][j + 1].z + currentZ, 
-						(((float) i + 1) / (GRID_RESOLUTION - 1)) * tWidth + tOffX, 
-						(((float) j + 1) / (GRID_RESOLUTION - 1)) * tHeight+ tOffY);
+						(((float) i + 1) / (GRID_RESOLUTION - 1)) * (tWidth + tOffX), 
+						(((float) j + 1) / (GRID_RESOLUTION - 1)) * (tHeight+ tOffY));
 
 				g.vertex(vertexPoints[i][j + 1].x, 
 						vertexPoints[i][j + 1].y, 
 						vertexPoints[i][j + 1].z + currentZ, 
-						((float) i / (GRID_RESOLUTION - 1)) *  tWidth + tOffX, 
-						(((float) j + 1) / (GRID_RESOLUTION - 1)) * tHeight + tOffY);
+						((float) i / (GRID_RESOLUTION - 1)) *  (tWidth + tOffX), 
+						(((float) j + 1) / (GRID_RESOLUTION - 1)) * (tHeight + tOffY));
 
 			}
 		}

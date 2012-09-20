@@ -845,7 +845,7 @@ public class BezierSurface {
 		float tOffY = 0;
 		
 		tWidth = tex.width * (textureWindow[1].x );
-		tHeight= tex.width * (textureWindow[1].y );
+		tHeight= tex.height * (textureWindow[1].y );
 		tOffX = tex.width * textureWindow[0].x;
 		tOffY = tex.height * textureWindow[0].y;
 		
@@ -887,6 +887,8 @@ public class BezierSurface {
 			tHeight = maskedTex.height;
 		}else{
 			g.texture(tex);
+			if(bufferScreen != null)
+				bufferScreen = null;
 		}
 
 		
@@ -897,26 +899,26 @@ public class BezierSurface {
 				g.vertex(vertexPoints[i][j].x, 
 						vertexPoints[i][j].y, 
 						vertexPoints[i][j].z+currentZ,
-						((float) i / GRID_RESOLUTION) * (tWidth) + tOffX,
-						((float) j / GRID_RESOLUTION) * tHeight+ tOffY);
+						((float) i / GRID_RESOLUTION) * (tWidth + tOffX),
+						((float) j / GRID_RESOLUTION) * (tHeight+ tOffY));
 				
 				g.vertex(vertexPoints[i + 1][j].x, 
 						vertexPoints[i + 1][j].y,
 						vertexPoints[i + 1][j].z+currentZ, 
-						(((float) i + 1) / GRID_RESOLUTION) * (tWidth) + tOffX, 
-						((float) j / GRID_RESOLUTION) * tHeight+ tOffY);
+						(((float) i + 1) / GRID_RESOLUTION) * (tWidth + tOffX), 
+						((float) j / GRID_RESOLUTION) * (tHeight+ tOffY));
 				
 				g.vertex(vertexPoints[i + 1][j + 1].x, 
 						vertexPoints[i + 1][j + 1].y,
 						vertexPoints[i + 1][j + 1].z+currentZ, 
-						(((float) i + 1) / GRID_RESOLUTION) * (tWidth) + tOffX, 
-						(((float) j + 1) / GRID_RESOLUTION) * tHeight+ tOffY);
+						(((float) i + 1) / GRID_RESOLUTION) * (tWidth + tOffX), 
+						(((float) j + 1) / GRID_RESOLUTION) * (tHeight+ tOffY));
 				
 				g.vertex(vertexPoints[i][j + 1].x, 
 						vertexPoints[i][j + 1].y,
 						vertexPoints[i][j + 1].z+currentZ, 
-						((float) i / GRID_RESOLUTION) * (tWidth) + tOffX,
-						(((float) j + 1) / GRID_RESOLUTION) * tHeight+ tOffY);
+						((float) i / GRID_RESOLUTION) * (tWidth + tOffX),
+						(((float) j + 1) / GRID_RESOLUTION) * (tHeight+ tOffY));
 				
 				
 			}
