@@ -21,6 +21,8 @@
 package ixagon.SurfaceMapper;
 
 import java.awt.Polygon;
+import java.io.File;
+
 import processing.core.PApplet;
 import processing.core.PVector;
 import processing.xml.XMLElement;
@@ -76,7 +78,7 @@ public class BezierSurface {
 	private int selectedCorner;
 	private int selectedBezierControl;
 	
-	private int ccolor = 0; 
+	private int ccolor = 0xFF3c3c3c; 
 	
 	private String surfaceName;
 	
@@ -93,6 +95,7 @@ public class BezierSurface {
 	
 	private GLTexture surfaceMask;
 	private GLTexture maskedTex;
+	private File maskFile;
 	private GLTextureFilter maskFilter;
 	private boolean usingEdgeBlend = false;
 	private GLTexture edgeBlendTex;
@@ -192,6 +195,18 @@ public class BezierSurface {
 			}
 			if(xo.getName().equalsIgnoreCase("texturewindowsize")){
 				size = new PVector(xo.getFloat("x"), xo.getFloat("y"));
+			}
+			if(xo.getName().equalsIgnoreCase("surfacemask")){
+				this.setSurfaceMask(new GLTexture(parent, xo.getString("path")+"/"+xo.getString("filename")));
+				this.setMaskFile(new File(xo.getString("path")+"/"+xo.getString("filename")));
+			}
+			if(xo.getName().equalsIgnoreCase("blendleft")){
+				this.setBlendLeft(true);
+				this.setBlendLeftSize(xo.getFloat("blendsize"));
+			}
+			if(xo.getName().equalsIgnoreCase("blendright")){
+				this.setBlendRight(true);
+				this.setBlendRightSize(xo.getFloat("blendsize"));
 			}
 		}
 		this.setTextureWindow(offset, size);
@@ -978,7 +993,7 @@ public class BezierSurface {
 		g.beginDraw();
 		
 		
-		g.fill(20);
+		g.fill(ccolor);
 		
 		g.noStroke();
 		for (int i = 0; i < GRID_RESOLUTION; i++) {
@@ -1125,6 +1140,7 @@ public class BezierSurface {
 	
 	public void clearSurfaceMask(){
 		surfaceMask = null;
+		maskFile = null;
 	}
 
 	public void setSurfaceName(String surfaceName) {
@@ -1184,5 +1200,13 @@ public class BezierSurface {
 
 	public void setBufferScreenWidth(int bufferScreenWidth) {
 		this.bufferScreenWidth = bufferScreenWidth;
+	}
+
+	public File getMaskFile() {
+		return maskFile;
+	}
+
+	public void setMaskFile(File maskFile) {
+		this.maskFile = maskFile;
 	}
 }

@@ -25,6 +25,7 @@ package ixagon.SurfaceMapper;
 //https://forum.processing.org/topic/compensating-for-keystone-distortion-or-creating-some-kind-of-homography-routine
 
 import java.awt.Polygon;
+import java.io.File;
 
 import javax.media.jai.PerspectiveTransform;
 
@@ -91,7 +92,7 @@ public class QuadSurface {
 	private int selectedCorner;
 	private boolean cornerMovementAllowed = true;
 
-	private int ccolor = 0;
+	private int ccolor = 0xFF3c3c3c;
 
 	private Polygon poly = new Polygon();
 
@@ -105,6 +106,7 @@ public class QuadSurface {
 	private boolean hidden = false;
 	private GLTexture surfaceMask;
 	private GLTexture maskedTex;
+	private File maskFile;
 	private GLTextureFilter maskFilter;
 
 	private GLTexture edgeBlendTex;
@@ -113,6 +115,7 @@ public class QuadSurface {
 	private GLGraphicsOffScreen blendScreen;
 	private GLGraphicsOffScreen bufferScreen;
 	private int bufferScreenWidth = 0;
+
 	
 	float tWidth = 1;
 	float tHeight = 1;
@@ -161,6 +164,18 @@ public class QuadSurface {
 			}
 			if(xo.getName().equalsIgnoreCase("texturewindowsize")){
 				size = new PVector(xo.getFloat("x"), xo.getFloat("y"));
+			}
+			if(xo.getName().equalsIgnoreCase("surfacemask")){
+				this.setSurfaceMask(new GLTexture(parent, xo.getString("path")+"/"+xo.getString("filename")));
+				this.setMaskFile(new File(xo.getString("path")+"/"+xo.getString("filename")));
+			}
+			if(xo.getName().equalsIgnoreCase("blendleft")){
+				this.setBlendLeft(true);
+				this.setBlendLeftSize(xo.getFloat("blendsize"));
+			}
+			if(xo.getName().equalsIgnoreCase("blendright")){
+				this.setBlendRight(true);
+				this.setBlendRightSize(xo.getFloat("blendsize"));
 			}
 		}
 		this.setTextureWindow(offset, size);
@@ -248,7 +263,6 @@ public class QuadSurface {
 	 */
 	public void setColor(int ccolor) {
 		this.ccolor = ccolor;
-		updateCalibrateTexture();
 	}
 
 	/**
@@ -883,11 +897,12 @@ public class QuadSurface {
 	 * @param tex
 	 */
 	private void renderQuad(GLGraphicsOffScreen g, GLTexture tex) {	
-
-		tWidth = tex.width * (textureWindow[1].x );
-		tHeight= tex.height * (textureWindow[1].y );
+		
 		tOffX = tex.width * textureWindow[0].x;
 		tOffY = tex.height * textureWindow[0].y;
+		tWidth = tex.width * (textureWindow[1].x );
+		tHeight= tex.height * (textureWindow[1].y );
+		
 		
 		if(this.isUsingEdgeBlend() || this.isUsingSurfaceMask()){
 		
@@ -945,26 +960,26 @@ public class QuadSurface {
 				g.vertex(vertexPoints[i][j].x, 
 						vertexPoints[i][j].y, 
 						vertexPoints[i][j].z + currentZ, 
-						((float) i / (GRID_RESOLUTION - 1)) * (tWidth + tOffX), 
-						((float) j / (GRID_RESOLUTION - 1)) * (tHeight+ tOffY));
+						((float) i / (GRID_RESOLUTION - 1)) * tWidth + tOffX, 
+						((float) j / (GRID_RESOLUTION - 1)) * tHeight+ tOffY);
 
 				g.vertex(vertexPoints[i + 1][j].x, 
 						vertexPoints[i + 1][j].y, 
 						vertexPoints[i + 1][j].z + currentZ, 
-						(((float) i + 1) / (GRID_RESOLUTION - 1)) * (tWidth + tOffX), 
-						((float) j / (GRID_RESOLUTION - 1)) * (tHeight+ tOffY));
+						(((float) i + 1) / (GRID_RESOLUTION - 1)) * tWidth + tOffX, 
+						((float) j / (GRID_RESOLUTION - 1)) * tHeight+ tOffY);
 
 				g.vertex(vertexPoints[i + 1][j + 1].x, 
 						vertexPoints[i + 1][j + 1].y, 
 						vertexPoints[i + 1][j + 1].z + currentZ, 
-						(((float) i + 1) / (GRID_RESOLUTION - 1)) * (tWidth + tOffX), 
-						(((float) j + 1) / (GRID_RESOLUTION - 1)) * (tHeight+ tOffY));
+						(((float) i + 1) / (GRID_RESOLUTION - 1)) * tWidth + tOffX, 
+						(((float) j + 1) / (GRID_RESOLUTION - 1)) * tHeight+ tOffY);
 
 				g.vertex(vertexPoints[i][j + 1].x, 
 						vertexPoints[i][j + 1].y, 
 						vertexPoints[i][j + 1].z + currentZ, 
-						((float) i / (GRID_RESOLUTION - 1)) *  (tWidth + tOffX), 
-						(((float) j + 1) / (GRID_RESOLUTION - 1)) * (tHeight + tOffY));
+						((float) i / (GRID_RESOLUTION - 1)) *  tWidth + tOffX, 
+						(((float) j + 1) / (GRID_RESOLUTION - 1)) * tHeight + tOffY);
 
 			}
 		}
@@ -1022,7 +1037,7 @@ public class QuadSurface {
 	 */
 	private void renderGrid(GLGraphicsOffScreen g) {
 		g.beginDraw();
-		g.fill(20);
+		g.fill(ccolor, 100);
 		g.noStroke();
 
 		g.beginShape(PApplet.QUADS);
@@ -1175,6 +1190,7 @@ public class QuadSurface {
 	
 	public void clearSurfaceMask(){
 		surfaceMask = null;
+		maskFile = null;
 	}
 
 	public void setSurfaceName(String surfaceName) {
@@ -1235,6 +1251,14 @@ public class QuadSurface {
 
 	public void setBufferScreenWidth(int bufferScreenWidth) {
 		this.bufferScreenWidth = bufferScreenWidth;
+	}
+
+	public File getMaskFile() {
+		return maskFile;
+	}
+
+	public void setMaskFile(File maskFile) {
+		this.maskFile = maskFile;
 	}
 
 }

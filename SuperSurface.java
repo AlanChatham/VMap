@@ -21,6 +21,7 @@
 package ixagon.SurfaceMapper;
 
 import java.awt.Polygon;
+import java.io.File;
 
 import codeanticode.glgraphics.GLGraphicsOffScreen;
 import codeanticode.glgraphics.GLTexture;
@@ -1046,5 +1047,27 @@ public class SuperSurface {
 			break;
 		}
 	}
+	
+	public void setMaskFile(File maskFile){
+
+		switch(type){
+		case QUAD:
+			quadSurface.setMaskFile(maskFile);
+			break;
+		case BEZIER:
+			bezierSurface.setMaskFile(maskFile);
+		}
+	}
+	
+	public File getMaskFile(){
+		switch(type){
+		case QUAD:
+			return quadSurface.getMaskFile();
+		case BEZIER:
+			return bezierSurface.getMaskFile();
+		}
+		return null;
+	}
+	
 	
 }
