@@ -957,6 +957,77 @@ public class SurfaceMapper {
 			}
 		}
 	}
+	
+	public void selectSurfaces(int mX, int mY) {
+		if (this.MODE == SurfaceMapper.MODE_CALIBRATE) {
+			startPos = new PVector(mX, mY);
+			for (int i = surfaces.size() - 1; i >= 0; i--) {
+				SuperSurface cps = surfaces.get(i);
+
+				cps.setActivePoint(cps.getActiveCornerPointIndex(mX, mY));
+				cps.setSelectedBezierControl(cps.getActiveBezierPointIndex(mX, mY));
+
+				if (cps.getActivePoint() >= 0 || cps.getSelectedBezierControl() >= 0) {
+					if (grouping && !ctrlDown) {
+						if (!cps.isSelected()) {
+							for (SuperSurface ss : selectedSurfaces) {
+								ss.setSelected(false);
+							}
+							grouping = false;
+							selectedSurfaces.clear();
+						}
+					}
+
+					disableSelectionTool = true;
+					if (ctrlDown && grouping) {
+						boolean actionTaken = false;
+						if (cps.isSelected()) {
+							cps.setSelected(false);
+							for (int j = selectedSurfaces.size() - 1; j >= 0; j--) {
+								if (cps.getId() == selectedSurfaces.get(j).getId())
+									selectedSurfaces.remove(j);
+							}
+							actionTaken = true;
+						}
+						if (!cps.isSelected() && !actionTaken) {
+							cps.setSelected(true);
+							selectedSurfaces.add(cps);
+							removeDuplicates(selectedSurfaces);
+						}
+					} else {
+						if (grouping == false) {
+							for (SuperSurface ss : selectedSurfaces) {
+								ss.setSelected(false);
+							}
+							selectedSurfaces.clear();
+							cps.setSelected(true);
+							selectedSurfaces.add(cps);
+						}
+					}
+
+					// no need to loop through all surfaces unless multiple
+					// surfaces has been selected
+					if (!grouping)
+						break;
+				}
+			}
+			if (grouping) {
+				int moveClick = 0;
+				for (SuperSurface ss : selectedSurfaces) {
+					if (ss.getActivePoint() == 2000)
+						moveClick++;
+				}
+				// PApplet.println(moveClick);
+				if (moveClick > 0) {
+					for (SuperSurface ss : selectedSurfaces) {
+						ss.setActivePoint(2000);
+						// PApplet.println(ss.getActivePoint());
+					}
+				}
+			}
+
+		}
+	}
 
 	/**
 	 * MouseEvent method. Forwards the MouseEvent to ksMouseEvent if user input is allowed
@@ -983,75 +1054,7 @@ public class SurfaceMapper {
 
 		switch (e.getID()) {
 		case MouseEvent.MOUSE_PRESSED:
-			if (this.MODE == SurfaceMapper.MODE_CALIBRATE) {
-				startPos = new PVector(mX, mY);
-				for (int i = surfaces.size() - 1; i >= 0; i--) {
-					SuperSurface cps = surfaces.get(i);
-
-					cps.setActivePoint(cps.getActiveCornerPointIndex(mX, mY));
-					cps.setSelectedBezierControl(cps.getActiveBezierPointIndex(mX, mY));
-
-					if (cps.getActivePoint() >= 0 || cps.getSelectedBezierControl() >= 0) {
-						if (grouping && !ctrlDown) {
-							if (!cps.isSelected()) {
-								for (SuperSurface ss : selectedSurfaces) {
-									ss.setSelected(false);
-								}
-								grouping = false;
-								selectedSurfaces.clear();
-							}
-						}
-
-						disableSelectionTool = true;
-						if (ctrlDown && grouping) {
-							boolean actionTaken = false;
-							if (cps.isSelected()) {
-								cps.setSelected(false);
-								for (int j = selectedSurfaces.size() - 1; j >= 0; j--) {
-									if (cps.getId() == selectedSurfaces.get(j).getId())
-										selectedSurfaces.remove(j);
-								}
-								actionTaken = true;
-							}
-							if (!cps.isSelected() && !actionTaken) {
-								cps.setSelected(true);
-								selectedSurfaces.add(cps);
-								removeDuplicates(selectedSurfaces);
-							}
-						} else {
-							if (grouping == false) {
-								for (SuperSurface ss : selectedSurfaces) {
-									ss.setSelected(false);
-								}
-								selectedSurfaces.clear();
-								cps.setSelected(true);
-								selectedSurfaces.add(cps);
-							}
-						}
-
-						// no need to loop through all surfaces unless multiple
-						// surfaces has been selected
-						if (!grouping)
-							break;
-					}
-				}
-				if (grouping) {
-					int moveClick = 0;
-					for (SuperSurface ss : selectedSurfaces) {
-						if (ss.getActivePoint() == 2000)
-							moveClick++;
-					}
-					// PApplet.println(moveClick);
-					if (moveClick > 0) {
-						for (SuperSurface ss : selectedSurfaces) {
-							ss.setActivePoint(2000);
-							// PApplet.println(ss.getActivePoint());
-						}
-					}
-				}
-
-			}
-
+			selectSurfaces(mX, mY);
 			break;
 
 		case MouseEvent.MOUSE_DRAGGED:
