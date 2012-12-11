@@ -218,13 +218,13 @@ public class SuperSurface {
 		return 0;
 	}
 	
-	public void setTextureWindow(PVector offset, PVector size){
+	public void setTextureWindow(float x, float y, float width, float height){
 		switch(type){
 		case QUAD:
-			quadSurface.setTextureWindow(offset, size);
+			quadSurface.setTextureWindow(x, y, width, height);
 			break;
 		case BEZIER:
-			bezierSurface.setTextureWindow(offset, size);
+			bezierSurface.setTextureWindow(x, y, width, height);
 			break;
 		}
 	}

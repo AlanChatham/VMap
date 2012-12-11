@@ -1293,14 +1293,14 @@ public class SurfaceMapper {
 				// ALT is Offset!
 				if (altDown && !ctrlDown) {
 					for (SuperSurface ss : selectedSurfaces) {
-						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y + 0.05f), new PVector(ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y));
+						ss.setTextureWindow(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y + 0.05f, ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y);
 					}
 				}
 
 				// CTRL is Size!
 				if (!altDown && ctrlDown) {
 					for (SuperSurface ss : selectedSurfaces) {
-						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y), new PVector(ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y + 0.05f));
+						ss.setTextureWindow(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y, ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y + 0.05f);
 					}
 				}
 
@@ -1315,14 +1315,14 @@ public class SurfaceMapper {
 				// ALT is Offset!
 				if (altDown && !ctrlDown) {
 					for (SuperSurface ss : selectedSurfaces) {
-						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y - 0.05f), new PVector(ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y));
+						ss.setTextureWindow(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y - 0.05f, ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y);
 					}
 				}
 
 				// CTRL is Size!
 				if (!altDown && ctrlDown) {
 					for (SuperSurface ss : selectedSurfaces) {
-						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y), new PVector(ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y - 0.05f));
+						ss.setTextureWindow(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y, ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y - 0.05f);
 					}
 				}
 
@@ -1338,14 +1338,14 @@ public class SurfaceMapper {
 				// ALT is Offset!
 				if (altDown && !ctrlDown) {
 					for (SuperSurface ss : selectedSurfaces) {
-						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x + 0.05f, ss.getTextureWindow()[0].y), new PVector(ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y));
+						ss.setTextureWindow(ss.getTextureWindow()[0].x + 0.05f, ss.getTextureWindow()[0].y, ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y);
 					}
 				}
 
 				// CTRL is Size!
 				if (!altDown && ctrlDown) {
 					for (SuperSurface ss : selectedSurfaces) {
-						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y), new PVector(ss.getTextureWindow()[1].x + 0.05f, ss.getTextureWindow()[1].y));
+						ss.setTextureWindow(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y, ss.getTextureWindow()[1].x + 0.05f, ss.getTextureWindow()[1].y);
 					}
 				}
 
@@ -1361,14 +1361,14 @@ public class SurfaceMapper {
 				// ALT is Offset!
 				if (altDown && !ctrlDown) {
 					for (SuperSurface ss : selectedSurfaces) {
-						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x - 0.05f, ss.getTextureWindow()[0].y), new PVector(ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y));
+						ss.setTextureWindow(ss.getTextureWindow()[0].x - 0.05f, ss.getTextureWindow()[0].y, ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y);
 					}
 				}
 
 				// CTRL is Size!
 				if (!altDown && ctrlDown) {
 					for (SuperSurface ss : selectedSurfaces) {
-						ss.setTextureWindow(new PVector(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y), new PVector(ss.getTextureWindow()[1].x - 0.05f, ss.getTextureWindow()[1].y));
+						ss.setTextureWindow(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y, ss.getTextureWindow()[1].x - 0.05f, ss.getTextureWindow()[1].y);
 					}
 				}
 				break;

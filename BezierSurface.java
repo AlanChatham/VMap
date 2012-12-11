@@ -155,7 +155,7 @@ public class BezierSurface {
 		this.bezierPoints[7].x = (float) (this.cornerPoints[3].x - (SuperSurface.DEFAULT_SIZE * 0.0));
 		this.bezierPoints[7].y = (float) (this.cornerPoints[3].y - (SuperSurface.DEFAULT_SIZE * 0.3));
 		
-		this.setTextureWindow(new PVector(0 ,0), new PVector(1,1));
+		this.setTextureWindow(0, 0, 1, 1);
 
 		this.updateTransform();
 	}
@@ -209,7 +209,7 @@ public class BezierSurface {
 				this.setBlendRightSize(xo.getFloat("blendsize"));
 			}
 		}
-		this.setTextureWindow(offset, size);
+		this.setTextureWindow(offset.x, offset.y, size.x, size.y);
 
 
 		this.updateTransform();
@@ -460,19 +460,19 @@ public class BezierSurface {
 	 * 
 	 * @param PVector[2] where PVector[0] is offset(x,y) and PVector[1] is width/height(x, y) 
 	 */
-	public void setTextureWindow(PVector offset, PVector size) {
-		offset.x = (offset.x > 0) ? offset.x : 0;
-		offset.x = (offset.x < 1) ? offset.x : 1;
-		offset.y = (offset.y > 0) ? offset.y : 0;
-		offset.y = (offset.y < 1) ? offset.y : 1;
+	public void setTextureWindow(float x, float y, float width, float height) {
+		x = (x > 0) ? x : 0;
+		x = (x < 1) ? x : 1;
+		y = (y > 0) ? y : 0;
+		y = (y < 1) ? y : 1;
 		
-		size.x = (size.x > 0) ? size.x : 0;
-		size.x = (size.x < 1) ? size.x : 1;
-		size.y = (size.y > 0) ? size.y : 0;
-		size.y = (size.y < 1) ? size.y : 1;
+		width = (width > 0) ? width : 0;
+		width = (width < 1) ? width : 1;
+		height = (height > 0) ? height : 0;
+		height = (height < 1) ? height : 1;
 		
-		textureWindow[0] = new PVector(offset.x, offset.y);
-		textureWindow[1] = new PVector(size.x, size.y);
+		textureWindow[0] = new PVector(x, y);
+		textureWindow[1] = new PVector(width, height);
 	}
 	
 	public PVector[] getTextureWindow(){
