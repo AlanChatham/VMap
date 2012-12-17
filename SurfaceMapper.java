@@ -951,7 +951,7 @@ public class SurfaceMapper {
 						this.setSnapDistance(this.getSnapDistance() - 2);
 					}
 				} else {
-					if (this.getSelectionDistance() > 16)
+					if (this.getSelectionDistance() > 6)
 						this.setSelectionDistance(this.getSelectionDistance() - 2);
 				}
 			}
