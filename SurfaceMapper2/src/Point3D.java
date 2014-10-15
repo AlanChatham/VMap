@@ -1,5 +1,7 @@
 /**
- * Part of the SurfaceMapper library: http://surfacemapper.sourceforge.net/
+ * Part of the SurfaceMapperP2 library: http://surfacemapper.sourceforge.net/
+ * 
+ * Portions to update to Processing 2 copyright (c) 2014 - Laboratory LLC
  * Copyright (c) 2011-12 Ixagon AB 
  *
  * This source is free software; you can redistribute it and/or modify
@@ -18,7 +20,7 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-package ixagon.SurfaceMapper;
+package ixagon.SurfaceMapperP2;
 
 public class Point3D {
 	public float x = 0;

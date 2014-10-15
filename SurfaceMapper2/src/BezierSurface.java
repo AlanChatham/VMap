@@ -1,5 +1,7 @@
 /**
- * Part of the SurfaceMapper library: http://surfacemapper.sourceforge.net/
+ * Part of the SurfaceMapperP2 library: http://surfacemapper.sourceforge.net/
+ * 
+ * Portions to update to Processing 2 copyright (c) 2014 - Laboratory LLC
  * Copyright (c) 2011-12 Ixagon AB 
  *
  * This source is free software; you can redistribute it and/or modify
@@ -18,17 +20,14 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-package ixagon.SurfaceMapper;
+package ixagon.SurfaceMapperP2;
 
 import java.awt.Polygon;
-import java.io.File;
-
 import processing.core.PApplet;
-import processing.core.PVector;
-import processing.xml.XMLElement;
-import codeanticode.glgraphics.GLGraphicsOffScreen;
-import codeanticode.glgraphics.GLTexture;
-import codeanticode.glgraphics.GLTextureFilter;
+import processing.data.XML;
+import processing.core.PImage;
+import processing.core.PGraphics;
+import processing.opengl.Texture;
 
 //Parts derived from MappingTools library
 
@@ -63,14 +62,14 @@ public class BezierSurface {
 	// Coordinates of the bezier vectors
 	private Point3D[] bezierPoints;
 	
-	private PVector[] textureWindow= new PVector[2];
-	
 	// Displacement forces
 
 	private int horizontalForce = 0;
 	private int verticalForce = 0;
 
 	private int GRID_RESOLUTION;
+	private int DEFAULT_SIZE = 100;
+
 	private int surfaceId;
 
 	private boolean isSelected;
@@ -78,7 +77,7 @@ public class BezierSurface {
 	private int selectedCorner;
 	private int selectedBezierControl;
 	
-	private int ccolor = 0xFF3c3c3c; 
+	private int ccolor = 0; 
 	
 	private String surfaceName;
 	
@@ -93,18 +92,6 @@ public class BezierSurface {
 	
 	private boolean hidden = false;
 	
-	private GLTexture surfaceMask;
-	private GLTexture maskedTex;
-	private File maskFile;
-	private GLTextureFilter maskFilter;
-	private boolean usingEdgeBlend = false;
-	private GLTexture edgeBlendTex;
-	private boolean blendRight = false, blendLeft = false;
-	private float blendRightSize = 0, blendLeftSize = 0;
-	private GLGraphicsOffScreen blendScreen;
-	private GLGraphicsOffScreen bufferScreen;
-	private int bufferScreenWidth = 0;
-	
 	/**
 	 * Constructor for creating a new surface at X,Y with RES subdivision.
 	 * @param parent
@@ -117,45 +104,43 @@ public class BezierSurface {
 	BezierSurface(PApplet parent, SurfaceMapper ks, float x, float y, int res, int id) {
 		init(parent, ks, res, id, null);
 
-		this.cornerPoints[0].x = (float) (x - (SuperSurface.DEFAULT_SIZE * 0.5));
-		this.cornerPoints[0].y = (float) (y - (SuperSurface.DEFAULT_SIZE * 0.5));
+		this.cornerPoints[0].x = (float) (x - (this.DEFAULT_SIZE * 0.5));
+		this.cornerPoints[0].y = (float) (y - (this.DEFAULT_SIZE * 0.5));
 
-		this.cornerPoints[1].x = (float) (x + (SuperSurface.DEFAULT_SIZE * 0.5));
-		this.cornerPoints[1].y = (float) (y - (SuperSurface.DEFAULT_SIZE * 0.5));
+		this.cornerPoints[1].x = (float) (x + (this.DEFAULT_SIZE * 0.5));
+		this.cornerPoints[1].y = (float) (y - (this.DEFAULT_SIZE * 0.5));
 
-		this.cornerPoints[2].x = (float) (x + (SuperSurface.DEFAULT_SIZE * 0.5));
-		this.cornerPoints[2].y = (float) (y + (SuperSurface.DEFAULT_SIZE * 0.5));
+		this.cornerPoints[2].x = (float) (x + (this.DEFAULT_SIZE * 0.5));
+		this.cornerPoints[2].y = (float) (y + (this.DEFAULT_SIZE * 0.5));
 
-		this.cornerPoints[3].x = (float) (x - (SuperSurface.DEFAULT_SIZE * 0.5));
-		this.cornerPoints[3].y = (float) (y + (SuperSurface.DEFAULT_SIZE * 0.5));
+		this.cornerPoints[3].x = (float) (x - (this.DEFAULT_SIZE * 0.5));
+		this.cornerPoints[3].y = (float) (y + (this.DEFAULT_SIZE * 0.5));
 		
 		//bezier points init
 		
-		this.bezierPoints[0].x = (float) (this.cornerPoints[0].x + (SuperSurface.DEFAULT_SIZE * 0.0));
-		this.bezierPoints[0].y = (float) (this.cornerPoints[0].y + (SuperSurface.DEFAULT_SIZE * 0.3));
+		this.bezierPoints[0].x = (float) (this.cornerPoints[0].x + (this.DEFAULT_SIZE * 0.0));
+		this.bezierPoints[0].y = (float) (this.cornerPoints[0].y + (this.DEFAULT_SIZE * 0.3));
 
-		this.bezierPoints[1].x = (float) (this.cornerPoints[0].x + (SuperSurface.DEFAULT_SIZE * 0.3));
-		this.bezierPoints[1].y = (float) (this.cornerPoints[0].y + (SuperSurface.DEFAULT_SIZE * 0.0));
+		this.bezierPoints[1].x = (float) (this.cornerPoints[0].x + (this.DEFAULT_SIZE * 0.3));
+		this.bezierPoints[1].y = (float) (this.cornerPoints[0].y + (this.DEFAULT_SIZE * 0.0));
 
-		this.bezierPoints[2].x = (float) (this.cornerPoints[1].x - (SuperSurface.DEFAULT_SIZE * 0.3));
-		this.bezierPoints[2].y = (float) (this.cornerPoints[1].y + (SuperSurface.DEFAULT_SIZE * 0.0));
+		this.bezierPoints[2].x = (float) (this.cornerPoints[1].x - (this.DEFAULT_SIZE * 0.3));
+		this.bezierPoints[2].y = (float) (this.cornerPoints[1].y + (this.DEFAULT_SIZE * 0.0));
 
-		this.bezierPoints[3].x = (float) (this.cornerPoints[1].x - (SuperSurface.DEFAULT_SIZE * 0.0));
-		this.bezierPoints[3].y = (float) (this.cornerPoints[1].y + (SuperSurface.DEFAULT_SIZE * 0.3));
+		this.bezierPoints[3].x = (float) (this.cornerPoints[1].x - (this.DEFAULT_SIZE * 0.0));
+		this.bezierPoints[3].y = (float) (this.cornerPoints[1].y + (this.DEFAULT_SIZE * 0.3));
 		
-		this.bezierPoints[4].x = (float) (this.cornerPoints[2].x - (SuperSurface.DEFAULT_SIZE * 0.0));
-		this.bezierPoints[4].y = (float) (this.cornerPoints[2].y - (SuperSurface.DEFAULT_SIZE * 0.3));
+		this.bezierPoints[4].x = (float) (this.cornerPoints[2].x - (this.DEFAULT_SIZE * 0.0));
+		this.bezierPoints[4].y = (float) (this.cornerPoints[2].y - (this.DEFAULT_SIZE * 0.3));
 
-		this.bezierPoints[5].x = (float) (this.cornerPoints[2].x - (SuperSurface.DEFAULT_SIZE * 0.3));
-		this.bezierPoints[5].y = (float) (this.cornerPoints[2].y - (SuperSurface.DEFAULT_SIZE * 0.0));
+		this.bezierPoints[5].x = (float) (this.cornerPoints[2].x - (this.DEFAULT_SIZE * 0.3));
+		this.bezierPoints[5].y = (float) (this.cornerPoints[2].y - (this.DEFAULT_SIZE * 0.0));
 
-		this.bezierPoints[6].x = (float) (this.cornerPoints[3].x + (SuperSurface.DEFAULT_SIZE * 0.3));
-		this.bezierPoints[6].y = (float) (this.cornerPoints[3].y + (SuperSurface.DEFAULT_SIZE * 0.0));
+		this.bezierPoints[6].x = (float) (this.cornerPoints[3].x + (this.DEFAULT_SIZE * 0.3));
+		this.bezierPoints[6].y = (float) (this.cornerPoints[3].y + (this.DEFAULT_SIZE * 0.0));
 
-		this.bezierPoints[7].x = (float) (this.cornerPoints[3].x - (SuperSurface.DEFAULT_SIZE * 0.0));
-		this.bezierPoints[7].y = (float) (this.cornerPoints[3].y - (SuperSurface.DEFAULT_SIZE * 0.3));
-		
-		this.setTextureWindow(0, 0, 1, 1);
+		this.bezierPoints[7].x = (float) (this.cornerPoints[3].x - (this.DEFAULT_SIZE * 0.0));
+		this.bezierPoints[7].y = (float) (this.cornerPoints[3].y - (this.DEFAULT_SIZE * 0.3));
 
 		this.updateTransform();
 	}
@@ -165,19 +150,17 @@ public class BezierSurface {
 	 * @param parent
 	 * @param ks
 	 * @param xml
-	 * @param name 
-	 * @param id 
 	 */
-	BezierSurface(PApplet parent, SurfaceMapper ks, XMLElement xml, int id, String name) {
+	BezierSurface(PApplet parent, SurfaceMapper ks, XML xml) {
 
-		init(parent, ks, (xml.getInt("res")), id, name);
+		init(parent, ks, (xml.getInt("res")), xml.getInt("id"), xml.getString("name"));
 
-		if (xml.getBoolean("lock"))
+		if (xml.getInt("lock") == 1)
 			this.toggleLocked();
 
 		// reload the Corners
 		for (int i = 0; i < xml.getChildCount(); i++) {
-			XMLElement point = xml.getChild(i);
+			XML point = xml.getChild(i);
 			if(point.getName().equals("cornerpoint"))
 				setCornerPoint(point.getInt("i"), point.getFloat("x"), point.getFloat("y"));
 			if(point.getName().equals("bezierpoint"))
@@ -186,31 +169,6 @@ public class BezierSurface {
 		
 		horizontalForce = xml.getInt("horizontalForce");
 		verticalForce = xml.getInt("verticalForce");
-		
-		PVector offset = new PVector(0, 0);
-		PVector size = new PVector(1, 1);
-		for(XMLElement xo : xml.getChildren()){
-			if(xo.getName().equalsIgnoreCase("texturewindowoffset")){
-				offset = new PVector(xo.getFloat("x"), xo.getFloat("y"));
-			}
-			if(xo.getName().equalsIgnoreCase("texturewindowsize")){
-				size = new PVector(xo.getFloat("x"), xo.getFloat("y"));
-			}
-			if(xo.getName().equalsIgnoreCase("surfacemask")){
-				this.setSurfaceMask(new GLTexture(parent, xo.getString("path")+"/"+xo.getString("filename")));
-				this.setMaskFile(new File(xo.getString("path")+"/"+xo.getString("filename")));
-			}
-			if(xo.getName().equalsIgnoreCase("blendleft")){
-				this.setBlendLeft(true);
-				this.setBlendLeftSize(xo.getFloat("blendsize"));
-			}
-			if(xo.getName().equalsIgnoreCase("blendright")){
-				this.setBlendRight(true);
-				this.setBlendRightSize(xo.getFloat("blendsize"));
-			}
-		}
-		this.setTextureWindow(offset.x, offset.y, size.x, size.y);
-
 
 		this.updateTransform();
 	}
@@ -244,16 +202,14 @@ public class BezierSurface {
 			this.bezierPoints[i] = new Point3D();
 		}
 		
-		GRID_LINE_COLOR = parent.color(160, 160, 160, 50);
-		GRID_LINE_SELECTED_COLOR = parent.color(255, 128, 0);
-		SELECTED_OUTLINE_OUTER_COLOR = parent.color(255, 128, 0, 128);
-		SELECTED_OUTLINE_INNER_COLOR = parent.color(255, 128, 50);
-		CORNER_MARKER_COLOR = parent.color(255, 255, 255, 100);
-		SELECTED_CORNER_MARKER_COLOR = parent.color(0, 255, 255);
+		GRID_LINE_COLOR = parent.color(128, 128, 128);
+		GRID_LINE_SELECTED_COLOR = parent.color(160, 160, 160);
+		SELECTED_OUTLINE_OUTER_COLOR = parent.color(255, 255, 255, 128);
+		SELECTED_OUTLINE_INNER_COLOR = parent.color(255, 255, 255);
+		CORNER_MARKER_COLOR = parent.color(255, 255, 255);
+		SELECTED_CORNER_MARKER_COLOR = parent.color(255, 0, 0);
 
 		this.updateTransform();
-		
-		maskFilter = new GLTextureFilter(parent, "Mask.xml");
 	}
 	
 	/**
@@ -454,33 +410,6 @@ public class BezierSurface {
 	}
 	
 	/**
-	 * Manually set coordinates for mapping the texture. This allows for easy
-	 * cropping and enables a single texture to span more than one surface.
-	 * Use normalized values for the values! (i.e 0-1)
-	 * 
-	 * @param PVector[2] where PVector[0] is offset(x,y) and PVector[1] is width/height(x, y) 
-	 */
-	public void setTextureWindow(float x, float y, float width, float height) {
-		x = (x > 0) ? x : 0;
-		x = (x < 1) ? x : 1;
-		y = (y > 0) ? y : 0;
-		y = (y < 1) ? y : 1;
-		
-		width = (width > 0) ? width : 0;
-		width = (width < 1) ? width : 1;
-		height = (height > 0) ? height : 0;
-		height = (height < 1) ? height : 1;
-		
-		textureWindow[0] = new PVector(x, y);
-		textureWindow[1] = new PVector(width, height);
-	}
-	
-	public PVector[] getTextureWindow(){
-		return this.textureWindow;
-	}
-	
-	
-	/**
 	 * Get all corner points
 	 * @return
 	 */
@@ -544,15 +473,6 @@ public class BezierSurface {
 	 */
 	public int getId() {
 		return this.surfaceId;
-	}
-	
-	/**
-	 * Set the surfaces ID
-	 * 
-	 * @param id
-	 */
-	public void setId(int id) {
-		this.surfaceId = id;
 	}
 
 	/**
@@ -648,24 +568,6 @@ public class BezierSurface {
 	 */
 	public Polygon getPolygon(){
 		return poly;
-	}
-	
-	/**
-	 * Get the longest side as double
-	 * @return
-	 */
-	public double getLongestSide(){
-		double[] longest = new double[4];
-		longest[0] = PVector.dist(new PVector(cornerPoints[0].x, cornerPoints[0].y), new PVector(cornerPoints[1].x, cornerPoints[1].y));
-		longest[1] = PVector.dist(new PVector(cornerPoints[2].x, cornerPoints[2].y), new PVector(cornerPoints[3].x, cornerPoints[3].y));
-		longest[2] = PVector.dist(new PVector(cornerPoints[0].x, cornerPoints[0].y), new PVector(cornerPoints[3].x, cornerPoints[3].y));
-		longest[3] = PVector.dist(new PVector(cornerPoints[1].x, cornerPoints[1].y), new PVector(cornerPoints[2].x, cornerPoints[2].y));
-		
-		double longer = 0;
-		for(int i = 0; i < longest.length; i++){
-			if(longest[i] > longer) longer = longest[i];
-		}
-		return longer;
 	}
 	
 	/**
@@ -798,7 +700,7 @@ public class BezierSurface {
 
 	/**
 	 * Get the average center point of the surface
-	 * @return
+	 * @return Point3D
 	 */
 	public Point3D getCenter() {
 		// Find the average position of all the control points, use that as the
@@ -830,7 +732,7 @@ public class BezierSurface {
 	 * Render method for rendering while in calibration mode
 	 * @param g
 	 */
-	public void render(GLGraphicsOffScreen g) {
+	public void render(PGraphics g) {
 		if (this.MODE == this.MODE_CALIBRATE && !this.isHidden()) {
 			this.renderGrid(g);
 		}
@@ -838,11 +740,11 @@ public class BezierSurface {
 
 	/**
 	 * Render method for rendering in RENDER mode. 
-	 * Takes one GLGraphicsOffScreen and one GLTexture. The GLTexture is the texture used for the surface, and is drawn to the offscreen buffer.
+	 * Takes one PGraphicsand one Texture. The Texture is the texture used for the surface, and is drawn to the offscreen buffer.
 	 * @param g
 	 * @param tex
 	 */
-	public void render(GLGraphicsOffScreen g, GLTexture tex) {
+	public void render(PGraphics g, PImage tex) {
 		if(this.isHidden()) return;
 		this.renderSurface(g, tex);
 	}
@@ -853,148 +755,59 @@ public class BezierSurface {
 	 * @param g
 	 * @param tex
 	 */
-	private void renderSurface(GLGraphicsOffScreen g, GLTexture tex) {
-		float tWidth = 1;
-		float tHeight = 1;
-		float tOffX = 0;
-		float tOffY = 0;
-		
-		tWidth = tex.width * (textureWindow[1].x );
-		tHeight= tex.height * (textureWindow[1].y );
-		tOffX = tex.width * textureWindow[0].x;
-		tOffY = tex.height * textureWindow[0].y;
-		
-		if(this.isUsingEdgeBlend() || this.isUsingSurfaceMask()){
-		
-			if(bufferScreen == null || bufferScreen.width != this.getBufferScreenWidth()){
-				bufferScreen = new GLGraphicsOffScreen(parent, this.getBufferScreenWidth(), this.getBufferScreenWidth());
-			}
-			bufferScreen.beginDraw();
-			bufferScreen.clear(0);
-			bufferScreen.beginShape(PApplet.QUADS);
-			bufferScreen.texture(tex);
-			bufferScreen.vertex(0,0, tOffX, tOffY);
-			bufferScreen.vertex(bufferScreen.width, 0, tWidth+tOffX, tOffY);
-			bufferScreen.vertex(bufferScreen.width, bufferScreen.height, tWidth+tOffX, tHeight+tOffY);
-			bufferScreen.vertex(0, bufferScreen.height, tOffX, tHeight+tOffY);
-			bufferScreen.endShape(PApplet.CLOSE);
-			bufferScreen.endDraw();
-			
-			
-			
-			if(this.isUsingSurfaceMask()){
-				maskFilter.setParameterValue("mask_factor", 0.0f);
-				maskFilter.apply(new GLTexture[]{bufferScreen.getTexture(), surfaceMask}, maskedTex);
-				applyEdgeBlendToTexture(maskedTex);
-			}else{
-				applyEdgeBlendToTexture(bufferScreen.getTexture());
-			}
-		}
+	private void renderSurface(PGraphics g, PImage tex) {
 		g.beginDraw();
+		//g.hint(PApplet.DISABLE_DEPTH_TEST); //this is probably needed, but could cause problems with surfaces adjacent to each other
 		g.noStroke();
-		g.beginShape(PApplet.QUADS);
-		
-		if(this.isUsingSurfaceMask() || this.isUsingEdgeBlend()){
-			g.texture(maskedTex);
-			tOffX = 0;
-			tOffY = 0;
-			tWidth = maskedTex.width;
-			tHeight = maskedTex.height;
-		}else{
-			g.texture(tex);
-			if(bufferScreen != null)
-				bufferScreen = null;
-		}
-
 		
 		for (int i = 0; i < GRID_RESOLUTION; i++) {
 			for (int j = 0; j < GRID_RESOLUTION; j++) {
 				
-				
+				g.beginShape();
+				g.texture(tex);
 				g.vertex(vertexPoints[i][j].x, 
 						vertexPoints[i][j].y, 
 						vertexPoints[i][j].z+currentZ,
-						((float) i / GRID_RESOLUTION) * (tWidth + tOffX),
-						((float) j / GRID_RESOLUTION) * (tHeight+ tOffY));
+						((float) i / GRID_RESOLUTION) * tex.width,
+						((float) j / GRID_RESOLUTION) * tex.height);
 				
 				g.vertex(vertexPoints[i + 1][j].x, 
 						vertexPoints[i + 1][j].y,
 						vertexPoints[i + 1][j].z+currentZ, 
-						(((float) i + 1) / GRID_RESOLUTION) * (tWidth + tOffX), 
-						((float) j / GRID_RESOLUTION) * (tHeight+ tOffY));
+						(((float) i + 1) / GRID_RESOLUTION) * tex.width, 
+						((float) j / GRID_RESOLUTION) * tex.height);
 				
 				g.vertex(vertexPoints[i + 1][j + 1].x, 
 						vertexPoints[i + 1][j + 1].y,
 						vertexPoints[i + 1][j + 1].z+currentZ, 
-						(((float) i + 1) / GRID_RESOLUTION) * (tWidth + tOffX), 
-						(((float) j + 1) / GRID_RESOLUTION) * (tHeight+ tOffY));
+						(((float) i + 1) / GRID_RESOLUTION) * tex.width, 
+						(((float) j + 1) / GRID_RESOLUTION) * tex.height);
 				
 				g.vertex(vertexPoints[i][j + 1].x, 
 						vertexPoints[i][j + 1].y,
 						vertexPoints[i][j + 1].z+currentZ, 
-						((float) i / GRID_RESOLUTION) * (tWidth + tOffX),
-						(((float) j + 1) / GRID_RESOLUTION) * (tHeight+ tOffY));
-				
+						((float) i / GRID_RESOLUTION) * tex.width,
+						(((float) j + 1) / GRID_RESOLUTION) * tex.height);
+				g.endShape();
 				
 			}
 		}
-		g.endShape(PApplet.CLOSE);
+		
 		g.endDraw();
-	}
-	
-	private void applyEdgeBlendToTexture(GLTexture tex){
-		if(this.isUsingEdgeBlend()){
-		
-			if(maskedTex == null){
-				maskedTex = new GLTexture(parent);
-			}
-			maskFilter.setParameterValue("mask_factor", 0.0f);
-			maskFilter.apply(new GLTexture[]{tex, blendScreen.getTexture()}, maskedTex);
-		}
-	}
-	
-	private void updateBlendScreen(){
-		if(blendScreen == null){
-			blendScreen = new GLGraphicsOffScreen(parent, 512, 512);	
-		}
-		
-		blendScreen.beginDraw();
-		blendScreen.clear(0,0);
-		
-		if(this.isBlendLeft()){
-			blendScreen.noStroke();
-			blendScreen.beginShape(PApplet.QUADS);
-			blendScreen.texture(edgeBlendTex);
-			blendScreen.vertex(-2, 0, 0, 0);
-			blendScreen.vertex(blendScreen.width * this.getBlendLeftSize(), 0, edgeBlendTex.width, 0);
-			blendScreen.vertex(blendScreen.width * this.getBlendLeftSize(), blendScreen.height, edgeBlendTex.width, edgeBlendTex.height);
-			blendScreen.vertex(-2, blendScreen.height, 0, edgeBlendTex.height);
-			blendScreen.endShape(PApplet.CLOSE);
-		}
-		if(this.isBlendRight()){
-			blendScreen.noStroke();
-			blendScreen.beginShape(PApplet.QUADS);
-			blendScreen.texture(edgeBlendTex);
-			blendScreen.vertex(blendScreen.width-(blendScreen.width*this.getBlendRightSize()), 0, edgeBlendTex.width, 0);
-			blendScreen.vertex(blendScreen.width+2, 0, 0, 0);
-			blendScreen.vertex(blendScreen.width+2, blendScreen.height, 0, edgeBlendTex.height);
-			blendScreen.vertex(blendScreen.width-(blendScreen.width*this.getBlendRightSize()), blendScreen.height, edgeBlendTex.width, edgeBlendTex.height);
-			blendScreen.endShape(PApplet.CLOSE);
-		}
-		
-		blendScreen.endDraw();
 	}
 
 	/**
 	 * Renders the grid in the surface. (useful in calibration mode)
 	 * @param g
 	 */
-	private void renderGrid(GLGraphicsOffScreen g) {
+	private void renderGrid(PGraphics g) {
 		g.beginDraw();
 		
-		
-		g.fill(ccolor);
-		
+		if (ccolor == 0) {
+			g.fill(50, 80, 150);
+		} else {
+			g.fill(ccolor);
+		}
 		g.noStroke();
 		for (int i = 0; i < GRID_RESOLUTION; i++) {
 			for (int j = 0; j < GRID_RESOLUTION; j++) {
@@ -1010,13 +823,18 @@ public class BezierSurface {
 		}
 		
 		g.textFont(sm.getIdFont());
-		g.fill(255);
+		if (ccolor == 0) {
+			g.fill(255);
+		} else {
+			g.fill(0);
+		}
+
 		g.textAlign(PApplet.CENTER, PApplet.CENTER);
-		g.textSize(20);
-		g.text("" + this.getSurfaceName(), (float) (this.getCenter().x), (float) this.getCenter().y);
+		g.textSize(40);
+		g.text("" + surfaceId, this.getCenter().x, this.getCenter().y);
 		if (isLocked) {
 			g.textSize(12);
-			g.text("Surface locked", (float) this.getCenter().x, (float) this.getCenter().y+26);
+			g.text("Surface locked", this.getCenter().x, this.getCenter().y+26);
 		}
 		
 
@@ -1066,7 +884,7 @@ public class BezierSurface {
 				this.renderBezierPoint(g, this.bezierPoints[i].x, this.bezierPoints[i].y, (this.selectedBezierControl == i), i);
 				g.strokeWeight(1);
 				g.stroke(255);
-				g.line(this.bezierPoints[i].x, this.bezierPoints[i].y, this.cornerPoints[(int)(i/2)].x, this.cornerPoints[(int)(i/2)].y);
+				g.line(this.bezierPoints[i].x, this.bezierPoints[i].y, this.cornerPoints[(i/2)].x, this.cornerPoints[(i/2)].y);
 			}
 			
 		}
@@ -1082,7 +900,7 @@ public class BezierSurface {
 	 * @param selected
 	 * @param cornerIndex
 	 */
-	private void renderCornerPoint(GLGraphicsOffScreen g, float x, float y, boolean selected, int cornerIndex) {
+	private void renderCornerPoint(PGraphics g, float x, float y, boolean selected, int cornerIndex) {
 		g.noFill();
 		g.strokeWeight(2);
 		if (selected) {
@@ -1094,9 +912,9 @@ public class BezierSurface {
 			g.fill(BezierSurface.SELECTED_CORNER_MARKER_COLOR, 100);
 			g.stroke(BezierSurface.SELECTED_CORNER_MARKER_COLOR);
 		}
-		g.ellipse(x, y, 10, 10);
-		g.line(x, y - 5, x, y + 5);
-		g.line(x - 5, y, x + 5, y);
+		g.ellipse(x, y, 16, 16);
+		g.line(x, y - 8, x, y + 8);
+		g.line(x - 8, y, x + 8, y);
 	}
 	
 	/**
@@ -1107,7 +925,7 @@ public class BezierSurface {
 	 * @param selected
 	 * @param cornerIndex
 	 */
-	private void renderBezierPoint(GLGraphicsOffScreen g, float x, float y, boolean selected, int cornerIndex) {
+	private void renderBezierPoint(PGraphics g, float x, float y, boolean selected, int cornerIndex) {
 		g.noFill();
 		g.strokeWeight(1);
 		if (selected) {
@@ -1123,25 +941,6 @@ public class BezierSurface {
 		g.line(x, y - 5, x, y + 5);
 		g.line(x - 5, y, x + 5, y);
 	}
-	
-	public boolean isUsingSurfaceMask(){
-		if(surfaceMask != null) return true;
-		return false;
-	}
-	
-	public GLTexture getSurfaceMask(){
-		return surfaceMask;
-	}
-	
-	public void setSurfaceMask(GLTexture mask){
-		surfaceMask = mask;
-		maskedTex = new GLTexture(parent);
-	}
-	
-	public void clearSurfaceMask(){
-		surfaceMask = null;
-		maskFile = null;
-	}
 
 	public void setSurfaceName(String surfaceName) {
 		this.surfaceName = surfaceName;
@@ -1150,63 +949,5 @@ public class BezierSurface {
 	public String getSurfaceName() {
 		if(surfaceName == null) return String.valueOf(this.getId());
 		return surfaceName;
-	}
-	
-
-	public boolean isUsingEdgeBlend() {
-		if(this.isBlendLeft() || this.isBlendRight()) return true;
-		return false;
-	}
-
-	public boolean isBlendRight() {
-		return blendRight;
-	}
-
-	public void setBlendRight(boolean blendRight) {
-		this.blendRight = blendRight;
-		updateBlendScreen();
-	}
-
-	public boolean isBlendLeft() {
-		return blendLeft;
-	}
-
-	public void setBlendLeft(boolean blendLeft) {
-		this.blendLeft = blendLeft;
-		updateBlendScreen();
-	}
-
-	public float getBlendRightSize() {
-		return blendRightSize;
-	}
-
-	public void setBlendRightSize(float blendRightSize) {
-		this.blendRightSize = blendRightSize;
-		updateBlendScreen();
-	}
-
-	public float getBlendLeftSize() {
-		return blendLeftSize;
-	}
-
-	public void setBlendLeftSize(float blendLeftSize) {
-		this.blendLeftSize = blendLeftSize;
-		updateBlendScreen();
-	}
-	
-	public int getBufferScreenWidth() {
-		return bufferScreenWidth;
-	}
-
-	public void setBufferScreenWidth(int bufferScreenWidth) {
-		this.bufferScreenWidth = bufferScreenWidth;
-	}
-
-	public File getMaskFile() {
-		return maskFile;
-	}
-
-	public void setMaskFile(File maskFile) {
-		this.maskFile = maskFile;
 	}
 }

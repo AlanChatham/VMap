@@ -1,5 +1,7 @@
 /**
- * Part of the SurfaceMapper library: http://surfacemapper.sourceforge.net/
+ * Part of the SurfaceMapperP2 library: http://surfacemapper.sourceforge.net/
+ * 
+ * Portions to update to Processing 2 copyright (c) 2014 - Laboratory LLC
  * Copyright (c) 2011-12 Ixagon AB 
  *
  * This source is free software; you can redistribute it and/or modify
@@ -18,16 +20,16 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-package ixagon.SurfaceMapper;
+package ixagon.SurfaceMapperP2;
 
 import java.awt.Polygon;
-import java.io.File;
 
-import codeanticode.glgraphics.GLGraphicsOffScreen;
-import codeanticode.glgraphics.GLTexture;
+import processing.opengl.Texture;
+import processing.core.PGraphics;
+import processing.core.PImage;
 import processing.core.PApplet;
 import processing.core.PVector;
-import processing.xml.XMLElement;
+import processing.data.XML;
 
 public class SuperSurface {
 	public final static int QUAD = 0;
@@ -37,7 +39,6 @@ public class SuperSurface {
 	
 	QuadSurface quadSurface;
 	BezierSurface bezierSurface;
-	public static int DEFAULT_SIZE = 100;
 	
 	/**
 	 * Constructor used to create a new Surface. This should always be used when creating a new surface.
@@ -71,19 +72,17 @@ public class SuperSurface {
 	 * @param parent
 	 * @param ks
 	 * @param xml
-	 * @param name 
-	 * @param id 
 	 */
-	public SuperSurface(int type, PApplet parent, SurfaceMapper ks, XMLElement xml, int id, String name){
+	public SuperSurface(int type, PApplet parent, SurfaceMapper ks, XML xml){
 		this.type = type;
 		
 		switch(type){
 		case QUAD:
-			quadSurface = new QuadSurface(parent, ks, xml, id, name);
+			quadSurface = new QuadSurface(parent, ks, xml);
 			break;
 			
 		case BEZIER:
-			bezierSurface = new BezierSurface(parent, ks, xml, id, name);
+			bezierSurface = new BezierSurface(parent, ks, xml);
 			break;
 		}
 	}
@@ -110,46 +109,6 @@ public class SuperSurface {
 			return bezierSurface.getSurfaceName();
 		}
 		return "";
-	}
-	
-	public void setSurfaceMask(GLTexture mask){
-		switch(type){
-		case QUAD:
-			quadSurface.setSurfaceMask(mask);
-			break;
-		case BEZIER:
-			bezierSurface.setSurfaceMask(mask);
-		}
-	}
-	
-	public void clearSurfaceMask(){
-		switch(type){
-		case QUAD:
-			quadSurface.clearSurfaceMask();
-			break;
-		case BEZIER:
-			bezierSurface.clearSurfaceMask();
-		}
-	}
-	
-	public GLTexture getSurfaceMask(){
-		switch(type){
-		case QUAD:
-			return quadSurface.getSurfaceMask();
-		case BEZIER:
-			return bezierSurface.getSurfaceMask();
-		}
-		return null;
-	}
-	
-	public boolean isUsingSurfaceMask(){
-		switch(type){
-		case QUAD:
-			return quadSurface.isUsingSurfaceMask();
-		case BEZIER:
-			return bezierSurface.isUsingSurfaceMask();
-		}
-		return false;
 	}
 	
 	/**
@@ -193,50 +152,6 @@ public class SuperSurface {
 				return bezierSurface.getRes();	
 		}
 		return 0;
-	}
-	
-	/**
-	 * Calculates and returns the surfaces area in squarepixels.
-	 * @return
-	 */
-	public double getArea(){
-		switch(type){
-		case QUAD:
-			return quadSurface.getArea();
-		}
-		return 0;
-	}
-	
-	public double getLongestSide(){
-		switch(type){
-		case QUAD:
-			return quadSurface.getLongestSide();
-			
-		case BEZIER:
-			return bezierSurface.getLongestSide();
-		}
-		return 0;
-	}
-	
-	public void setTextureWindow(float x, float y, float width, float height){
-		switch(type){
-		case QUAD:
-			quadSurface.setTextureWindow(x, y, width, height);
-			break;
-		case BEZIER:
-			bezierSurface.setTextureWindow(x, y, width, height);
-			break;
-		}
-	}
-	
-	public PVector[] getTextureWindow(){
-		switch(type){
-		case QUAD:
-			return quadSurface.getTextureWindow();
-		case BEZIER:
-			return bezierSurface.getTextureWindow();
-		}
-		return null;
 	}
 	
 	/**
@@ -377,21 +292,6 @@ public class SuperSurface {
 			return bezierSurface.isHidden();
 		}
 		return false;
-	}
-	
-	/**
-	 * Set the ID of the surface
-	 * @param id
-	 */
-	public void setId(int id){
-		switch(type){
-		case QUAD:
-			quadSurface.setId(id);
-			break;
-		case BEZIER:
-			bezierSurface.setId(id);
-			break;
-		}
 	}
 	
 	/**
@@ -586,20 +486,6 @@ public class SuperSurface {
 			break;
 
 		}
-	}
-	
-	/**
-	 * See if we can move the cornerpoint of the surface
-	 * @return
-	 */
-	public boolean isCornerMovementAllowed(){
-		switch(type){
-			case QUAD:
-				return quadSurface.isCornerMovementAllowed();
-			case BEZIER:
-				return true;	
-		}
-		return true;
 	}
 	
 	/**
@@ -857,7 +743,7 @@ public class SuperSurface {
 	 * Renders the surface in calibration mode
 	 * @param g
 	 */
-	public void render(GLGraphicsOffScreen g){
+	public void render(PGraphics g){
 		switch(type){
 			case QUAD:
 				quadSurface.render(g);
@@ -873,7 +759,7 @@ public class SuperSurface {
 	 * @param g
 	 * @param tex
 	 */
-	public void render(GLGraphicsOffScreen g, GLTexture tex){
+	public void render(PGraphics g, PImage tex){
 		switch(type){
 			case QUAD:
 				quadSurface.render(g, tex);
@@ -891,183 +777,4 @@ public class SuperSurface {
 	public int getSurfaceType(){
 		return type;
 	}
-	
-	/**
-	 * See if the surface is using edge blend
-	 * @return
-	 */
-	
-	public boolean isUsingEdgeBlend() {
-		switch(type){
-		case QUAD:
-			return quadSurface.isUsingEdgeBlend();
-
-		case BEZIER:
-			return bezierSurface.isUsingEdgeBlend();	
-			
-		}
-		return false;
-	}
-
-	/**
-	 * See if the surface has been set to blend on the right
-	 * @return
-	 */
-	public boolean isBlendRight() {
-		switch(type){
-		case QUAD:
-			return quadSurface.isBlendRight();
-			
-		case BEZIER:
-			return bezierSurface.isBlendRight();	
-			
-		}
-		return false;
-	}
-
-	/**
-	 * Set if the right side should be blended
-	 * @param blendRight
-	 */
-	public void setBlendRight(boolean blendRight) {
-		switch(type){
-		case QUAD:
-			quadSurface.setBlendRight(blendRight);
-			break;
-		case BEZIER:
-			bezierSurface.setBlendRight(blendRight);
-			break;
-		}
-	}
-
-	
-	/**
-	 * See if the surface has been set to blend on the left
-	 * @return
-	 */
-	public boolean isBlendLeft() {
-		switch(type){
-		case QUAD:
-			return quadSurface.isBlendLeft();
-			
-		case BEZIER:
-			return bezierSurface.isBlendLeft();	
-			
-		}
-		return false;
-	}
-
-	/**
-	 * Set if the left side should be blended
-	 * @param blendLeft
-	 */
-	public void setBlendLeft(boolean blendLeft) {
-		switch(type){
-		case QUAD:
-			quadSurface.setBlendLeft(blendLeft);
-			break;
-		case BEZIER:
-			bezierSurface.setBlendLeft(blendLeft);
-			break;
-		}
-	}
-
-	/**
-	 * Get the width of the right edge blend
-	 * @return
-	 */
-	public float getBlendRightSize() {
-		switch(type){
-		case QUAD:
-			return quadSurface.getBlendRightSize();
-			
-		case BEZIER:
-			return bezierSurface.getBlendRightSize();	
-			
-		}
-		return 0;
-	}
-
-	/**
-	 * Set the width of the right edge blend
-	 * @return
-	 */
-	public void setBlendRightSize(float blendRightSize) {
-		switch(type){
-		case QUAD:
-			quadSurface.setBlendRightSize(blendRightSize);
-			break;
-		case BEZIER:
-			bezierSurface.setBlendRightSize(blendRightSize);	
-			break;
-		}
-	}
-
-	/**
-	 * Get the width of the left edge blend
-	 * @return
-	 */
-	public float getBlendLeftSize() {
-		switch(type){
-		case QUAD:
-			return quadSurface.getBlendLeftSize();
-			
-		case BEZIER:
-			return bezierSurface.getBlendLeftSize();	
-			
-		}
-		return 0;
-	}
-	
-	/**
-	 * Set the width of the left edge blend
-	 * @return
-	 */
-	public void setBlendLeftSize(float blendLeftSize) {
-		switch(type){
-		case QUAD:
-			quadSurface.setBlendLeftSize(blendLeftSize);
-			break;
-		case BEZIER:
-			bezierSurface.setBlendLeftSize(blendLeftSize);	
-			break;
-		}
-	}
-	
-	/**
-	 * Set the width of the buffer offscreen
-	 */
-	public void setBufferScreenWidth(int width){
-		switch(type){
-		case QUAD:
-			quadSurface.setBufferScreenWidth(width);
-			break;
-		case BEZIER:
-			bezierSurface.setBufferScreenWidth(width);	
-			break;
-		}
-	}
-	
-	public void setMaskFile(File maskFile){
-
-		switch(type){
-		case QUAD:
-			quadSurface.setMaskFile(maskFile);
-			break;
-		case BEZIER:
-			bezierSurface.setMaskFile(maskFile);
-		}
-	}
-	
-	public File getMaskFile(){
-		switch(type){
-		case QUAD:
-			return quadSurface.getMaskFile();
-		case BEZIER:
-			return bezierSurface.getMaskFile();
-		}
-		return null;
-	}
-	
-	
 }

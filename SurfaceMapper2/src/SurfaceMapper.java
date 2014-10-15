@@ -1,5 +1,7 @@
 /**
- * Part of the SurfaceMapper library: http://surfacemapper.sourceforge.net/
+ * Part of the SurfaceMapperP2 library: http://surfacemapper.sourceforge.net/
+ * 
+ * Portions to update to Processing 2 copyright (c) 2014 - Laboratory LLC
  * Copyright (c) 2011-12 Ixagon AB 
  *
  * This source is free software; you can redistribute it and/or modify
@@ -18,66 +20,68 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-package ixagon.SurfaceMapper;
+package ixagon.SurfaceMapperP2;
 
 import java.awt.Rectangle;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.OutputStream;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import processing.event.*;
 import processing.core.PApplet;
+import processing.core.PConstants;
 import processing.core.PFont;
 import processing.core.PGraphics;
-import processing.core.PGraphics2D;
+import processing.opengl.PGraphics2D;
+import processing.core.PImage;
 import processing.core.PVector;
-import processing.xml.XMLElement;
-import processing.xml.XMLWriter;
-import codeanticode.glgraphics.GLGraphicsOffScreen;
-import codeanticode.glgraphics.GLTexture;
+import processing.data.XML;
+import processing.opengl.FrameBuffer;
+import processing.opengl.Texture;
 
 public class SurfaceMapper {
-	public final String VERSION = "1";
+		
+	public final String VERSION = "2";
 
 	private PApplet parent;
-	protected ArrayList<SuperSurface> surfaces;
-	protected ArrayList<SuperSurface> selectedSurfaces;
-
+	private ArrayList<SuperSurface> surfaces;
+	private ArrayList<SuperSurface> selectedSurfaces;
+	
+	
 	private boolean allowUserInput;
+	
 
 	final static public int MODE_RENDER = 0;
 	final static public int MODE_CALIBRATE = 1;
 	public int MODE = MODE_CALIBRATE;
 	private int snapDistance = 30;
-	private int selectionDistance = 15;
+	private int selectionDistance = 15; 
 	private int selectionMouseColor;
-
+	
 	final static public int CMD = 157;
 	private int numAddedSurfaces = 0;
 
-	protected boolean snap = true;
+	private boolean snap = true;
 
-	protected PVector prevMouse = new PVector();
-	protected boolean ctrlDown;
-	protected boolean altDown;
-	protected boolean grouping;
-
-	private GLTexture backgroundTexture;
+	private PVector prevMouse = new PVector();
+	private boolean ctrlDown;
+	private boolean altDown;
+	private boolean grouping;
+	
+	private PImage backgroundTexture;
 	private boolean usingBackground = false;
-
-	protected Rectangle selectionTool;
-	protected PVector startPos;
-	protected boolean isDragging;
-	protected boolean disableSelectionTool;
-
+	
+	private Rectangle selectionTool;
+	private PVector startPos;
+	private boolean isDragging;
+	private boolean disableSelectionTool;
+	
 	private int[] ccolor;
 	private int width;
 	private int height;
-
+	
 	private PFont idFont;
 
 	private boolean debug = true;
@@ -87,26 +91,19 @@ public class SurfaceMapper {
 	private int shakeSpeed;
 	private float shakeAngle;
 	private float shakeZ;
-
-	private boolean enableSelectionMouse;
-
-	private Object eventHandlerObject;
-	private Method eventHandlerMethod;
-	private String eventHandlerMethodName;
-
+	
 	/**
-	 * Create instance of IxKeystone
-	 * 
-	 * @param parent
-	 * @param width
-	 * @param height
-	 * @param registerMouseEvent
+	 * Create instance of SurfaceMapper
+	 * @param parent Parent applet, usually the processing sketch using it
+	 * @param width Width of the sketch window
+	 * @param height Height of the sketch window
 	 */
 
 	public SurfaceMapper(PApplet parent, int width, int height) {
 		this.parent = parent;
-		this.enableMouseEvents();
-		this.parent.registerKeyEvent(this);
+		//this.enableMouseEvents();
+		this.parent.registerMethod("keyEvent", this);
+		this.parent.registerMethod("mouseEvent", this);
 		this.width = width;
 		this.height = height;
 		this.ccolor = new int[0];
@@ -118,168 +115,155 @@ public class SurfaceMapper {
 
 		// check the renderer type
 		// issue a warning if its PGraphics2D
-		PGraphics pg = (PGraphics) parent.g;
+		PGraphics pg = parent.g;
 		if ((pg instanceof PGraphics2D)) {
-			PApplet.println("SurfaceMapper --> The keystone library will not work with PGraphics2D as the renderer because it relies on texture mapping.");
+			PApplet.println("Keystone --> The keystone library will not work with PGraphics2D as the renderer because it relies on texture mapping.");
 		}
-
-		parent.addMouseWheelListener(new java.awt.event.MouseWheelListener() {
-			public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
-				mouseWheelAction(evt.getWheelRotation());
-			}
-		});
-
-		enableSelectionMouse = true;
+///// TODO: Implement mouse wheel with proper form		
+//		parent.addMouseWheelListener(new java.awt.event.MouseWheelListener() { 
+//		    public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt) { 
+//		      mouseWheelAction(evt.getWheelRotation());
+//		  }}); 
 	}
-
+	
 	/**
 	 * Render method used when calibrating. Shouldn't be used for final rendering.
-	 * 
-	 * @param glos
+	 * @param glos PGrapics buffer for offscreen rendering
 	 */
-	public void render(GLGraphicsOffScreen glos) {
+	public void render(PGraphics glos) {
 		glos.beginDraw();
-		glos.clear(0);
+		glos.clear();
+//		glos.clear(50); // Former value for Processing 1.5.1 code
 		glos.endDraw();
 		if (MODE == MODE_CALIBRATE) {
 			parent.cursor();
 			glos.beginDraw();
-
-			if (this.isUsingBackground()) {
+			
+			if(this.isUsingBackground()){
 				glos.image(backgroundTexture, 0, 0, width, height);
 			}
-
-			glos.fill(0, 40);
+			
+			glos.fill(0,40);
 			glos.noStroke();
-			glos.rect(-2, -2, width + 4, height + 4);
+			glos.rect(-2,-2,width+4,height+4);
 			glos.stroke(255, 255, 255, 40);
 			glos.strokeWeight(1);
-			/*
-			 * float gridRes = 32.0f;
-			 * 
-			 * float step = (float) (width / gridRes);
-			 * 
-			 * for (float i = 1; i < width; i += step) { glos.line(i, 0, i, parent.height); }
-			 * 
-			 * step = (float) (height / gridRes);
-			 * 
-			 * for (float i = 1; i < width; i += step) { glos.line(0, i, parent.width, i); }
-			 */
+			float gridRes = 32.0f;
+			
+			float step = width/gridRes;
+
+			for (float i = 1; i < width; i += step) {
+				glos.line(i, 0, i, parent.height);
+			}
+			
+			step = height/gridRes;
+			
+			for (float i = 1; i < width; i += step) {
+				glos.line(0, i, parent.width, i);
+			}
+			
 			glos.stroke(255);
 			glos.strokeWeight(2);
-			glos.line(1, 1, width - 1, 1);
-			glos.line(width - 1, 1, width - 1, height - 1);
-			glos.line(1, height - 1, width - 1, height - 1);
-			glos.line(1, 1, 1, height - 1);
+			glos.line(1,1,width-1,1);
+			glos.line(width-1,1,width-1, height-1);
+			glos.line(1,height-1,width-1,height-1);
+			glos.line(1,1,1,height-1);
+			
+		
+			
+			if (selectionTool != null && !disableSelectionTool) {
+				glos.stroke(255,100);
+				glos.strokeWeight(1);
+				glos.fill(100, 100, 255, 50);
+				glos.rect(selectionTool.x, selectionTool.y, selectionTool.width, selectionTool.height);
+				glos.noStroke();
+			}
+			
 			glos.endDraw();
 
 			for (int i = 0; i < surfaces.size(); i++) {
 				surfaces.get(i).render(glos);
 			}
-
-			// Draw circles for SelectionDistance or SnapDistance (snap if CMD
-			// is down)
+			
+			//Draw circles for SelectionDistance or SnapDistance (snap if CMD is down)
 			glos.beginDraw();
-			if (enableSelectionMouse) {
-				if (!ctrlDown) {
-					glos.ellipseMode(PApplet.CENTER);
-					glos.fill(this.getSelectionMouseColor(), 100);
-					glos.noStroke();
-					glos.ellipse(parent.mouseX, parent.mouseY, this.getSelectionDistance() * 2, this.getSelectionDistance() * 2);
-				} else {
-					glos.ellipseMode(PApplet.CENTER);
-					glos.fill(255, 0, 0, 100);
-					glos.noStroke();
-					glos.ellipse(parent.mouseX, parent.mouseY, this.getSnapDistance() * 2, this.getSnapDistance() * 2);
-				}
-			}
-
-			if (selectionTool != null && !disableSelectionTool) {
-				glos.stroke(255, 100);
-				glos.strokeWeight(1);
-				glos.fill(0, 200, 255, 50);
-				glos.rect(selectionTool.x, selectionTool.y, selectionTool.width, selectionTool.height);
+			if(!ctrlDown){
+				glos.ellipseMode(PApplet.CENTER);
+				glos.fill(this.getSelectionMouseColor(),100);
 				glos.noStroke();
+				glos.ellipse(parent.mouseX, parent.mouseY, this.getSelectionDistance()*2, this.getSelectionDistance()*2);
+			}else{
+				glos.ellipseMode(PApplet.CENTER);
+				glos.fill(255,0,0,100);
+				glos.noStroke();
+				glos.ellipse(parent.mouseX, parent.mouseY, this.getSnapDistance()*2, this.getSnapDistance()*2);
 			}
-
 			glos.endDraw();
-
+			
 		} else {
 			parent.noCursor();
 		}
 	}
-
-	public boolean isEnableSelectionMouse() {
-		return enableSelectionMouse;
-	}
-
-	public void setEnableSelectionMouse(boolean enableSelectionMouse) {
-		this.enableSelectionMouse = enableSelectionMouse;
-	}
-
+	
 	/**
 	 * Shake all surfaces with max Z-displacement strength, vibration-speed speed, and shake decline fallOfSpeed. (min 0, max 1000 (1000 = un-ending shaking))
-	 * 
-	 * @param strength
-	 * @param speed
-	 * @param fallOfSpeed
+	 * @param strength Strength of z-displacement
+	 * @param speed Vibration speed
+	 * @param fallOffSpeed Falloff speed
 	 */
-	public void setShakeAll(int strength, int speed, int fallOfSpeed) {
-		for (SuperSurface ss : surfaces) {
-			ss.setShake(strength, speed, fallOfSpeed);
+	public void setShakeAll(int strength, int speed, int fallOffSpeed){
+		for(SuperSurface ss : surfaces){
+			ss.setShake(strength, speed, fallOffSpeed);
 		}
 	}
-
+	
 	/**
 	 * Update shaking for all surfaces
 	 */
-	public void shake() {
-		for (SuperSurface ss : surfaces) {
+	public void shake(){
+		for(SuperSurface ss : surfaces){
 			ss.shake();
 		}
 	}
-
+	
 	/**
 	 * Get font for drawing text
-	 * 
-	 * @return
+	 * @return Returns font for drawing text
 	 */
-	public PFont getIdFont() {
+	public PFont getIdFont(){
 		return idFont;
 	}
-
+	
 	/**
 	 * Unregisters Mouse Event listener for the SurfaceMapper
 	 */
-	public void disableMouseEvents() {
-		this.parent.unregisterMouseEvent(this);
-	}
-
+//	public void disableMouseEvents(){
+//		this.parent.unregisterMethod(mouseEvent, this);
+//	}
+	
 	/**
 	 * Registers Mouse Event listener for the SurfaceMapper
 	 */
-	public void enableMouseEvents() {
-		this.parent.registerMouseEvent(this);
-	}
-
+//	public void enableMouseEvents(){
+//		this.parent.registerMethod(mouseEvent, this);
+//	}
+	
 	/**
 	 * Get current max distance for an object to be selected
-	 * 
-	 * @return
+	 * @return Returns integer max distance
 	 */
-	public int getSelectionDistance() {
+	public int getSelectionDistance(){
 		return selectionDistance;
 	}
-
+	
 	/**
 	 * Set the max distance for an object to be selected
-	 * 
-	 * @param selectionDistance
+	 * @param selectionDistance Max distance for an object to be selected
 	 */
-	public void setSelectionDistance(int selectionDistance) {
+	public void setSelectionDistance(int selectionDistance){
 		this.selectionDistance = selectionDistance;
 	}
-
+	
 	public void setSelectionMouseColor(int selectionMouseColor) {
 		this.selectionMouseColor = selectionMouseColor;
 	}
@@ -290,64 +274,57 @@ public class SurfaceMapper {
 
 	/**
 	 * Returns the array of colors used in calibration mode for coloring the surfaces.
-	 * 
-	 * @return
+	 * @return Returns array of colors used in calibration mode for coloring the surfaces.
 	 */
 	public int[] getColor() {
 		return ccolor;
 	}
-
+	
 	/**
 	 * Set the array of colors used in calibration mode for coloring the surfaces.
-	 * 
-	 * @param ccolor
+	 * @param calibrationColors Color array to use for calibration
 	 */
-	public void setColor(int[] ccolor) {
-		this.ccolor = ccolor;
+	public void setColor(int[] calibrationColors) {
+		this.ccolor = calibrationColors;
 	}
-
+	
 	/**
 	 * Returns the rectangle used for selecting surfaces
-	 * 
-	 * @return
+	 * @return Returns rectangle used for selecting surfaces
 	 */
 	public Rectangle getSelectionTool() {
-		return selectionTool;
+		return selectionTool;	
 	}
-
+	
 	/**
-	 * Optionally set a background image in calibration mode.
-	 * 
-	 * @param tex
+	 * Optionally set a background image in calibration mode. 
+	 * @param img Image to set as background
 	 */
-	public void setBackground(GLTexture tex) {
-		this.backgroundTexture = tex;
+	public void setBackground(PImage img){
+		this.backgroundTexture = img;
 		this.setUsingBackground(true);
 	}
-
+	
 	/**
 	 * Boolean used to know if the background image should be rendered in calibration mode.
-	 * 
-	 * @return
+	 * @return Boolean, if you're rendering the background image in calibration mode or not
 	 */
-	public boolean isUsingBackground() {
+	public boolean isUsingBackground(){
 		return usingBackground;
 	}
-
+	
 	/**
 	 * Set if background image should rendered in calibration mode
-	 * 
-	 * @param val
+	 * @param val boolean, should you render background image in calibration mode
 	 */
-	public void setUsingBackground(boolean val) {
+	public void setUsingBackground(boolean val){
 		usingBackground = val;
 	}
 
 	/**
 	 * Creates a Quad surface with perspective transform. Res is the amount of subdivisioning. Returns the surface after it has been created.
-	 * 
-	 * @param res
-	 * @return
+	 * @param res amount of subdivisioning
+	 * @return Returns the SuperSurface you created
 	 */
 	public SuperSurface createQuadSurface(int res) {
 		SuperSurface s = new SuperSurface(SuperSurface.QUAD, parent, this, parent.mouseX, parent.mouseY, res, numAddedSurfaces);
@@ -358,14 +335,13 @@ public class SurfaceMapper {
 		numAddedSurfaces++;
 		return s;
 	}
-
+	
 	/**
 	 * Creates a Quad surface at X/Y with perspective transform. Res is the amount of subdivisioning. Returns the surface after it has been created.
-	 * 
-	 * @param res
-	 * @param x
-	 * @param y
-	 * @return
+	 * @param res amout of subdivisioning for the surface
+	 * @param x x coordinate of origin of new surface
+	 * @param y y coordinate of origin of new surface
+	 * @return Returns the SuperSurface you created
 	 */
 	public SuperSurface createQuadSurface(int res, int x, int y) {
 		SuperSurface s = new SuperSurface(SuperSurface.QUAD, parent, this, x, y, res, numAddedSurfaces);
@@ -376,12 +352,11 @@ public class SurfaceMapper {
 		numAddedSurfaces++;
 		return s;
 	}
-
+	
 	/**
 	 * Creates a Bezier surface with perspective transform. Res is the amount of subdivisioning. Returns the surface after it has been created.
-	 * 
-	 * @param res
-	 * @return
+	 * @param res Amount of subdivisioning
+	 * @return Returns the bezier SuperSurface you created
 	 */
 	public SuperSurface createBezierSurface(int res) {
 		SuperSurface s = new SuperSurface(SuperSurface.BEZIER, parent, this, parent.mouseX, parent.mouseY, res, numAddedSurfaces);
@@ -392,14 +367,13 @@ public class SurfaceMapper {
 		numAddedSurfaces++;
 		return s;
 	}
-
+	
 	/**
 	 * Creates a Bezier surface at X/Y with perspective transform. Res is the amount of subdivisioning. Returns the surface after it has been created.
-	 * 
-	 * @param res
-	 * @param x
-	 * @param y
-	 * @return
+	 * @param res amount of subdivisioning of the surface
+	 * @param x x coordinate of the surface's origin
+	 * @param y y coordinate of the surface's origin
+	 * @return Returns the bezier SuperSurface you created
 	 */
 	public SuperSurface createBezierSurface(int res, int x, int y) {
 		SuperSurface s = new SuperSurface(SuperSurface.BEZIER, parent, this, x, y, res, numAddedSurfaces);
@@ -410,110 +384,92 @@ public class SurfaceMapper {
 		numAddedSurfaces++;
 		return s;
 	}
-
+	
 	/**
 	 * Get previous mouse position
-	 * 
-	 * @return
+	 * @return Pvector, with previous mouseX and mouseY
 	 */
 	public PVector getPrevMouse() {
 		return prevMouse;
 	}
-
+	
 	/**
 	 * Set previous mouse position
-	 * 
-	 * @param x
-	 * @param y
+	 * @param x Previous mouseX
+	 * @param y Previous mouseY
 	 */
 	public void setPrevMouse(float x, float y) {
 		prevMouse = new PVector(x, y);
 	}
-
+	
 	/**
 	 * Set the selection tool
-	 * 
-	 * @param r
+	 * @param r Rectangle defining the boundaries of the selection tool
 	 */
 	public void setSelectionTool(Rectangle r) {
 		selectionTool = r;
 	}
-
+	
 	/**
 	 * Set the selection tool
-	 * 
-	 * @param x
-	 * @param y
-	 * @param width
-	 * @param height
+	 * @param x Selection rectangle origin x
+	 * @param y Selection rectangle origin y
+	 * @param width Selection rectangle width
+	 * @param height Selection rectangle height
 	 */
 	public void setSelectionTool(int x, int y, int width, int height) {
 		selectionTool = new Rectangle(x, y, width, height);
 	}
-
+	
 	/**
 	 * Is the selection tool disabled?
-	 * 
-	 * @return
+	 * @return Boolean, is the selection tool disabled?
 	 */
 	public boolean getDisableSelectionTool() {
 		return disableSelectionTool;
 	}
-
+	
 	/**
 	 * Enable/disable selection tool
-	 * 
-	 * @param disableSelectionTool
+	 * @param disableSelectionTool true/false
 	 */
 	public void setDisableSelectionTool(boolean disableSelectionTool) {
 		this.disableSelectionTool = disableSelectionTool;
 	}
-
+	
 	/**
-	 * Is CTRL pressed?
-	 * 
-	 * @return
+	 * Is CTRL pressed? 
+	 * @return Boolean, is CTRL pressed?
 	 */
 	public boolean isCtrlDown() {
 		return ctrlDown;
 	}
-
-	/**
-	 * Set CTRL pressed
-	 * 
-	 * @param pressed
-	 */
-	public void setCtrlDown(boolean pressed) {
-		ctrlDown = pressed;
-	}
-
+	
 	/**
 	 * Is ALT pressed?
-	 * 
-	 * @return
+	 * @return Boolean, is ALT pressed?
 	 */
-	public boolean isAltDown() {
+	public boolean isAltDown(){
 		return altDown;
 	}
-
+	
 	/**
-	 * @return
+	 * @return Boolean, are you dragging something or not
 	 */
 	public boolean isDragging() {
 		return isDragging;
 	}
-
+	
 	/**
-	 * @param isDragging
+	 * @param isDragging Are you dragging something in the current SurfaceMapper?
 	 */
 	public void setIsDragging(boolean isDragging) {
 		this.isDragging = isDragging;
 	}
-
+	
 	/**
 	 * Add a surface to selected surfaces
-	 * 
-	 * @param cps
+	 * @param cps SuperSurface to add
 	 */
 	public void addSelectedSurface(SuperSurface cps) {
 		selectedSurfaces.add(cps);
@@ -521,40 +477,37 @@ public class SurfaceMapper {
 
 	/**
 	 * Get the selected surfaces
-	 * 
-	 * @return
+	 * @return Returns an ArrayList of all surfaces currently selected
 	 */
 	public ArrayList<SuperSurface> getSelectedSurfaces() {
 		return selectedSurfaces;
 	}
-
+	
 	/**
 	 * Clears the arraylist of selected surfaces.
 	 */
 	public void clearSelectedSurfaces() {
 		selectedSurfaces.clear();
 	}
-
+	
 	/**
 	 * Get all surfaces
-	 * 
-	 * @return surfaces
+	 * @return Returns an ArrayList of all the surfaces that belong to this mapper
 	 */
 	public ArrayList<SuperSurface> getSurfaces() {
 		return surfaces;
 	}
-
+	
 	/**
 	 * Remove all surfaces
 	 */
-	public void clearSurfaces() {
+	public void clearSurfaces(){
 		selectedSurfaces.clear();
 		surfaces.clear();
 	}
 
 	/**
 	 * Get surface by Id.
-	 * 
 	 * @param id
 	 * @return
 	 */
@@ -567,11 +520,10 @@ public class SurfaceMapper {
 		}
 		return cps;
 	}
-
+	
 	/**
 	 * Select the surface. Deselects all previously selected surfaces.
-	 * 
-	 * @param SuperSurface
+	 * @param cps New SuperSurface to select
 	 */
 	public void setSelectedSurface(SuperSurface cps) {
 		for (SuperSurface ss : selectedSurfaces) {
@@ -584,7 +536,6 @@ public class SurfaceMapper {
 
 	/**
 	 * Check if coordinates is inside any of the surfaces.
-	 * 
 	 * @param mX
 	 * @param mY
 	 * @return
@@ -602,70 +553,13 @@ public class SurfaceMapper {
 	}
 
 	/**
-	 * Check if coordinates is inside any of the quad surfaces.
-	 * 
-	 * @param mX
-	 * @param mY
-	 * @return
-	 */
-	public boolean findActiveQuadSurface(float mX, float mY) {
-		for (int i = 0; i < surfaces.size(); i++) {
-			SuperSurface surface = surfaces.get(i);
-
-			if (surface.isInside(mX, mY) && surface.getSurfaceType() == SuperSurface.QUAD) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * Check if coordinates is inside any of the bezier surfaces.
-	 * 
-	 * @param mX
-	 * @param mY
-	 * @return
-	 */
-	public boolean findActiveBezierSurface(float mX, float mY) {
-		for (int i = 0; i < surfaces.size(); i++) {
-			SuperSurface surface = surfaces.get(i);
-
-			if (surface.isInside(mX, mY) && surface.getSurfaceType() == SuperSurface.BEZIER) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * Add a surface to surfaceMapper
-	 * 
-	 * @param superSurface
-	 * @return
-	 */
-	public SuperSurface addSurface(SuperSurface superSurface) {
-		if (ccolor.length > 0)
-			superSurface.setColor(ccolor[superSurface.getId() % ccolor.length]);
-		superSurface.setModeCalibrate();
-		surfaces.add(superSurface);
-
-		if (superSurface.getId() >= numAddedSurfaces)
-			numAddedSurfaces = superSurface.getId() + 1;
-
-		return surfaces.get(surfaces.size() - 1);
-	}
-
-	/**
 	 * Check which mode is enabled (render or calibrate)
-	 * 
 	 * @return
 	 */
 	public int getMode() {
 		return this.MODE;
 	}
-
+	
 	/**
 	 * Set mode to calibrate
 	 */
@@ -675,7 +569,7 @@ public class SurfaceMapper {
 			s.setModeCalibrate();
 		}
 	}
-
+	
 	/**
 	 * Set mode to render
 	 */
@@ -685,7 +579,7 @@ public class SurfaceMapper {
 			s.setModeRender();
 		}
 	}
-
+	
 	/**
 	 * Toggle the mode
 	 */
@@ -709,11 +603,10 @@ public class SurfaceMapper {
 	public void toggleSnap() {
 		snap = !snap;
 	}
-
+	
 	/**
 	 * See if snap mode is used
-	 * 
-	 * @return
+	 * @return snap
 	 */
 	public boolean getSnap() {
 		return snap;
@@ -721,7 +614,6 @@ public class SurfaceMapper {
 
 	/**
 	 * Manually set corner snap mode
-	 * 
 	 * @param snap
 	 */
 	public void setSnap(boolean snap) {
@@ -730,8 +622,7 @@ public class SurfaceMapper {
 
 	/**
 	 * See the snap distance
-	 * 
-	 * @return
+	 * @return snapDistance
 	 */
 	public int getSnapDistance() {
 		return snapDistance;
@@ -739,7 +630,6 @@ public class SurfaceMapper {
 
 	/**
 	 * Set corner snap distance
-	 * 
 	 * @param snapDistance
 	 */
 	public void setSnapDistance(int snapDistance) {
@@ -748,7 +638,6 @@ public class SurfaceMapper {
 
 	/**
 	 * See if debug mode is on.
-	 * 
 	 * @return
 	 */
 	public boolean getDebug() {
@@ -757,7 +646,6 @@ public class SurfaceMapper {
 
 	/**
 	 * Manually set debug mode. (debug mode will print more to console)
-	 * 
 	 * @param debug
 	 */
 	public void setDebug(boolean debug) {
@@ -769,27 +657,29 @@ public class SurfaceMapper {
 	}
 
 	/**
-	 * Puts all projection mapping data in the XMLElement
-	 * 
+	 * Puts all projection mapping data in the XML
 	 * @param root
 	 */
-	public void save(XMLElement root) {
+	public void save(XML root) {
 		root.setName("ProjectionMap");
 		// create XML elements for each surface containing the resolution
 		// and control point data
 		for (SuperSurface s : surfaces) {
-			XMLElement surf = new XMLElement();
+			XML surf = new XML("surface");
 			surf.setName("surface");
 			surf.setInt("type", s.getSurfaceType());
 			surf.setInt("id", s.getId());
 			surf.setString("name", s.getSurfaceName());
 			surf.setInt("res", s.getRes());
-			surf.setBoolean("lock", s.isLocked());
+			if (s.isLocked())
+				surf.setInt("lock", 1);
+			else
+				surf.setInt("lock", 0);
 			surf.setInt("horizontalForce", s.getHorizontalForce());
 			surf.setInt("verticalForce", s.getVerticalForce());
 
 			for (int i = 0; i < s.getCornerPoints().length; i++) {
-				XMLElement cp = new XMLElement();
+				XML cp = new XML("cornerpoint");
 				cp.setName("cornerpoint");
 				cp.setInt("i", i);
 				cp.setFloat("x", s.getCornerPoint(i).x);
@@ -797,10 +687,10 @@ public class SurfaceMapper {
 				surf.addChild(cp);
 
 			}
-
-			if (s.getSurfaceType() == SuperSurface.BEZIER) {
-				for (int i = 0; i < 8; i++) {
-					XMLElement bp = new XMLElement();
+			
+			if(s.getSurfaceType() == SuperSurface.BEZIER){
+				for(int i = 0; i < 8; i++){
+					XML bp = new XML("bezierpoint");
 					bp.setName("bezierpoint");
 					bp.setInt("i", i);
 					bp.setFloat("x", s.getBezierPoint(i).x);
@@ -814,17 +704,14 @@ public class SurfaceMapper {
 
 	/**
 	 * Save all projection mapping data to file
-	 * 
 	 * @param filename
 	 */
 	public void save(String filename) {
-		if (this.MODE == SurfaceMapper.MODE_CALIBRATE) {
-			XMLElement root = new XMLElement();
+		if (this.MODE == SurfaceMapper.MODE_CALIBRATE){
+			XML root = new XML("root");
 			this.save(root);
 			try {
-				OutputStream stream = parent.createOutput(parent.dataPath(filename));
-				XMLWriter writer = new XMLWriter(stream);
-				writer.write(root, true);
+				parent.saveXML(root, filename);
 			} catch (Exception e) {
 				PApplet.println(e.getStackTrace());
 			}
@@ -833,7 +720,6 @@ public class SurfaceMapper {
 
 	/**
 	 * Load projection map from file
-	 * 
 	 * @param filename
 	 */
 	public void load(String filename) {
@@ -843,195 +729,111 @@ public class SurfaceMapper {
 				this.setGrouping(false);
 				selectedSurfaces.clear();
 				surfaces.clear();
-				XMLElement root = new XMLElement(parent, parent.dataPath(filename));
+				XML root = parent.loadXML(filename);
 				for (int i = 0; i < root.getChildCount(); i++) {
-					if (root.getChild(i).getName().equals("surface")) {
-						SuperSurface loaded = new SuperSurface(root.getChild(i).getInt("type"), parent, this, root.getChild(i), root.getChild(i).getInt("id"), root.getChild(i).getString("name"));
-						if (ccolor.length > 0)
-							loaded.setColor(ccolor[numAddedSurfaces % ccolor.length]);
-						loaded.setModeCalibrate();
-						surfaces.add(loaded);
-						numAddedSurfaces++;
-					}
+					SuperSurface loaded = new SuperSurface(root.getChild(i).getInt("type"), parent, this, root.getChild(i));
+					loaded.setModeCalibrate();
+					surfaces.add(loaded);
+					if (loaded.getId() > numAddedSurfaces)
+						numAddedSurfaces = loaded.getId() + 1;
 				}
-				if (this.getDebug())
-					PApplet.println("Projection layout loaded from " + filename + ". " + surfaces.size() + " surfaces were loaded!");
+				if(this.getDebug()) PApplet.println("Projection layout loaded from " + filename + ". " + surfaces.size() + " surfaces were loaded!");
 			} else {
-				if (this.getDebug())
-					PApplet.println("ERROR loading XML! No projection layout exists!");
+				if(this.getDebug()) PApplet.println("ERROR loading XML! No projection layout exists!");
 			}
 		}
 
 	}
-
+	
 	/**
 	 * Move a point of a surface
-	 * 
 	 * @param ss
 	 * @param x
 	 * @param y
 	 */
-	public void movePoint(SuperSurface ss, int x, int y) {
+	public void movePoint(SuperSurface ss, int x, int y){
 		int index = ss.getSelectedCorner();
-
+		
 		ss.setCornerPoint(index, ss.getCornerPoint(index).x + x, ss.getCornerPoint(index).y + y);
-		index = index * 2;
+		index = index*2;
 		ss.setBezierPoint(index, ss.getBezierPoint(index).x + x, ss.getBezierPoint(index).y + y);
-		index = index + 1;
+		index = index+1;
 		ss.setBezierPoint(index, ss.getBezierPoint(index).x + x, ss.getBezierPoint(index).y + y);
 	}
-
+	
 	/**
 	 * Check if any user event is allowed
-	 * 
 	 * @return
 	 */
 	public boolean isAllowUserInput() {
 		return allowUserInput;
 	}
-
+	
 	/**
 	 * Set if any user event is allowed
-	 * 
 	 * @param allowUserInput
 	 */
 	public void setAllowUserInput(boolean allowUserInput) {
 		this.allowUserInput = allowUserInput;
 	}
-
+	
 	/**
 	 * Places the surface last in the surfaces array, i.e. on top.
-	 * 
 	 * @param index
 	 */
-	public void bringSurfaceToFront(int index) {
+	public void bringSurfaceToFront(int index){
 		SuperSurface s = surfaces.get(index);
 		surfaces.remove(index);
 		surfaces.add(s);
 	}
-
+	
 	/**
 	 * Check if multiple surfaces are being manipulated
-	 * 
-	 * @return
+	 * @return Boolean, are multiple surfaces being manipulated
 	 */
-	public boolean isGrouping() {
+	public boolean isGrouping(){
 		return grouping;
 	}
-
+	
 	/**
 	 * Set if multiple surfaces are being manipulated
-	 * 
-	 * @param grouping
+	 * @param grouping Boolean, can you select multiple surfaces?
 	 */
-	public void setGrouping(boolean grouping) {
+	public void setGrouping(boolean grouping){
 		this.grouping = grouping;
 	}
-
+	
 	/**
 	 * Handles Mouse Wheel input
-	 * 
 	 * @param delta
 	 */
-	private void mouseWheelAction(int delta) {
-		if (allowUserInput && this.MODE == SurfaceMapper.MODE_CALIBRATE) {
-			if (delta < 0) {
-				if (ctrlDown) {
-					if (this.getSnapDistance() < 60) {
-						this.setSnapDistance(this.getSnapDistance() + 2);
+	private void mouseWheelAction(int delta){
+		if(allowUserInput && this.MODE == SurfaceMapper.MODE_CALIBRATE){
+			if(delta < 0){
+				if(ctrlDown){
+					if(this.getSnapDistance() < 60){
+						this.setSnapDistance(this.getSnapDistance()+2);
 					}
-				} else {
-					if (this.getSelectionDistance() < 60)
-						this.setSelectionDistance(this.getSelectionDistance() + 2);
+				}else{
+					if(this.getSelectionDistance() < 60)
+						this.setSelectionDistance(this.getSelectionDistance()+2);
 				}
 			}
-			if (delta > 0) {
-				if (ctrlDown) {
-					if (this.getSnapDistance() > 6) {
-						this.setSnapDistance(this.getSnapDistance() - 2);
+			if(delta > 0){
+				if(ctrlDown){
+					if(this.getSnapDistance() > 6){
+						this.setSnapDistance(this.getSnapDistance()-2);
 					}
-				} else {
-					if (this.getSelectionDistance() > 6)
-						this.setSelectionDistance(this.getSelectionDistance() - 2);
+				}else{
+					if(this.getSelectionDistance() > 16)
+						this.setSelectionDistance(this.getSelectionDistance()-2);
 				}
 			}
 		}
 	}
 	
-	public void selectSurfaces(int mX, int mY) {
-		if (this.MODE == SurfaceMapper.MODE_CALIBRATE) {
-			startPos = new PVector(mX, mY);
-			for (int i = surfaces.size() - 1; i >= 0; i--) {
-				SuperSurface cps = surfaces.get(i);
-
-				cps.setActivePoint(cps.getActiveCornerPointIndex(mX, mY));
-				cps.setSelectedBezierControl(cps.getActiveBezierPointIndex(mX, mY));
-
-				if (cps.getActivePoint() >= 0 || cps.getSelectedBezierControl() >= 0) {
-					if (grouping && !ctrlDown) {
-						if (!cps.isSelected()) {
-							for (SuperSurface ss : selectedSurfaces) {
-								ss.setSelected(false);
-							}
-							grouping = false;
-							selectedSurfaces.clear();
-						}
-					}
-
-					disableSelectionTool = true;
-					if (ctrlDown && grouping) {
-						boolean actionTaken = false;
-						if (cps.isSelected()) {
-							cps.setSelected(false);
-							for (int j = selectedSurfaces.size() - 1; j >= 0; j--) {
-								if (cps.getId() == selectedSurfaces.get(j).getId())
-									selectedSurfaces.remove(j);
-							}
-							actionTaken = true;
-						}
-						if (!cps.isSelected() && !actionTaken) {
-							cps.setSelected(true);
-							selectedSurfaces.add(cps);
-							removeDuplicates(selectedSurfaces);
-						}
-					} else {
-						if (grouping == false) {
-							for (SuperSurface ss : selectedSurfaces) {
-								ss.setSelected(false);
-							}
-							selectedSurfaces.clear();
-							cps.setSelected(true);
-							selectedSurfaces.add(cps);
-						}
-					}
-
-					// no need to loop through all surfaces unless multiple
-					// surfaces has been selected
-					if (!grouping)
-						break;
-				}
-			}
-			if (grouping) {
-				int moveClick = 0;
-				for (SuperSurface ss : selectedSurfaces) {
-					if (ss.getActivePoint() == 2000)
-						moveClick++;
-				}
-				// PApplet.println(moveClick);
-				if (moveClick > 0) {
-					for (SuperSurface ss : selectedSurfaces) {
-						ss.setActivePoint(2000);
-						// PApplet.println(ss.getActivePoint());
-					}
-				}
-			}
-
-		}
-	}
-
 	/**
 	 * MouseEvent method. Forwards the MouseEvent to ksMouseEvent if user input is allowed
-	 * 
 	 * @param e
 	 */
 	public void mouseEvent(MouseEvent e) {
@@ -1039,10 +841,141 @@ public class SurfaceMapper {
 			ksMouseEvent(e);
 		}
 	}
+	
+	/**
+	 * KeyEvent method
+	 * @param k KeyEvent thrown from Processing
+	 */
+	public void keyEvent(KeyEvent k) {
+		if (MODE == MODE_RENDER)
+			return; // ignore everything unless we're in calibration mode
+
+		switch (k.getAction()) {
+		case KeyEvent.RELEASE:
+
+			switch (k.getKeyCode()) {
+
+			case KeyEvent.META:
+			case PConstants.CONTROL:
+			case KeyEvent.CTRL:
+				ctrlDown = false;
+				break;
+
+			case KeyEvent.ALT:
+			case PConstants.ALT:
+				altDown = false;
+				break;
+			}
+			break;
+
+		case KeyEvent.PRESS:
+
+			switch (k.getKeyCode()) {
+			case '1':
+				if (selectedSurfaces.size() == 1)
+					selectedSurfaces.get(0).setSelectedCorner(0);
+				break;
+
+			case '2':
+				if (selectedSurfaces.size() == 1)
+					selectedSurfaces.get(0).setSelectedCorner(1);
+				break;
+
+			case '3':
+				if (selectedSurfaces.size() == 1)
+					selectedSurfaces.get(0).setSelectedCorner(2);
+				break;
+
+			case '4':
+				if (selectedSurfaces.size() == 1)
+					selectedSurfaces.get(0).setSelectedCorner(3);
+				break;
+
+			case PConstants.UP:
+				for (SuperSurface ss : selectedSurfaces) {
+					movePoint(ss, 0,-1);
+				}
+				break;
+
+			case PConstants.DOWN:
+				for (SuperSurface ss : selectedSurfaces) {
+					movePoint(ss, 0, 1);
+				}
+				break;
+
+			case PConstants.LEFT:
+				for (SuperSurface ss : selectedSurfaces) {
+					movePoint(ss, -1, 0);
+				}
+				break;
+
+			case PConstants.RIGHT:
+				for (SuperSurface ss : selectedSurfaces) {
+					movePoint(ss, 1, 0);
+				}
+				break;
+				/*
+			case KeyEvent.VK_O:
+				for (SuperSurface ss : selectedSurfaces) {
+					ss.increaseResolution();
+				}
+				break;
+
+			case KeyEvent.VK_P:
+				for (SuperSurface ss : selectedSurfaces) {
+					ss.decreaseResolution();
+				}
+				break;
+				
+			case KeyEvent.VK_U:
+				for (SuperSurface ss : selectedSurfaces) {
+					ss.increaseHorizontalForce();
+				}
+				break;
+
+			case KeyEvent.VK_I:
+				for (SuperSurface ss : selectedSurfaces) {
+					ss.decreaseHorizontalForce();
+				}
+				break;
+			
+			case KeyEvent.VK_J:
+				for (SuperSurface ss : selectedSurfaces) {
+					ss.increaseVerticalForce();
+				}
+				break;
+
+			case KeyEvent.VK_K:
+				for (SuperSurface ss : selectedSurfaces) {
+					ss.decreaseVerticalForce();
+				}
+				break;
+
+			case KeyEvent.VK_T:
+				for (SuperSurface ss : selectedSurfaces) {
+					ss.toggleLocked();
+				}
+				break;
+
+			case KeyEvent.VK_BACK_SPACE:
+				removeSelectedSurfaces();
+				break;
+			*/
+			case PConstants.CONTROL:
+			case CMD:
+				ctrlDown = true;
+				grouping = true;
+				break;
+
+			case PConstants.ALT:
+				altDown = true;
+				break;
+			}
+		}
+	}
 
 	/**
 	 * MouseEvent method.
-	 * 
 	 * @param e
 	 */
 	public void ksMouseEvent(MouseEvent e) {
@@ -1052,33 +985,100 @@ public class SurfaceMapper {
 		int mX = e.getX();
 		int mY = e.getY();
 
-		switch (e.getID()) {
-		case MouseEvent.MOUSE_PRESSED:
-			selectSurfaces(mX, mY);
+		switch (e.getAction()) {
+		case MouseEvent.PRESS:
+			if (this.MODE == SurfaceMapper.MODE_CALIBRATE) {
+				startPos = new PVector(mX, mY);
+				for (int i = surfaces.size() - 1; i >= 0; i--) {
+					SuperSurface cps = surfaces.get(i);
+
+					cps.setActivePoint(cps.getActiveCornerPointIndex(mX, mY));
+					cps.setSelectedBezierControl(cps.getActiveBezierPointIndex(mX, mY));
+
+					if (cps.getActivePoint() >= 0 || cps.getSelectedBezierControl() >= 0) {
+						if(grouping && !ctrlDown){
+							if(!cps.isSelected()){
+								for (SuperSurface ss : selectedSurfaces) {
+									ss.setSelected(false);
+								}
+								grouping = false;
+								selectedSurfaces.clear();
+							}
+						}
+						
+						disableSelectionTool = true;
+						if (ctrlDown && grouping) {
+							boolean actionTaken = false;
+							if(cps.isSelected()){
+								cps.setSelected(false);
+								for(int j = selectedSurfaces.size() - 1; j >= 0; j-- ){
+									if(cps.getId() == selectedSurfaces.get(j).getId()) selectedSurfaces.remove(j);
+								}
+								actionTaken = true;
+							}
+							if(!cps.isSelected() && !actionTaken){
+								cps.setSelected(true);
+								selectedSurfaces.add(cps);
+								removeDuplicates(selectedSurfaces);
+							}
+						} else {
+							if (grouping == false) {
+								for (SuperSurface ss : selectedSurfaces) {
+									ss.setSelected(false);
+								}
+								selectedSurfaces.clear();
+								cps.setSelected(true);
+								selectedSurfaces.add(cps);
+							}
+						}
+						
+						// no need to loop through all surfaces unless multiple
+						// surfaces has been selected
+						if (!grouping)
+							break;
+					}
+				}
+				if (grouping) {
+					int moveClick = 0;
+					for (SuperSurface ss : selectedSurfaces) {
+						if (ss.getActivePoint() == 2000)
+							moveClick++;
+					}
+				//	PApplet.println(moveClick);
+					if (moveClick > 0) {
+						for (SuperSurface ss : selectedSurfaces) {
+							ss.setActivePoint(2000);
+					//		PApplet.println(ss.getActivePoint());
+						}
+					}
+				}
+				
+			}
+
 			break;
 
-		case MouseEvent.MOUSE_DRAGGED:
+		case MouseEvent.DRAG:
 			if (this.MODE == SurfaceMapper.MODE_CALIBRATE) {
 
 				float deltaX = mX - prevMouse.x;
 				float deltaY = mY - prevMouse.y;
 
 				// Right mouse button drags very slowly.
-				if (e.getButton() == MouseEvent.BUTTON3) {
+				if (e.getButton() == PConstants.RIGHT) {
 					deltaX *= 0.1;
 					deltaY *= 0.1;
 				}
-
+				
 				boolean[] movingPolys = new boolean[surfaces.size()];
 				int iteration = 0;
-				for (SuperSurface ss : selectedSurfaces) {
-
+				for (SuperSurface ss : surfaces) {
+					
 					movingPolys[iteration] = false;
 					// Don't allow editing of surface if it's locked!
 					if (!ss.isLocked()) {
-						if (ss.getSelectedBezierControl() != -1) {
+						if(ss.getSelectedBezierControl() != -1){
 							ss.setBezierPoint(ss.getSelectedBezierControl(), ss.getBezierPoint(ss.getSelectedBezierControl()).x + deltaX, ss.getBezierPoint(ss.getSelectedBezierControl()).y + deltaY);
-						} else if (ss.getActivePoint() != -1) {
+						}else if (ss.getActivePoint() != -1) {
 							// special case.
 							// index 2000 is the center point so move all four
 							// corners.
@@ -1086,45 +1086,25 @@ public class SurfaceMapper {
 								// If multiple surfaces are selected, ALT need
 								// to be pressed in order to move them.
 								if ((grouping && altDown) || selectedSurfaces.size() == 1) {
-
-									boolean cornerMovementAllowed = true;
 									for (int i = 0; i < 4; i++) {
-										Point3D[] cTemp = new Point3D[4];
-										for (int j = 0; j < 4; j++) {
-											cTemp[j] = new Point3D(ss.getCornerPoint(j).x, ss.getCornerPoint(j).y);
-										}
-
-										cTemp[i].x = ss.getCornerPoint(i).x + deltaX;
-										cTemp[i].y = ss.getCornerPoint(i).y + deltaY;
-
-										for (int j = 0; j < cTemp.length; j++) {
-											if (QuadSurface.CCW(cTemp[(j + 2) % cTemp.length], cTemp[(j + 1) % cTemp.length], cTemp[j % cTemp.length]) >= 0) {
-												cornerMovementAllowed = false;
-											}
-										}
-									}
-									if (cornerMovementAllowed) {
-										for (int i = 0; i < 4; i++) {
-											ss.setCornerPoint(i, ss.getCornerPoint(i).x + deltaX, ss.getCornerPoint(i).y + deltaY);
-											ss.setBezierPoint(i, ss.getBezierPoint(i).x + deltaX, ss.getBezierPoint(i).y + deltaY);
-											ss.setBezierPoint(i + 4, ss.getBezierPoint(i + 4).x + deltaX, ss.getBezierPoint(i + 4).y + deltaY);
-										}
-									}
+										ss.setCornerPoint(i, ss.getCornerPoint(i).x + deltaX, ss.getCornerPoint(i).y + deltaY);
+										ss.setBezierPoint(i, ss.getBezierPoint(i).x + deltaX, ss.getBezierPoint(i).y + deltaY);
+										ss.setBezierPoint(i+4, ss.getBezierPoint(i+4).x + deltaX, ss.getBezierPoint(i+4).y + deltaY);
+									}	
 									movingPolys[iteration] = true;
 								}
 							} else {
 								// Move a corner point.
-								int index = ss.getActivePoint();
+								int index =  ss.getActivePoint();
 								ss.setCornerPoint(index, ss.getCornerPoint(ss.getActivePoint()).x + deltaX, ss.getCornerPoint(ss.getActivePoint()).y + deltaY);
-								index = index * 2;
+								index = index*2;
 								ss.setBezierPoint(index, ss.getBezierPoint(index).x + deltaX, ss.getBezierPoint(index).y + deltaY);
-								index = index + 1;
+								index = index+1;
 								ss.setBezierPoint(index, ss.getBezierPoint(index).x + deltaX, ss.getBezierPoint(index).y + deltaY);
 								movingPolys[iteration] = true;
-
 							}
 						}
-
+						
 					}
 					iteration++;
 				}
@@ -1139,9 +1119,9 @@ public class SurfaceMapper {
 				if (altDown)
 					disableSelectionTool = true;
 
-				if (!disableSelectionTool && startPos != null) {
+				if (!disableSelectionTool) {
 					selectionTool = new Rectangle((int) startPos.x, (int) startPos.y, (int) (mX - startPos.x), (int) (mY - startPos.y));
-
+					
 					PVector sToolPos = new PVector(selectionTool.x, selectionTool.y);
 
 					if (selectionTool.x < selectionTool.x - selectionTool.width) {
@@ -1172,20 +1152,21 @@ public class SurfaceMapper {
 
 			break;
 
-		case MouseEvent.MOUSE_RELEASED:
+		case MouseEvent.RELEASE:
 			if (this.MODE == SurfaceMapper.MODE_CALIBRATE) {
 				if (snap) {
 					for (SuperSurface ss : selectedSurfaces) {
 						if (ss.getActivePoint() != 2000 && ss.getActivePoint() != -1) {
 							int closestIndex = -1;
 							int cornerIndex = -1;
-							float closestDist = this.getSnapDistance() + 1;
+							float closestDist = this.getSnapDistance()+1;
 							for (int j = 0; j < surfaces.size(); j++) {
-								if (surfaces.get(j).getId() != ss.getId()) {
+								if(surfaces.get(j).getId() != ss.getId()){
 									for (int i = 0; i < surfaces.get(j).getCornerPoints().length; i++) {
-										float dist = PApplet.dist(ss.getCornerPoint(ss.getActivePoint()).x, ss.getCornerPoint(ss.getActivePoint()).y, surfaces.get(j).getCornerPoint(i).x, surfaces.get(j).getCornerPoint(i).y);
+										float dist = PApplet.dist(ss.getCornerPoint(ss.getActivePoint()).x, ss.getCornerPoint(ss.getActivePoint()).y, surfaces.get(j).getCornerPoint(i).x,
+												surfaces.get(j).getCornerPoint(i).y);
 										if (dist < this.getSnapDistance()) {
-											if (dist < closestDist) {
+											if(dist < closestDist){ 
 												closestDist = dist;
 												closestIndex = j;
 												cornerIndex = i;
@@ -1194,7 +1175,7 @@ public class SurfaceMapper {
 									}
 								}
 							}
-							if (closestDist > -1 && closestDist < this.getSnapDistance()) {
+							if(closestDist > -1 && closestDist < this.getSnapDistance()){
 								ss.setCornerPoint(ss.getActivePoint(), surfaces.get(closestIndex).getCornerPoint(cornerIndex).x, surfaces.get(closestIndex).getCornerPoint(cornerIndex).y);
 							}
 						}
@@ -1205,7 +1186,7 @@ public class SurfaceMapper {
 						if (cps.getActiveCornerPointIndex(mX, mY) != -1)
 							selection++;
 					}
-
+					
 					if (isDragging)
 						selection++;
 
@@ -1217,10 +1198,7 @@ public class SurfaceMapper {
 						selectedSurfaces.clear();
 					}
 				}
-
-			}
-			for (SuperSurface ss : selectedSurfaces) {
-				fireEvent(ss.getId());
+				
 			}
 			startPos = new PVector(0, 0);
 			selectionTool = null;
@@ -1232,212 +1210,17 @@ public class SurfaceMapper {
 		prevMouse = new PVector(mX, mY, 0);
 	}
 
+	
 	/**
-	 * KeyEvent method
-	 * 
-	 * @param k
+	 * Delete the selected surfaces 
 	 */
-	public void keyEvent(KeyEvent k) {
-		if (MODE == MODE_RENDER)
-			return; // ignore everything unless we're in calibration mode
-
-		switch (k.getID()) {
-		case KeyEvent.KEY_RELEASED:
-
-			switch (k.getKeyCode()) {
-
-			case KeyEvent.VK_CONTROL:
-			case CMD:
-				ctrlDown = false;
-				break;
-
-			case KeyEvent.VK_ALT:
-				altDown = false;
-				break;
-			}
-			break;
-
-		case KeyEvent.KEY_PRESSED:
-
-			switch (k.getKeyCode()) {
-			case '1':
-				if (selectedSurfaces.size() == 1)
-					selectedSurfaces.get(0).setSelectedCorner(0);
-				break;
-
-			case '2':
-				if (selectedSurfaces.size() == 1)
-					selectedSurfaces.get(0).setSelectedCorner(1);
-				break;
-
-			case '3':
-				if (selectedSurfaces.size() == 1)
-					selectedSurfaces.get(0).setSelectedCorner(2);
-				break;
-
-			case '4':
-				if (selectedSurfaces.size() == 1)
-					selectedSurfaces.get(0).setSelectedCorner(3);
-
-			case '9':
-				if (selectedSurfaces.size() == 1)
-					selectedSurfaces.get(0).setId(0);
-				break;
-
-			case KeyEvent.VK_UP:
-				if (!altDown && !ctrlDown) {
-					for (SuperSurface ss : selectedSurfaces) {
-						movePoint(ss, 0, -1);
-					}
-				}
-				// ALT is Offset!
-				if (altDown && !ctrlDown) {
-					for (SuperSurface ss : selectedSurfaces) {
-						ss.setTextureWindow(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y + 0.05f, ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y);
-					}
-				}
-
-				// CTRL is Size!
-				if (!altDown && ctrlDown) {
-					for (SuperSurface ss : selectedSurfaces) {
-						ss.setTextureWindow(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y, ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y + 0.05f);
-					}
-				}
-
-				break;
-
-			case KeyEvent.VK_DOWN:
-				if (!altDown && !ctrlDown) {
-					for (SuperSurface ss : selectedSurfaces) {
-						movePoint(ss, 0, 1);
-					}
-				}
-				// ALT is Offset!
-				if (altDown && !ctrlDown) {
-					for (SuperSurface ss : selectedSurfaces) {
-						ss.setTextureWindow(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y - 0.05f, ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y);
-					}
-				}
-
-				// CTRL is Size!
-				if (!altDown && ctrlDown) {
-					for (SuperSurface ss : selectedSurfaces) {
-						ss.setTextureWindow(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y, ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y - 0.05f);
-					}
-				}
-
-				break;
-
-			case KeyEvent.VK_LEFT:
-				if (!altDown && !ctrlDown) {
-					for (SuperSurface ss : selectedSurfaces) {
-						movePoint(ss, -1, 0);
-					}
-				}
-
-				// ALT is Offset!
-				if (altDown && !ctrlDown) {
-					for (SuperSurface ss : selectedSurfaces) {
-						ss.setTextureWindow(ss.getTextureWindow()[0].x + 0.05f, ss.getTextureWindow()[0].y, ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y);
-					}
-				}
-
-				// CTRL is Size!
-				if (!altDown && ctrlDown) {
-					for (SuperSurface ss : selectedSurfaces) {
-						ss.setTextureWindow(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y, ss.getTextureWindow()[1].x + 0.05f, ss.getTextureWindow()[1].y);
-					}
-				}
-
-				break;
-
-			case KeyEvent.VK_RIGHT:
-				if (!altDown && !ctrlDown) {
-					for (SuperSurface ss : selectedSurfaces) {
-						movePoint(ss, 1, 0);
-					}
-				}
-
-				// ALT is Offset!
-				if (altDown && !ctrlDown) {
-					for (SuperSurface ss : selectedSurfaces) {
-						ss.setTextureWindow(ss.getTextureWindow()[0].x - 0.05f, ss.getTextureWindow()[0].y, ss.getTextureWindow()[1].x, ss.getTextureWindow()[1].y);
-					}
-				}
-
-				// CTRL is Size!
-				if (!altDown && ctrlDown) {
-					for (SuperSurface ss : selectedSurfaces) {
-						ss.setTextureWindow(ss.getTextureWindow()[0].x, ss.getTextureWindow()[0].y, ss.getTextureWindow()[1].x - 0.05f, ss.getTextureWindow()[1].y);
-					}
-				}
-				break;
-			/*
-			 * case KeyEvent.VK_O: for (SuperSurface ss : selectedSurfaces) { ss.increaseResolution(); } break;
-			 * 
-			 * case KeyEvent.VK_P: for (SuperSurface ss : selectedSurfaces) { ss.decreaseResolution(); } break;
-			 * 
-			 * case KeyEvent.VK_U: for (SuperSurface ss : selectedSurfaces) { ss.increaseHorizontalForce(); } break;
-			 * 
-			 * case KeyEvent.VK_I: for (SuperSurface ss : selectedSurfaces) { ss.decreaseHorizontalForce(); } break;
-			 * 
-			 * case KeyEvent.VK_J: for (SuperSurface ss : selectedSurfaces) { ss.increaseVerticalForce(); } break;
-			 * 
-			 * case KeyEvent.VK_K: for (SuperSurface ss : selectedSurfaces) { ss.decreaseVerticalForce(); } break;
-			 * 
-			 * case KeyEvent.VK_T: for (SuperSurface ss : selectedSurfaces) { ss.toggleLocked(); } break;
-			 * 
-			 * case KeyEvent.VK_BACK_SPACE: removeSelectedSurfaces(); break;
-			 */
-			case KeyEvent.VK_CONTROL:
-			case CMD:
-				ctrlDown = true;
-				grouping = true;
-				break;
-
-			case KeyEvent.VK_ALT:
-				altDown = true;
-				break;
-			}
-		}
-	}
-
-	/**
-	 * Fire event to object
-	 */
-	public void fireEvent(int id) {
-		if (eventHandlerMethod != null) {
-			try {
-				eventHandlerMethod.invoke(eventHandlerObject, new Object[] { id });
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	public void addEventHandler(Object object, String methodName) {
-		eventHandlerObject = object;
-		eventHandlerMethodName = methodName;
-		try {
-			eventHandlerMethod = object.getClass().getMethod(methodName, new Class[] { int.class });
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * Delete the selected surfaces
-	 */
-	public void removeSelectedSurfaces() {
+	public void removeSelectedSurfaces(){
 		for (SuperSurface ss : selectedSurfaces) {
 			for (int i = surfaces.size() - 1; i >= 0; i--) {
 				if (ss.getId() == surfaces.get(i).getId()) {
-					if (ss.isLocked())
-						return;
+					if (ss.isLocked()) return;
 					if (this.getDebug())
-						PApplet.println("SurfaceMapper --> DELETED SURFACE with ID: #" + ss.getId());
+						PApplet.println("Keystone --> DELETED SURFACE with ID: #" + ss.getId());
 					surfaces.remove(i);
 				}
 			}
@@ -1465,13 +1248,4 @@ public class SurfaceMapper {
 			list.remove(--size);
 		}
 	}
-
-	public int getNumAddedSurfaces() {
-		return numAddedSurfaces;
-	}
-
-	public void setNumAddedSurfaces(int numAddedSurfaces) {
-		this.numAddedSurfaces = numAddedSurfaces;
-	}
-
 }
