@@ -27,7 +27,6 @@ import processing.core.PApplet;
 import processing.data.XML;
 import processing.core.PImage;
 import processing.core.PGraphics;
-import processing.opengl.Texture;
 
 //Parts derived from MappingTools library
 

@@ -34,11 +34,12 @@ import processing.core.PConstants;
 import processing.core.PFont;
 import processing.core.PGraphics;
 import processing.opengl.PGraphics2D;
+import processing.opengl.PGraphics3D;
 import processing.core.PImage;
 import processing.core.PVector;
 import processing.data.XML;
 
-public class VMap {
+public class VMap extends PImage implements PConstants{
 		
 	public final String VERSION = "2";
 
@@ -46,6 +47,8 @@ public class VMap {
 	private ArrayList<SuperSurface> surfaces;
 	private ArrayList<SuperSurface> selectedSurfaces;
 	
+	//Off-screen PGraphics buffer, in case anyone needs access to that
+	public PGraphics offScreenBuffer;
 	
 	private boolean allowUserInput;
 	
@@ -97,6 +100,7 @@ public class VMap {
 	 */
 
 	public VMap(PApplet parent, int width, int height) {
+		super(width, height);
 		this.parent = parent;
 		//this.enableMouseEvents();
 		this.parent.registerMethod("keyEvent", this);
@@ -113,9 +117,11 @@ public class VMap {
 		// check the renderer type
 		// issue a warning if its PGraphics2D
 		PGraphics pg = parent.g;
-		if ((pg instanceof PGraphics2D)) {
-			PApplet.println("Keystone --> The keystone library will not work with PGraphics2D as the renderer because it relies on texture mapping.");
+		if (!(pg instanceof PGraphics3D)) {
+			PApplet.println("VMap --> The VMap library will not work with PGraphics2D as the renderer because it relies on texture mapping. Set your renderer to P3D");
 		}
+
+		this.offScreenBuffer = parent.createGraphics(width, height, P3D);
 ///// TODO: Implement mouse wheel with proper form		
 //		parent.addMouseWheelListener(new java.awt.event.MouseWheelListener() { 
 //		    public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt) { 
@@ -201,6 +207,94 @@ public class VMap {
 			parent.noCursor();
 		}
 	}
+	
+	/**
+	 * Render method used when calibrating. Shouldn't be used for final rendering.
+	 */
+	public void render() {
+		offScreenBuffer.beginDraw();
+		offScreenBuffer.clear();
+		offScreenBuffer.endDraw();
+		
+		if (MODE == MODE_CALIBRATE) {
+			parent.cursor();
+			offScreenBuffer.beginDraw();
+			
+			if(this.isUsingBackground()){
+				offScreenBuffer.image(backgroundTexture, 0, 0, width, height);
+			}
+			//Draw a frame around the buffer
+			offScreenBuffer.fill(0,40);
+			offScreenBuffer.noStroke();
+			offScreenBuffer.rect(-2,-2,width+4,height+4);
+			offScreenBuffer.stroke(255, 255, 255, 40);
+			offScreenBuffer.strokeWeight(1);
+			float gridRes = 32.0f;
+			
+			float step = width/gridRes;
+
+			for (float i = 1; i < width; i += step) {
+				offScreenBuffer.line(i, 0, i, parent.height);
+			}
+			
+			step = height/gridRes;
+			
+			for (float i = 1; i < width; i += step) {
+				offScreenBuffer.line(0, i, parent.width, i);
+			}
+			
+			offScreenBuffer.stroke(255);
+			offScreenBuffer.strokeWeight(2);
+			offScreenBuffer.line(1,1,width-1,1);
+			offScreenBuffer.line(width-1,1,width-1, height-1);
+			offScreenBuffer.line(1,height-1,width-1,height-1);
+			offScreenBuffer.line(1,1,1,height-1);
+			
+			if (selectionTool != null && !disableSelectionTool) {
+				offScreenBuffer.stroke(255,100);
+				offScreenBuffer.strokeWeight(1);
+				offScreenBuffer.fill(100, 100, 255, 50);
+				offScreenBuffer.rect(selectionTool.x, selectionTool.y, selectionTool.width, selectionTool.height);
+				offScreenBuffer.noStroke();
+			}
+			
+			offScreenBuffer.endDraw();
+
+			for (int i = 0; i < surfaces.size(); i++) {
+				surfaces.get(i).render(offScreenBuffer);
+			}
+			
+			//Draw circles for SelectionDistance or SnapDistance (snap if CMD is down)
+			offScreenBuffer.beginDraw();
+			if(!ctrlDown){
+				offScreenBuffer.ellipseMode(PApplet.CENTER);
+				offScreenBuffer.fill(this.getSelectionMouseColor(),100);
+				offScreenBuffer.noStroke();
+				offScreenBuffer.ellipse(parent.mouseX, parent.mouseY, this.getSelectionDistance()*2, this.getSelectionDistance()*2);
+			}else{
+				offScreenBuffer.ellipseMode(PApplet.CENTER);
+				offScreenBuffer.fill(255,0,0,100);
+				offScreenBuffer.noStroke();
+				offScreenBuffer.ellipse(parent.mouseX, parent.mouseY, this.getSnapDistance()*2, this.getSnapDistance()*2);
+			}
+			offScreenBuffer.endDraw();
+			
+		}
+		// Render mode!
+		else {
+			parent.noCursor();
+			for (SuperSurface ss : this.surfaces){
+				ss.render(offScreenBuffer);
+			}
+		}
+		// Now copy all those pixels that are offscreen to our own buffer
+		//  This could probably be taken out by a big refactor, but I don't understand
+		//  the PGraphics side well enough, and it's easier to understand new VMap(width, height)
+		//  than createGraphics()...
+		
+		this.copy(offScreenBuffer, 0, 0, width, height, 0, 0, width, height);
+	}
+	
 	
 	/**
 	 * Shake all surfaces with max Z-displacement strength, vibration-speed speed, and shake decline fallOfSpeed. (min 0, max 1000 (1000 = un-ending shaking))
@@ -657,7 +751,7 @@ public class VMap {
 	 * Puts all projection mapping data in the XML
 	 * @param root
 	 */
-	public void save(XML root) {
+	public void saveXML(XML root) {
 		root.setName("ProjectionMap");
 		// create XML elements for each surface containing the resolution
 		// and control point data
@@ -703,14 +797,14 @@ public class VMap {
 	 * Save all projection mapping data to file
 	 * @param filename
 	 */
-	public void save(String filename) {
+	public void saveXML(String filename) {
 		if (this.MODE == VMap.MODE_CALIBRATE){
 			XML root = new XML("root");
-			this.save(root);
+			this.saveXML(root);
 			try {
 				parent.saveXML(root, filename);
 			} catch (Exception e) {
-				PApplet.println(e.getStackTrace());
+				PApplet.println((Object)e.getStackTrace());
 			}
 		}
 	}
@@ -719,7 +813,7 @@ public class VMap {
 	 * Load projection map from file
 	 * @param filename
 	 */
-	public void load(String filename) {
+	public void loadXML(String filename) {
 		if (this.MODE == VMap.MODE_CALIBRATE) {
 			File f = new File(parent.dataPath(filename));
 			if (f.exists()) {

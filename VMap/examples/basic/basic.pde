@@ -64,9 +64,9 @@ void keyPressed(){
     }
   }
   //save layout to xml
-  if(key == 's')sm.save("bla.xml");
+  if(key == 's')sm.saveXML("bla.xml");
   //load layout from xml
-  if(key == 'l')sm.load("bla.xml");
+  if(key == 'l')sm.loadXML("bla.xml");
   //rotate how the texture is mapped in to the QUAD (clockwise)
   if(key == 'j'){
     for(SuperSurface ss : sm.getSelectedSurfaces()){

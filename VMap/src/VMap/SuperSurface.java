@@ -24,11 +24,9 @@ package VMap;
 
 import java.awt.Polygon;
 
-import processing.opengl.Texture;
 import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.core.PApplet;
-import processing.core.PVector;
 import processing.data.XML;
 
 public class SuperSurface {
