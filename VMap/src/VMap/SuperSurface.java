@@ -27,7 +27,6 @@ import java.awt.Polygon;
 import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.core.PApplet;
-import processing.data.XML;
 
 public abstract class SuperSurface{
 	
@@ -272,33 +271,6 @@ public abstract class SuperSurface{
 	}
 	
 	/**
-	 * Set target bezier control point to coordinates
-	 * @param pointIndex
-	 * @param x
-	 * @param y
-	 */
-	public void setBezierPoint(int pointIndex, float x, float y){
-		switch(type){
-			case BEZIER:
-				bezierSurface.setBezierPoint(pointIndex, x, y);	
-				break;
-		}
-	}
-	
-	/**
-	 * Get target Bezier control point
-	 * @param index
-	 * @return
-	 */
-	public Point3D getBezierPoint(int index){
-		switch(type){
-			case BEZIER:
-				return bezierSurface.getBezierPoint(index);
-			}
-		return new Point3D();
-	}
-	
-	/**
 	 * Set surface to calibration mode
 	 */
 	public void setModeCalibrate() {
@@ -446,30 +418,6 @@ public abstract class SuperSurface{
 	}
 	
 	/**
-	 * Set target bezier control to selected
-	 * @param selectedBezierControl
-	 */
-	public void setSelectedBezierControl(int selectedBezierControl) {
-		switch(type){
-			case BEZIER:
-				bezierSurface.setSelectedBezierControl(selectedBezierControl);	
-				break;
-		}
-	}
-
-	/**
-	 * Get the currently selected bezier control
-	 * @return
-	 */
-	public int getSelectedBezierControl() {
-		switch(type){
-			case BEZIER:
-				return bezierSurface.getSelectedBezierControl();	
-		}
-		return -1;
-	}
-	
-	/**
 	 * Checks if the coordinates is close to any of the corners, and if not, checks if the coordinates are inside the surface.
 	 * Returns the index of the corner (0,1,2,3) or (4) if coordinates was inside the surface 
 	 * @param mX
@@ -487,21 +435,7 @@ public abstract class SuperSurface{
 			return 2000; 
 		return -1;
 	}
-	
-	/**
-	 * Returns index 0-7 if coordinates are on a bezier control
-	 * @param mX
-	 * @param mY
-	 * @return
-	 */
-	public int getActiveBezierPointIndex(int mX, int mY){
-		switch(type){
-			case BEZIER:
-				return bezierSurface.getActiveBezierPointIndex(mX, mY);	
-		}
-		return -1;
-	}
-	
+
 	/**
 	 * Check if coordinates are inside the surface
 	 * @param mX X coordinate of the checked point
@@ -561,9 +495,7 @@ public abstract class SuperSurface{
 		this.updateTransform();
 	}
 	
-	
-	//TODO: Make this into an abstract class
-	private void updateTransform(){
+	protected abstract void updateTransform();/*{
 		switch(type){
 			case QUAD:
 				quadSurface.updateTransform();
@@ -573,7 +505,7 @@ public abstract class SuperSurface{
 				break;
 		
 		}
-	}
+	}*/
 	
 	/**
 	 * Get the average center point of the surface
@@ -600,7 +532,7 @@ public abstract class SuperSurface{
 	 * @param y
 	 * @return
 	 */
-	public Point3D screenCoordinatesToQuad(float x, float y){
+	public abstract Point3D screenCoordinatesToQuad(float x, float y);/*{
 		switch(type){
 			case QUAD:
 				return quadSurface.screenCoordinatesToQuad(x, y);
@@ -608,13 +540,13 @@ public abstract class SuperSurface{
 				return bezierSurface.screenCoordinatesToQuad(x, y);	
 		}
 		return null;
-	}
+	}*/
 	
 	/**
 	 * Renders the surface in calibration mode
 	 * @param g
 	 */
-	public void render(PGraphics g){
+	public abstract void render(PGraphics g);/*{
 		switch(type){
 			case QUAD:
 				quadSurface.render(g);
@@ -623,14 +555,14 @@ public abstract class SuperSurface{
 				bezierSurface.render(g);	
 				break;
 		}
-	}
+	}*/
 	
 	/**
 	 * Render the surface with texture
 	 * @param g
 	 * @param tex
 	 */
-	public void render(PGraphics g, PImage tex){
+	public abstract void render(PGraphics g, PImage tex);/*{
 		switch(type){
 			case QUAD:
 				quadSurface.render(g, tex);
@@ -639,7 +571,7 @@ public abstract class SuperSurface{
 				bezierSurface.render(g, tex);	
 				break;
 		}
-	}
+	}*/
 	
 	/**
 	 * See which type this surface is

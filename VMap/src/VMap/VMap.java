@@ -415,10 +415,10 @@ public class VMap extends PImage implements PConstants{
 	/**
 	 * Creates a Quad surface with perspective transform. Res is the amount of subdivisioning. Returns the surface after it has been created.
 	 * @param res amount of subdivisioning
-	 * @return Returns the SuperSurface you created
+	 * @return Returns the QUADSurface you created
 	 */
-	public SuperSurface createQuadSurface(int res) {
-		SuperSurface s = new SuperSurface(SuperSurface.QUAD, parent, this, parent.mouseX, parent.mouseY, res, numAddedSurfaces);
+	public QuadSurface createQuadSurface(int res) {
+		QuadSurface s = new QuadSurface(parent, this, parent.mouseX, parent.mouseY, res, numAddedSurfaces);
 		if (ccolor.length > 0)
 			s.setColor(ccolor[numAddedSurfaces % ccolor.length]);
 		s.setModeCalibrate();
@@ -434,8 +434,8 @@ public class VMap extends PImage implements PConstants{
 	 * @param y y coordinate of origin of new surface
 	 * @return Returns the SuperSurface you created
 	 */
-	public SuperSurface createQuadSurface(int res, int x, int y) {
-		SuperSurface s = new SuperSurface(SuperSurface.QUAD, parent, this, x, y, res, numAddedSurfaces);
+	public QuadSurface createQuadSurface(int res, int x, int y) {
+		QuadSurface s = new QuadSurface(parent, this, x, y, res, numAddedSurfaces);
 		if (ccolor.length > 0)
 			s.setColor(ccolor[numAddedSurfaces % ccolor.length]);
 		s.setModeCalibrate();
@@ -447,10 +447,10 @@ public class VMap extends PImage implements PConstants{
 	/**
 	 * Creates a Bezier surface with perspective transform. Res is the amount of subdivisioning. Returns the surface after it has been created.
 	 * @param res Amount of subdivisioning
-	 * @return Returns the bezier SuperSurface you created
+	 * @return Returns the BezierSurface you created
 	 */
-	public SuperSurface createBezierSurface(int res) {
-		SuperSurface s = new SuperSurface(SuperSurface.BEZIER, parent, this, parent.mouseX, parent.mouseY, res, numAddedSurfaces);
+	public BezierSurface createBezierSurface(int res) {
+		BezierSurface s = new BezierSurface(parent, this, parent.mouseX, parent.mouseY, res, numAddedSurfaces);
 		if (ccolor.length > 0)
 			s.setColor(ccolor[numAddedSurfaces % ccolor.length]);
 		s.setModeCalibrate();
@@ -464,10 +464,10 @@ public class VMap extends PImage implements PConstants{
 	 * @param res amount of subdivisioning of the surface
 	 * @param x x coordinate of the surface's origin
 	 * @param y y coordinate of the surface's origin
-	 * @return Returns the bezier SuperSurface you created
+	 * @return Returns the BezierSurface you created
 	 */
-	public SuperSurface createBezierSurface(int res, int x, int y) {
-		SuperSurface s = new SuperSurface(SuperSurface.BEZIER, parent, this, x, y, res, numAddedSurfaces);
+	public BezierSurface createBezierSurface(int res, int x, int y) {
+		BezierSurface s = new BezierSurface(parent, this, x, y, res, numAddedSurfaces);
 		if (ccolor.length > 0)
 			s.setColor(ccolor[numAddedSurfaces % ccolor.length]);
 		s.setModeCalibrate();
@@ -752,7 +752,7 @@ public class VMap extends PImage implements PConstants{
 	 * @param root
 	 */
 	public void saveXML(XML root) {
-		root.setName("ProjectionMap");
+/*		root.setName("ProjectionMap");
 		// create XML elements for each surface containing the resolution
 		// and control point data
 		for (SuperSurface s : surfaces) {
@@ -790,7 +790,7 @@ public class VMap extends PImage implements PConstants{
 				}
 			}
 			root.addChild(surf);
-		}
+		}*/
 	}
 
 	/**
@@ -814,7 +814,7 @@ public class VMap extends PImage implements PConstants{
 	 * @param filename
 	 */
 	public void loadXML(String filename) {
-		if (this.MODE == VMap.MODE_CALIBRATE) {
+/*		if (this.MODE == VMap.MODE_CALIBRATE) {
 			File f = new File(parent.dataPath(filename));
 			if (f.exists()) {
 				this.setGrouping(false);
@@ -833,23 +833,24 @@ public class VMap extends PImage implements PConstants{
 				if(this.getDebug()) PApplet.println("ERROR loading XML! No projection layout exists!");
 			}
 		}
-
+*/
 	}
 	
 	/**
 	 * Move a point of a surface
-	 * @param ss
-	 * @param x
-	 * @param y
+	 * @param ss SuperSurface point is owned by
+	 * @param x X position to move point to
+	 * @param y Y position to move point to
 	 */
 	public void movePoint(SuperSurface ss, int x, int y){
 		int index = ss.getSelectedCorner();
-		
 		ss.setCornerPoint(index, ss.getCornerPoint(index).x + x, ss.getCornerPoint(index).y + y);
-		index = index*2;
-		ss.setBezierPoint(index, ss.getBezierPoint(index).x + x, ss.getBezierPoint(index).y + y);
-		index = index+1;
-		ss.setBezierPoint(index, ss.getBezierPoint(index).x + x, ss.getBezierPoint(index).y + y);
+		if (ss instanceof BezierSurface){
+			index = index*2;
+			((BezierSurface) ss).setBezierPoint(index, ((BezierSurface) ss).getBezierPoint(index).x + x, ((BezierSurface) ss).getBezierPoint(index).y + y);
+			index = index+1;
+			((BezierSurface) ss).setBezierPoint(index, ((BezierSurface) ss).getBezierPoint(index).x + x, ((BezierSurface) ss).getBezierPoint(index).y + y);
+		}
 	}
 	
 	/**
@@ -1084,9 +1085,13 @@ public class VMap extends PImage implements PConstants{
 					SuperSurface cps = surfaces.get(i);
 
 					cps.setActivePoint(cps.getActiveCornerPointIndex(mX, mY));
-					cps.setSelectedBezierControl(cps.getActiveBezierPointIndex(mX, mY));
-
-					if (cps.getActivePoint() >= 0 || cps.getSelectedBezierControl() >= 0) {
+					
+					if(cps instanceof BezierSurface){
+						((BezierSurface)cps).setSelectedBezierControl(((BezierSurface)cps).getActiveBezierPointIndex(mX, mY));
+					}
+					
+					if (cps.getActivePoint() >= 0 || 
+					   (cps instanceof BezierSurface && ((BezierSurface)cps).getSelectedBezierControl() >= 0)) {
 						if(grouping && !ctrlDown){
 							if(!cps.isSelected()){
 								for (SuperSurface ss : selectedSurfaces) {
@@ -1167,8 +1172,8 @@ public class VMap extends PImage implements PConstants{
 					movingPolys[iteration] = false;
 					// Don't allow editing of surface if it's locked!
 					if (!ss.isLocked()) {
-						if(ss.getSelectedBezierControl() != -1){
-							ss.setBezierPoint(ss.getSelectedBezierControl(), ss.getBezierPoint(ss.getSelectedBezierControl()).x + deltaX, ss.getBezierPoint(ss.getSelectedBezierControl()).y + deltaY);
+						if(ss instanceof BezierSurface && ((BezierSurface)ss).getSelectedBezierControl() != -1){
+							((BezierSurface)ss).setBezierPoint(((BezierSurface)ss).getSelectedBezierControl(), ((BezierSurface)ss).getBezierPoint(((BezierSurface)ss).getSelectedBezierControl()).x + deltaX, ((BezierSurface)ss).getBezierPoint(((BezierSurface)ss).getSelectedBezierControl()).y + deltaY);
 						}else if (ss.getActivePoint() != -1) {
 							// special case.
 							// index 2000 is the center point so move all four
@@ -1179,21 +1184,24 @@ public class VMap extends PImage implements PConstants{
 								if ((grouping && altDown) || selectedSurfaces.size() == 1) {
 									for (int i = 0; i < 4; i++) {
 										ss.setCornerPoint(i, ss.getCornerPoint(i).x + deltaX, ss.getCornerPoint(i).y + deltaY);
-										ss.setBezierPoint(i, ss.getBezierPoint(i).x + deltaX, ss.getBezierPoint(i).y + deltaY);
-										ss.setBezierPoint(i+4, ss.getBezierPoint(i+4).x + deltaX, ss.getBezierPoint(i+4).y + deltaY);
+										if (ss instanceof BezierSurface){
+											((BezierSurface)ss).setBezierPoint(i, ((BezierSurface)ss).getBezierPoint(i).x + deltaX, ((BezierSurface)ss).getBezierPoint(i).y + deltaY);
+											((BezierSurface)ss).setBezierPoint(i+4, ((BezierSurface)ss).getBezierPoint(i+4).x + deltaX, ((BezierSurface)ss).getBezierPoint(i+4).y + deltaY);
+										}
 									}	
 									movingPolys[iteration] = true;
 								}
 							} else {
+								movePoint(ss, (int)deltaX, (int)deltaY);
 								// Move a corner point.
-								int index =  ss.getActivePoint();
+/*								int index =  ss.getActivePoint();
 								ss.setCornerPoint(index, ss.getCornerPoint(ss.getActivePoint()).x + deltaX, ss.getCornerPoint(ss.getActivePoint()).y + deltaY);
 								index = index*2;
 								ss.setBezierPoint(index, ss.getBezierPoint(index).x + deltaX, ss.getBezierPoint(index).y + deltaY);
 								index = index+1;
 								ss.setBezierPoint(index, ss.getBezierPoint(index).x + deltaX, ss.getBezierPoint(index).y + deltaY);
 								movingPolys[iteration] = true;
-							}
+*/							}
 						}
 						
 					}
