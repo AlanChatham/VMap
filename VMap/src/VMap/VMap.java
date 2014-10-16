@@ -1,5 +1,5 @@
 /**
- * Part of the SurfaceMapperP2 library: http://surfacemapper.sourceforge.net/
+ * Part of the VMap library: https://github.com/AlanChatham/VMap
  * 
  * Portions to update to Processing 2 copyright (c) 2014 - Laboratory LLC
  * Copyright (c) 2011-12 Ixagon AB 
@@ -38,7 +38,7 @@ import processing.core.PImage;
 import processing.core.PVector;
 import processing.data.XML;
 
-public class SurfaceMapper {
+public class VMap {
 		
 	public final String VERSION = "2";
 
@@ -90,13 +90,13 @@ public class SurfaceMapper {
 	private float shakeZ;
 	
 	/**
-	 * Create instance of SurfaceMapper
+	 * Create instance of VMap
 	 * @param parent Parent applet, usually the processing sketch using it
 	 * @param width Width of the sketch window
 	 * @param height Height of the sketch window
 	 */
 
-	public SurfaceMapper(PApplet parent, int width, int height) {
+	public VMap(PApplet parent, int width, int height) {
 		this.parent = parent;
 		//this.enableMouseEvents();
 		this.parent.registerMethod("keyEvent", this);
@@ -232,14 +232,14 @@ public class SurfaceMapper {
 	}
 	
 	/**
-	 * Unregisters Mouse Event listener for the SurfaceMapper
+	 * Unregisters Mouse Event listener for the VMap
 	 */
 //	public void disableMouseEvents(){
 //		this.parent.unregisterMethod(mouseEvent, this);
 //	}
 	
 	/**
-	 * Registers Mouse Event listener for the SurfaceMapper
+	 * Registers Mouse Event listener for the VMap
 	 */
 //	public void enableMouseEvents(){
 //		this.parent.registerMethod(mouseEvent, this);
@@ -458,7 +458,7 @@ public class SurfaceMapper {
 	}
 	
 	/**
-	 * @param isDragging Are you dragging something in the current SurfaceMapper?
+	 * @param isDragging Are you dragging something in the current VMap?
 	 */
 	public void setIsDragging(boolean isDragging) {
 		this.isDragging = isDragging;
@@ -561,7 +561,7 @@ public class SurfaceMapper {
 	 * Set mode to calibrate
 	 */
 	public void setModeCalibrate() {
-		this.MODE = SurfaceMapper.MODE_CALIBRATE;
+		this.MODE = VMap.MODE_CALIBRATE;
 		for (SuperSurface s : surfaces) {
 			s.setModeCalibrate();
 		}
@@ -571,7 +571,7 @@ public class SurfaceMapper {
 	 * Set mode to render
 	 */
 	public void setModeRender() {
-		this.MODE = SurfaceMapper.MODE_RENDER;
+		this.MODE = VMap.MODE_RENDER;
 		for (SuperSurface s : surfaces) {
 			s.setModeRender();
 		}
@@ -704,7 +704,7 @@ public class SurfaceMapper {
 	 * @param filename
 	 */
 	public void save(String filename) {
-		if (this.MODE == SurfaceMapper.MODE_CALIBRATE){
+		if (this.MODE == VMap.MODE_CALIBRATE){
 			XML root = new XML("root");
 			this.save(root);
 			try {
@@ -720,7 +720,7 @@ public class SurfaceMapper {
 	 * @param filename
 	 */
 	public void load(String filename) {
-		if (this.MODE == SurfaceMapper.MODE_CALIBRATE) {
+		if (this.MODE == VMap.MODE_CALIBRATE) {
 			File f = new File(parent.dataPath(filename));
 			if (f.exists()) {
 				this.setGrouping(false);
@@ -805,7 +805,7 @@ public class SurfaceMapper {
 	 * @param delta
 	 */
 	private void mouseWheelAction(int delta){
-		if(allowUserInput && this.MODE == SurfaceMapper.MODE_CALIBRATE){
+		if(allowUserInput && this.MODE == VMap.MODE_CALIBRATE){
 			if(delta < 0){
 				if(ctrlDown){
 					if(this.getSnapDistance() < 60){
@@ -976,7 +976,7 @@ public class SurfaceMapper {
 	 * @param e
 	 */
 	public void ksMouseEvent(MouseEvent e) {
-		if (this.MODE == SurfaceMapper.MODE_RENDER)
+		if (this.MODE == VMap.MODE_RENDER)
 			return;
 
 		int mX = e.getX();
@@ -984,7 +984,7 @@ public class SurfaceMapper {
 
 		switch (e.getAction()) {
 		case MouseEvent.PRESS:
-			if (this.MODE == SurfaceMapper.MODE_CALIBRATE) {
+			if (this.MODE == VMap.MODE_CALIBRATE) {
 				startPos = new PVector(mX, mY);
 				for (int i = surfaces.size() - 1; i >= 0; i--) {
 					SuperSurface cps = surfaces.get(i);
@@ -1055,7 +1055,7 @@ public class SurfaceMapper {
 			break;
 
 		case MouseEvent.DRAG:
-			if (this.MODE == SurfaceMapper.MODE_CALIBRATE) {
+			if (this.MODE == VMap.MODE_CALIBRATE) {
 
 				float deltaX = mX - prevMouse.x;
 				float deltaY = mY - prevMouse.y;
@@ -1150,7 +1150,7 @@ public class SurfaceMapper {
 			break;
 
 		case MouseEvent.RELEASE:
-			if (this.MODE == SurfaceMapper.MODE_CALIBRATE) {
+			if (this.MODE == VMap.MODE_CALIBRATE) {
 				if (snap) {
 					for (SuperSurface ss : selectedSurfaces) {
 						if (ss.getActivePoint() != 2000 && ss.getActivePoint() != -1) {

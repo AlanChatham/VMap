@@ -1,5 +1,5 @@
 /**
- * Part of the SurfaceMapperP2 library: http://surfacemapper.sourceforge.net/
+ * Part of the VMap library: https://github.com/AlanChatham/VMap
  * 
  * Portions to update to Processing 2 copyright (c) 2014 - Laboratory LLC
  * Copyright (c) 2011-12 Ixagon AB 
@@ -20,7 +20,7 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-package ixagon.SurfaceMapperP2;
+package VMap;
 
 import java.awt.Polygon;
 import processing.core.PApplet;
@@ -35,7 +35,7 @@ public class BezierSurface {
 	
 	private PApplet parent;
 
-	private SurfaceMapper sm;
+	private VMap sm;
 
 	final private int MODE_RENDER = 0;
 	final private int MODE_CALIBRATE = 1;
@@ -101,7 +101,7 @@ public class BezierSurface {
 	 * @param res
 	 * @param id
 	 */
-	BezierSurface(PApplet parent, SurfaceMapper ks, float x, float y, int res, int id) {
+	BezierSurface(PApplet parent, VMap ks, float x, float y, int res, int id) {
 		init(parent, ks, res, id, null);
 
 		this.cornerPoints[0].x = (float) (x - (this.DEFAULT_SIZE * 0.5));
@@ -151,7 +151,7 @@ public class BezierSurface {
 	 * @param ks
 	 * @param xml
 	 */
-	BezierSurface(PApplet parent, SurfaceMapper ks, XML xml) {
+	BezierSurface(PApplet parent, VMap ks, XML xml) {
 
 		init(parent, ks, (xml.getInt("res")), xml.getInt("id"), xml.getString("name"));
 
@@ -180,7 +180,7 @@ public class BezierSurface {
 	 * @param res
 	 * @param id
 	 */
-	private void init(PApplet parent, SurfaceMapper ks, int res, int id, String name) {
+	private void init(PApplet parent, VMap ks, int res, int id, String name) {
 		this.parent = parent;
 		this.sm = ks;
 		this.surfaceName = name;

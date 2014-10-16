@@ -1,5 +1,5 @@
 import processing.video.*;
-import ixagon.SurfaceMapperP2.*;
+import VMap.*;
 
 /***********************************************************
 * EXAMPLE PROVIDED WITH SURFACEMAPPER LIBRARY DEVELOPED BY *
@@ -13,7 +13,7 @@ import ixagon.SurfaceMapperP2.*;
 PImage img;
 PImage name;
 PGraphics glos;
-SurfaceMapper sm;
+VMap sm;
 Movie movie;
 
 void setup(){
@@ -22,7 +22,7 @@ void setup(){
   img = loadImage("img.jpg");
   name = loadImage("name.jpg");
   //Create new instance of SurfaceMapper
-  sm = new SurfaceMapper(this, width, height);
+  sm = new VMap(this, width, height);
   //Creates one surface with subdivision 3, at center of screen
   sm.createQuadSurface(3,width/2,height/2);
   //set the name of the surface

@@ -1,5 +1,5 @@
 /**
- * Part of the SurfaceMapperP2 library: http://surfacemapper.sourceforge.net/
+ * Part of the VMap library: https://github.com/AlanChatham/VMap
  * 
  * Portions to update to Processing 2 copyright (c) 2014 - Laboratory LLC
  * Copyright (c) 2011-12 Ixagon AB 
@@ -20,7 +20,7 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-package ixagon.SurfaceMapperP2;
+package VMap;
 
 public class Point3D {
 	public float x = 0;

@@ -1,5 +1,5 @@
 /**
- * Part of the SurfaceMapperP2 library: http://surfacemapper.sourceforge.net/
+ * Part of the VMap library: https://github.com/AlanChatham/VMap
  * 
  * Portions to update to Processing 2 copyright (c) 2014 - Laboratory LLC
  * Copyright (c) 2011-12 Ixagon AB 
@@ -20,7 +20,7 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-package ixagon.SurfaceMapperP2;
+package VMap;
 
 import java.awt.Polygon;
 
@@ -51,7 +51,7 @@ public class SuperSurface {
 	 * @param res
 	 * @param id
 	 */
-	public SuperSurface(int type, PApplet parent, SurfaceMapper ks, float x, float y, int res, int id){
+	public SuperSurface(int type, PApplet parent, VMap ks, float x, float y, int res, int id){
 		this.type = type;
 		
 		switch(type){
@@ -73,7 +73,7 @@ public class SuperSurface {
 	 * @param ks
 	 * @param xml
 	 */
-	public SuperSurface(int type, PApplet parent, SurfaceMapper ks, XML xml){
+	public SuperSurface(int type, PApplet parent, VMap ks, XML xml){
 		this.type = type;
 		
 		switch(type){
