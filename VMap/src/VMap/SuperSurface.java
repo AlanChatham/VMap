@@ -29,30 +29,86 @@ import processing.core.PImage;
 import processing.core.PApplet;
 import processing.data.XML;
 
-public class SuperSurface {
+public abstract class SuperSurface{
+	
+	protected PApplet parent;
+	protected VMap sm;
+
+	final protected int MODE_RENDER = 0;
+	final protected int MODE_CALIBRATE = 1;
+
+	protected int MODE = MODE_RENDER;
+	
+	protected int activePoint = -1; // Which corner point is selected?
+
+	static protected int GRID_LINE_COLOR;
+	static protected int GRID_LINE_SELECTED_COLOR;
+	static protected int SELECTED_OUTLINE_OUTER_COLOR;
+	static protected int CORNER_MARKER_COLOR;
+	static protected int SELECTED_OUTLINE_INNER_COLOR;
+	static protected int SELECTED_CORNER_MARKER_COLOR;
+	
+	// The four corners of the transformed quad (in 2d screen space)
+	protected Point3D[] cornerPoints;
+	
 	public final static int QUAD = 0;
 	public final static int BEZIER = 1;
 	
+	protected PImage texture;
+	protected String textureFilename;
+	
 	private int type;
 	
-	QuadSurface quadSurface;
-	BezierSurface bezierSurface;
+	protected int surfaceId;
+	protected String surfaceName;
+	
+	protected int ccolor;
+
+	protected Polygon poly = new Polygon();
+
+	protected float currentZ;
+	protected boolean shaking;
+	protected float shakeStrength;
+	protected int shakeSpeed;
+	protected float shakeAngle;
+	protected int fallOfSpeed;
+
+	protected boolean hidden = false;
+	
+	protected boolean isSelected;
+	protected boolean isLocked;
+	protected int selectedCorner;
+	
+	// TODO: Get rid of these, refactor into an abstract class
+//	QuadSurface quadSurface;
+//	BezierSurface bezierSurface;
+	
+	// Default constructor
+	public SuperSurface(){
+		this.ccolor = 0;
+	}
 	
 	/**
 	 * Constructor used to create a new Surface. This should always be used when creating a new surface.
-	 * Type is either QUAD(0) or BEZIER(1). 
-	 * @param type
-	 * @param parent
-	 * @param ks
-	 * @param x
-	 * @param y
-	 * @param res
-	 * @param id
+	 * @param fileName is the image texture to use
+	 * @param type is either QUAD(0) or BEZIER(1) because Ixagon doesn't know what an abstract class is
+	 * @param parent is the processing applet for some reason
+	 * @param ks is the VMap this belongs to, again, why?
+	 * @param x is the x position
+	 * @param y is the y position
+	 * @param res is the resolution of the surface
+	 * @param id is the id number
 	 */
-	public SuperSurface(int type, PApplet parent, VMap ks, float x, float y, int res, int id){
+	public SuperSurface(String fileName, int type, PApplet parent, VMap ks, float x, float y, int res, int id){
 		this.type = type;
+		this.textureFilename = fileName;
+		if (this.textureFilename != null){
+			this.texture = parent.loadImage(fileName);
+		}
+		// Set some default values for internal variables
+		this.ccolor = 0;
 		
-		switch(type){
+/*		switch(type){
 		case QUAD:
 			quadSurface = new QuadSurface(parent, ks, x, y, res, id);
 			break;
@@ -62,8 +118,22 @@ public class SuperSurface {
 			bezierSurface = new BezierSurface(parent, ks, x, y, res, id);
 			break;
 		}
+		*/
 	}
-	
+	/**
+	 * Constructor used to create a new Surface. This should always be used when creating a new surface.
+	 * @param type is either QUAD(0) or BEZIER(1) because Ixagon doesn't know what an abstract class is
+	 * @param parent is the processing applet for some reason
+	 * @param ks is the VMap this belongs to, again, why?
+	 * @param x is the x position
+	 * @param y is the y position
+	 * @param res is the resolution of the surface
+	 * @param id is the id number
+	 */
+	public SuperSurface(int type, PApplet parent, VMap ks, float x, float y, int res, int id){
+		this(null, type, parent, ks, x, y, res, id);
+	}
+
 	/**
 	 * Constructor for loading a surface from file
 	 * @param type
@@ -71,7 +141,7 @@ public class SuperSurface {
 	 * @param ks
 	 * @param xml
 	 */
-	public SuperSurface(int type, PApplet parent, VMap ks, XML xml){
+/*public abstract SuperSurface(int type, PApplet parent, VMap ks, XML xml){
 		this.type = type;
 		
 		switch(type){
@@ -83,66 +153,30 @@ public class SuperSurface {
 			bezierSurface = new BezierSurface(parent, ks, xml);
 			break;
 		}
-	}
-	
+	}*/
+
 	/**
-	 * Sets the name of the surface
-	 * @param name
-	 */
-	public void setSurfaceName(String name){
-		switch(type){
-		case QUAD:
-			quadSurface.setSurfaceName(name);
-			break;
-		case BEZIER:
-			bezierSurface.setSurfaceName(name);
-		}
-	}
-	
-	public String getSurfaceName(){
-		switch(type){
-		case QUAD:
-			return quadSurface.getSurfaceName();
-		case BEZIER:
-			return bezierSurface.getSurfaceName();
-		}
-		return "";
-	}
-	
-	/**
-	 * Set the fill color of the surface in calibration mode
+	 * Sets the fill color of the surface in calibration mode
 	 * @param ccolor
 	 */
 	public void setColor(int ccolor) {
-		switch(type){
-			case QUAD:
-				quadSurface.setColor(ccolor);
-				break;
-			case BEZIER:
-				bezierSurface.setColor(ccolor);	
-				break;
-		}
+		this.ccolor = ccolor;
 	}
 	
 	/**
-	 * Get the surfaces current fill color in calibration mode
+	 * Get the fill color of the surface in calibration mode
 	 * @return
 	 */
 	public int getColor() {
-		switch(type){
-			case QUAD:
-				return quadSurface.getColor();
-			case BEZIER:
-				return bezierSurface.getColor();	
-		}
-		return 0;
+		return ccolor;
 	}
+
 	
 	/**
 	 * The the amount of subdivision currently used
 	 * @return
 	 */
-	public int getRes(){	
+	abstract public int getRes();/*{	
 		switch(type){
 			case QUAD:
 				return quadSurface.getRes();
@@ -150,12 +184,13 @@ public class SuperSurface {
 				return bezierSurface.getRes();	
 		}
 		return 0;
-	}
+		
+	}*/
 	
 	/**
 	 * Increase the amount of subdivision
 	 */
-	public void increaseResolution(){
+	public abstract void increaseResolution();/*{
 		switch(type){
 			case QUAD:
 				quadSurface.increaseResolution();
@@ -164,12 +199,12 @@ public class SuperSurface {
 				bezierSurface.increaseResolution();	
 				break;
 		}	
-	}
+	}*/
 	
 	/**
 	 * Decrease the amount of subdivision
 	 */
-	public void decreaseResolution(){
+	public abstract void decreaseResolution();/*{
 		switch(type){
 			case QUAD:
 				quadSurface.decreaseResolution();
@@ -178,165 +213,61 @@ public class SuperSurface {
 				bezierSurface.decreaseResolution();	
 				break;
 		}	
-	}
+	}*/
+	
 	
 	/**
-	 * Increase the amount of horizontal displacement force used for spherical mapping for bezier surfaces. (using orthographic projection)
+	 * Set if the surface should be hidden 
+	 * @param hidden
 	 */
-	public void increaseHorizontalForce(){
-		switch(type){
-			case BEZIER:
-				bezierSurface.increaseHorizontalForce();	
-				break;
-		}
-	}
-	
-	/**
-	 * Decrease the amount of horizontal displacement force used for spherical mapping for bezier surfaces. (using orthographic projection)
-	 */
-	public void decreaseHorizontalForce(){
-		switch(type){
-			case BEZIER:
-				bezierSurface.decreaseHorizontalForce();	
-				break;
-		}
-	}
-	
-	/**
-	 * Increase the amount of vertical displacement force used for spherical mapping for bezier surfaces. (using orthographic projection)
-	 */
-	public void increaseVerticalForce(){
-		switch(type){
-			case BEZIER:
-				bezierSurface.increaseVerticalForce();	
-				break;
-		}
-	}
-	
-	/**
-	 * Decrease the amount of horizontal displacement force used for spherical mapping for bezier surfaces. (using orthographic projection)
-	 */
-	public void decreaseVerticalForce(){
-		switch(type){
-			case BEZIER:
-				bezierSurface.decreaseVerticalForce();	
-				break;
-		}
-	}
-	
-	/**
-	 * Get the amount of horizontal displacement force used for spherical mapping for bezier surfaces.
-	 */
-	public int getHorizontalForce(){
-		switch(type){
-		case BEZIER:
-				return bezierSurface.getHorizontalForce();
-		}
-		return 0;
-	}
-	
-	/**
-	 * Get the amount of vertical displacement force used for spherical mapping for bezier surfaces.
-	 */
-	public int getVerticalForce(){
-		switch(type){
-		case BEZIER:
-				return bezierSurface.getVerticalForce();
-		}
-		return 0;
-	}
-	
-	/**
-	 * Set target corner point to coordinates
-	 * @param pointIndex
-	 * @param x
-	 * @param y
-	 */
-	public void setCornerPoint(int pointIndex, float x, float y){
-		switch(type){
-			case QUAD:
-				quadSurface.setCornerPoint(pointIndex, x, y);
-				break;
-			case BEZIER:
-				bezierSurface.setCornerPoint(pointIndex, x, y);	
-				break;
-		}
-	}
-	
-	/**
-	 * Set if surface is hidden
-	 * @param hide
-	 */
-	public void setHide(boolean hide){
-		switch(type){
-		case QUAD:
-			quadSurface.setHide(hide);
-			break;
-		case BEZIER:
-			bezierSurface.setHide(hide);
-			break;
-		}
+	public void setHide(boolean hidden) {
+		this.hidden = hidden;
 	}
 	
 	/**
 	 * See if surface is hidden
 	 * @return
 	 */
-	public boolean isHidden(){
-		switch(type){
-		case QUAD:
-			return quadSurface.isHidden();
-		case BEZIER:
-			return bezierSurface.isHidden();
-		}
-		return false;
+	public boolean isHidden() {
+		return hidden;
 	}
 	
 	/**
-	 * Set the Z displacement for all coordinates of the surface
-	 * @param z
+	 * Set Z-displacement for all coordinates of surface
+	 * @param currentZ
 	 */
-	public void setZ(float z){
-		switch(type){
-		case QUAD:
-			quadSurface.setZ(z);
-			break;
-		case BEZIER:
-			bezierSurface.setZ(z);
-			break;
-		}
+	public void setZ(float currentZ){
+		this.currentZ = currentZ;
 	}
 	
 	/**
-	 * Set parameters for shaking the surface. Strength == max Z-displacement, Speed == vibration speed, FallOfSpeed 1-1000 == how fast strength is diminished
-	 * @param strength
-	 * @param speed
-	 * @param fallOfSpeed
+	 * Set parameters for shaking the surface.
+	 * @param strength max Z-displacement
+	 * @param speed vibration speed
+	 * @param fallOfSpeed 1-1000 == how fast strength is diminished
 	 */
 	public void setShake(int strength, int speed, int fallOfSpeed){
 		if(fallOfSpeed < 1) fallOfSpeed = 1;
 		if(fallOfSpeed > 1000) fallOfSpeed = 1000;
-		switch(type){
-		case QUAD:
-			quadSurface.setShake(strength, speed, fallOfSpeed);
-			break;
-		case BEZIER:
-			bezierSurface.setShake(strength, speed, fallOfSpeed);
-			break;
-		}
+		shaking = true;
+		this.shakeStrength = strength;
+		this.shakeSpeed = speed;
+		this.fallOfSpeed = 1000-fallOfSpeed;
+		shakeAngle = 0;
 	}
 	
 	/**
 	 * Tells surface to shake (will only do something if setShake has been called quite recently)
 	 */
 	public void shake(){
-		switch(type){
-		case QUAD:
-			quadSurface.shake();
-			break;
-		case BEZIER:
-			bezierSurface.shake();
-			break;
+		if(shaking){
+			shakeAngle += (float)shakeSpeed/1000;
+			shakeStrength *= ((float)this.fallOfSpeed/1000);
+			float shakeZ = (float) (Math.sin(shakeAngle)*shakeStrength);
+			this.setZ(shakeZ);
+			if(shakeStrength < 1){
+				shaking = false;
+			}
 		}
 	}
 	
@@ -370,235 +301,148 @@ public class SuperSurface {
 	/**
 	 * Set surface to calibration mode
 	 */
-	public void setModeCalibrate(){
-		switch(type){
-			case QUAD:
-				quadSurface.setModeCalibrate();
-				break;
-			case BEZIER:
-				bezierSurface.setModeCalibrate();	
-				break;
-		}
-		
+	public void setModeCalibrate() {
+		this.MODE = this.MODE_CALIBRATE;
 	}
-	
+
 	/**
 	 * Set surface to render mode
 	 */
-	public void setModeRender(){
-		switch(type){
-			case QUAD:
-				quadSurface.setModeRender();
-				break;
-			case BEZIER:
-				bezierSurface.setModeRender();	
-				break;
-		}
-
+	public void setModeRender() {
+		this.MODE = this.MODE_RENDER;
 	}
-	
+
 	/**
 	 * Toggle surface mode
 	 */
-	public void toggleMode(){
-		switch(type){
-			case QUAD:
-				quadSurface.toggleMode();
-				break;
-			case BEZIER:
-				bezierSurface.toggleMode();	
-				break;
+	public void toggleMode() {
+		if (this.MODE == this.MODE_RENDER) {
+			this.MODE = this.MODE_CALIBRATE;
+		} else {
+			this.MODE = this.MODE_RENDER;
 		}
 	}
 	
 	/**
 	 * Get the index of active corner (or surface)
-	 * @return
+	 * @return int index of active corner or surface
 	 */
-	public int getActivePoint(){
-		switch(type){
-			case QUAD:
-				return quadSurface.getActivePoint();
-			case BEZIER:
-				return bezierSurface.getActivePoint();	
-		}
-		return 0;
+	public int getActivePoint() {
+		return this.activePoint;
 	}
 	
 	/**
 	 * Set index of which corner is active
 	 * @param activePoint
 	 */
-	public void setActivePoint(int activePoint){
-		switch(type){
-			case QUAD:
-				quadSurface.setActivePoint(activePoint);
-				break;
-			case BEZIER:
-				bezierSurface.setActivePoint(activePoint);	
-				break;
-		}
+	public void setActivePoint(int activePoint) {
+		this.activePoint = activePoint;
 	}
-	
+
 	/**
-	 * Get the target corner point
+	 * Get a specific corner
 	 * @param index
-	 * @return
+	 * @return Point3D indexed corner
 	 */
-	public Point3D getCornerPoint(int index){
-		switch(type){
-			case QUAD:
-				return quadSurface.getCornerPoint(index);
-			case BEZIER:
-				return bezierSurface.getCornerPoint(index);
-		}
-		return null;
+	public Point3D getCornerPoint(int index) {
+		return this.cornerPoints[index];
 	}
 	
 	/**
-	 * Get all corner points
-	 * @return
+	 * Get all corners
+	 * @return Point3D array of the corner point
 	 */
-	public Point3D[] getCornerPoints(){
-		switch(type){
-			case QUAD:
-				return quadSurface.getCornerPoints();
-			case BEZIER:
-				return bezierSurface.getCornerPoints();	
-		}
-		return null;
+	public Point3D[] getCornerPoints() {
+		return this.cornerPoints;
 	}
 	
 	/**
 	 * Rotate the corners of surface (0=ClockWise, 1=CounterClockWise)
 	 * TODO Broken for Bezier Surfaces
+	 * TODO Abstact out?
 	 * @param direction
 	 */
 	public void rotateCornerPoints(int direction){
-		switch(type){
-		case QUAD:
-			quadSurface.rotateCornerPoints(direction);
+		Point3D[] sourcePoints = cornerPoints.clone();
+		switch(direction){
+		case 0:
+			cornerPoints[0] = sourcePoints[1];
+			cornerPoints[1] = sourcePoints[2];
+			cornerPoints[2] = sourcePoints[3];
+			cornerPoints[3] = sourcePoints[0];
+			this.updateTransform();
 			break;
-		case BEZIER:
-		//	bezierSurface.rotateCornerPoints(direction);
+		case 1:
+			cornerPoints[0] = sourcePoints[3];
+			cornerPoints[1] = sourcePoints[0];
+			cornerPoints[2] = sourcePoints[1];
+			cornerPoints[3] = sourcePoints[2];
+			this.updateTransform();
 			break;
-
 		}
 	}
 	
 	/**
 	 * Get the surfaces ID
-	 * @return
+	 * @return int ID
 	 */
-	public int getId(){
-		switch(type){
-			case QUAD:
-				return quadSurface.getId();
-			case BEZIER:
-				return bezierSurface.getId();	
-		}
-		return (Integer) null;
+	public int getId() {
+		return this.surfaceId;
 	}
 	
 	/**
-	 * Toggle if surface is locked
+	 * Toggle if surface is locked (a locked surface cannot be moved or manipulated in calibration mode, but other surfaces still snap to it)
 	 */
-	public void toggleLocked(){
-		switch(type){
-			case QUAD:
-				quadSurface.toggleLocked();
-				break;
-			case BEZIER:
-				bezierSurface.toggleLocked();	
-				break;
-		}
+	public void toggleLocked() {
+		this.isLocked = !this.isLocked;
 	}
 	
 	/**
 	 * See if the surface is locked
-	 * @return
+	 * @return boolean Is the surface locked?
 	 */
 	public boolean isLocked(){
-		switch(type){
-			case QUAD:
-				return quadSurface.getLocked();
-			case BEZIER:
-				return bezierSurface.getLocked();	
-		}
-		return (Boolean) null;
+		return this.isLocked;
 	}
 	
 	/**
 	 * Set if the surface is locked
 	 * @param isLocked
 	 */
-	public void setLocked(boolean isLocked){
-		switch(type){
-			case QUAD:
-				quadSurface.setLocked(isLocked);
-				break;
-			case BEZIER:
-				bezierSurface.setLocked(isLocked);	
-				break;
-		}
+	public void setLocked(boolean isLocked) {
+		this.isLocked = isLocked;
 	}
 	
 	/**
 	 * See if the surface is selected
-	 * @return
+	 * @return boolean Is the surface selected?
 	 */
-	public boolean isSelected(){
-		switch(type){
-			case QUAD:
-				return quadSurface.isSelected();
-			case BEZIER:
-				return bezierSurface.isSelected();	
-		}
-		return (Boolean) null;
+	public boolean isSelected() {
+		return this.isSelected;
 	}
 	
 	/**
 	 * Set if the surface is selected
 	 * @param selected
 	 */
-	public void setSelected(boolean selected){	
-		switch(type){
-			case QUAD:
-				quadSurface.setSelected(selected);
-				break;
-			case BEZIER:
-				bezierSurface.setSelected(selected);	
-				break;
-		}
+	public void setSelected(boolean selected) {
+		this.isSelected = selected;
 	}
 	
 	/**
 	 * Get the currently selected corner
-	 * @return
+	 * @return int index of selected corner
 	 */
-	public int getSelectedCorner(){
-		switch(type){
-			case QUAD:
-				return quadSurface.getSelectedCorner();
-			case BEZIER:
-				return bezierSurface.getSelectedCorner();	
-		}
-		return (Integer) null;
+	public int getSelectedCorner() {
+		return this.selectedCorner;
 	}
-	
+
 	/**
 	 * Set target corner to selected
 	 * @param selectedCorner
 	 */
-	public void setSelectedCorner(int selectedCorner){
-		switch(type){
-			case QUAD:
-				quadSurface.setSelectedCorner(selectedCorner);
-				break;
-			case BEZIER:
-				bezierSurface.setSelectedCorner(selectedCorner);	
-				break;
-		}
+	public void setSelectedCorner(int selectedCorner) {
+		this.selectedCorner = selectedCorner;
 	}
 	
 	/**
@@ -626,18 +470,21 @@ public class SuperSurface {
 	}
 	
 	/**
-	 * Returns index 0-3 if coordinates are near a corner or index -2 if on a surface
+	 * Checks if the coordinates is close to any of the corners, and if not, checks if the coordinates are inside the surface.
+	 * Returns the index of the corner (0,1,2,3) or (4) if coordinates was inside the surface 
 	 * @param mX
 	 * @param mY
 	 * @return
 	 */
-	public int getActiveCornerPointIndex(int mX, int mY){
-		switch(type){
-			case QUAD:
-				return quadSurface.getActiveCornerPointIndex(mX, mY);
-			case BEZIER:
-				return bezierSurface.getActiveCornerPointIndex(mX, mY);	
+	public int getActiveCornerPointIndex(int mX, int mY) {
+		for (int i = 0; i < this.cornerPoints.length; i++) {
+			if (PApplet.dist(mX, mY, this.cornerPoints[i].x, this.cornerPoints[i].y) < sm.getSelectionDistance()) {
+				setSelectedCorner(i);
+				return i;
+			}
 		}
+		if (this.isInside(mX, mY))
+			return 2000; 
 		return -1;
 	}
 	
@@ -656,33 +503,23 @@ public class SuperSurface {
 	}
 	
 	/**
-	 * Returns true if coordinates are inside a surface
-	 * @param mX
-	 * @param mY
-	 * @return
+	 * Check if coordinates are inside the surface
+	 * @param mX X coordinate of the checked point
+	 * @param mY Y coordinate of the checked point
+	 * @return boolean Whether the coordinates are inside the surface
 	 */
-	public boolean isInside(float mX, float mY){
-		switch(type){
-			case QUAD:
-				return quadSurface.isInside(mX, mY);
-			case BEZIER:
-				return bezierSurface.isInside(mX, mY);	
-		}
+	public boolean isInside(float mX, float mY) {
+		if (poly.contains(mX, mY))
+			return true;
 		return false;
 	}
 	
 	/**
-	 * Get the surfaces polygon
-	 * @return
+	 * Get the surface's polygon
+	 * @return Polygon surface's polygon
 	 */
 	public Polygon getPolygon(){
-		switch(type){
-			case QUAD:
-				return quadSurface.getPolygon();
-			case BEZIER:
-				return bezierSurface.getPolygon();	
-		}
-		return null;
+		return poly;
 	}
 	
 	/**
@@ -696,29 +533,65 @@ public class SuperSurface {
 	 * @param x3
 	 * @param y3
 	 */
-	public void setCornerPoints(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3){
+	public void setCornerPoints(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3) {
+		this.cornerPoints[0].x = x0;
+		this.cornerPoints[0].y = y0;
+
+		this.cornerPoints[1].x = x1;
+		this.cornerPoints[1].y = y1;
+
+		this.cornerPoints[2].x = x2;
+		this.cornerPoints[2].y = y2;
+
+		this.cornerPoints[3].x = x3;
+		this.cornerPoints[3].y = y3;
+
+		this.updateTransform();
+	}
+	
+	/**
+	 * Set target corner point to coordinates
+	 * @param pointIndex
+	 * @param x
+	 * @param y
+	 */
+	public void setCornerPoint(int pointIndex, float x, float y) {
+		this.cornerPoints[pointIndex].x = x;
+		this.cornerPoints[pointIndex].y = y;
+		this.updateTransform();
+	}
+	
+	
+	//TODO: Make this into an abstract class
+	private void updateTransform(){
 		switch(type){
 			case QUAD:
-				quadSurface.setCornerPoints(x0, y0, x1, y1, x2, y2, x3, y3);
+				quadSurface.updateTransform();
 				break;
 			case BEZIER:
-				bezierSurface.setCornerPoints(x0, y0, x1, y1, x2, y2, x3, y3);	
+				bezierSurface.updateTransform();;	
 				break;
+		
 		}
 	}
 	
 	/**
 	 * Get the average center point of the surface
-	 * @return
+	 * @return Point3D center point
 	 */
-	public Point3D getCenter(){
-		switch(type){
-			case QUAD:
-				return quadSurface.getCenter();
-			case BEZIER:
-				return bezierSurface.getCenter();	
+	public Point3D getCenter() {
+		// Find the average position of all the control points, use that as the
+		// center point.
+		float avgX = 0;
+		float avgY = 0;
+		for (int c = 0; c < 4; c++) {
+			avgX += this.cornerPoints[c].x;
+			avgY += this.cornerPoints[c].y;
 		}
-		return null;
+		avgX /= 4;
+		avgY /= 4;
+
+		return new Point3D(avgX, avgY);
 	}
 	
 	/**
@@ -774,5 +647,20 @@ public class SuperSurface {
 	 */
 	public int getSurfaceType(){
 		return type;
+	}
+	/**
+	 * Assign a name to a surface
+	 * @param surfaceName
+	 */
+	public void setSurfaceName(String surfaceName) {
+		this.surfaceName = surfaceName;
+	}
+	/**
+	 * Get the name of a surface
+	 * @return String surfaceName
+	 */
+	public String getSurfaceName() {
+		if(surfaceName == null) return String.valueOf(this.getId());
+		return surfaceName;
 	}
 }

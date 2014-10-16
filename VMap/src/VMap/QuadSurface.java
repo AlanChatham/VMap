@@ -34,30 +34,8 @@ import processing.core.PApplet;
 import processing.data.XML;
 import processing.core.PGraphics;
 import processing.core.PImage;
-import processing.opengl.Texture;
 
-public class QuadSurface {
-
-	private PApplet parent;
-
-	private VMap sm;
-
-	final private int MODE_RENDER = 0;
-	final private int MODE_CALIBRATE = 1;
-
-	private int MODE = MODE_RENDER;
-
-	private int activePoint = -1; // Which corner point is selected?
-	
-	static private int GRID_LINE_COLOR;
-	static private int GRID_LINE_SELECTED_COLOR;
-	static private int SELECTED_OUTLINE_OUTER_COLOR;
-	static private int CORNER_MARKER_COLOR;
-	static private int SELECTED_OUTLINE_INNER_COLOR;
-	static private int SELECTED_CORNER_MARKER_COLOR;
-
-	// The four corners of the transformed quad (in 2d screen space)
-	private Point3D[] cornerPoints;
+public class QuadSurface extends SuperSurface{
 
 	// The entire list of transformed grid points are stored in this array (from
 	// left to right, top to bottom, like pixels..).
@@ -76,31 +54,10 @@ public class QuadSurface {
 	private PerspectiveTransform transform;
 
 	private int GRID_RESOLUTION;
-
-	private int surfaceId;
-	private String surfaceName;
-
 	// Metrics for the projected texture..
 	private float textureX = 0;
 	private float textureY = 0;
 	private float DEFAULT_SIZE = 100;
-
-	private boolean isSelected;
-	private boolean isLocked;
-	private int selectedCorner;
-
-	private int ccolor = 0;
-
-	private Polygon poly = new Polygon();
-
-	private float currentZ;
-	private boolean shaking;
-	private float shakeStrength;
-	private int shakeSpeed;
-	private float shakeAngle;
-	private int fallOfSpeed;
-
-	private boolean hidden = false;
 	
 	/**
 	 * Constructor for creating a new surface at X,Y with RES subdivision.
@@ -153,7 +110,6 @@ public class QuadSurface {
 		this.surfaceId = id;
 		this.surfaceName = name;
 		this.GRID_RESOLUTION = res + 1;
-		this.updateCalibrateTexture();
 
 		this.cornerPoints = new Point3D[4];
 
@@ -188,53 +144,6 @@ public class QuadSurface {
 		}
 	}
 
-	/**
-	 * Used to update the calibration texture when a surface's settings have changed.
-	 */
-	private void updateCalibrateTexture() {
-		/*
-		if (calibrateTex == null)
-			this.calibrateTex = new PGraphics(parent, 600, 600);
-		calibrateTex.beginDraw();
-		if (ccolor == 0) {
-			calibrateTex.clear(50, 80, 150);
-		} else {
-			calibrateTex.clear(ccolor);
-		}
-		calibrateTex.textFont(idFont);
-		if (ccolor == 0) {
-			calibrateTex.fill(255);
-		} else {
-			calibrateTex.fill(0);
-		}
-
-		calibrateTex.textAlign(PApplet.CENTER, PApplet.CENTER);
-		calibrateTex.textSize(80);
-		calibrateTex.text("" + surfaceId, (float) (calibrateTex.width * 0.5), (float) (calibrateTex.height * 0.5));
-		if (isLocked) {
-			calibrateTex.textSize(40);
-			calibrateTex.text("Surface locked", (float) (calibrateTex.width * 0.5), (float) (calibrateTex.height * 0.7));
-		}
-		calibrateTex.endDraw();
-		*/
-	}
-
-	/**
-	 * Sets the fill color of the surface in calibration mode
-	 * @param ccolor
-	 */
-	public void setColor(int ccolor) {
-		this.ccolor = ccolor;
-		updateCalibrateTexture();
-	}
-
-	/**
-	 * Get the fill color of the surface in calibration mode
-	 * @return
-	 */
-	public int getColor() {
-		return ccolor;
-	}
 
 	/**
 	 * Get the amount of subdivision used in the surface
@@ -266,43 +175,7 @@ public class QuadSurface {
 		}
 	}
 	
-	/**
-	 * Set Z-displacement for all coordinates of surface
-	 * @param currentZ
-	 */
-	public void setZ(float currentZ){
-		this.currentZ = currentZ;
-	}
 	
-	/**
-	 * Set parameters for shaking the surface. Strength == max Z-displacement, Speed == vibration speed, FallOfSpeed 1-1000 == how fast strength is diminished
-	 * @param strength
-	 * @param speed
-	 * @param fallOfSpeed
-	 */
-	public void setShake(int strength, int speed, int fallOfSpeed){
-		shaking = true;
-		this.shakeStrength = strength;
-		this.shakeSpeed = speed;
-		this.fallOfSpeed = 1000-fallOfSpeed;
-		shakeAngle = 0;
-	}
-	
-	/**
-	 * Tells surface to shake (will only do something if setShake has been called quite recently)
-	 */
-	public void shake(){
-		if(shaking){
-			shakeAngle += (float)shakeSpeed/1000;
-			shakeStrength *= ((float)this.fallOfSpeed/1000);
-			float shakeZ = (float) (Math.sin(shakeAngle)*shakeStrength);
-			this.setZ(shakeZ);
-			if(shakeStrength < 1){
-				shaking = false;
-			}
-		}
-	}
-
 	/**
 	 *  Manually set coordinates for mapping the texture. This allows for easy cropping and 
 	 *  enables a single texture to span more than one surface. CURRENTLY DISABLED!
@@ -328,232 +201,12 @@ public class QuadSurface {
 		this.cornerPoints[pointIndex].y = y;
 		this.updateTransform();
 	}
-	
-	/**
-	 * Rotate the cornerpoints in direction (0=ClockWise 1=CounterClockWise)
-	 * @param direction
-	 */
-	public void rotateCornerPoints(int direction){
-		Point3D[] sourcePoints = cornerPoints.clone();
-		switch(direction){
-		case 0:
-			cornerPoints[0] = sourcePoints[1];
-			cornerPoints[1] = sourcePoints[2];
-			cornerPoints[2] = sourcePoints[3];
-			cornerPoints[3] = sourcePoints[0];
-			this.updateTransform();
-			break;
-		case 1:
-			cornerPoints[0] = sourcePoints[3];
-			cornerPoints[1] = sourcePoints[0];
-			cornerPoints[2] = sourcePoints[1];
-			cornerPoints[3] = sourcePoints[2];
-			this.updateTransform();
-			break;
-		}
-	}
-
-	public void setModeCalibrate() {
-		this.MODE = this.MODE_CALIBRATE;
-	}
-
-	public void setModeRender() {
-		this.MODE = this.MODE_RENDER;
-	}
-
-	public void toggleMode() {
-		if (this.MODE == this.MODE_RENDER) {
-			this.MODE = this.MODE_CALIBRATE;
-		} else {
-			this.MODE = this.MODE_RENDER;
-		}
-	}
-
-	/**
-	 * Get the index of the active corner
-	 * @return
-	 */
-	public int getActivePoint() {
-		return this.activePoint;
-	}
-
-	/**
-	 * Set index of which corner is active
-	 * @param activePoint
-	 */
-	public void setActivePoint(int activePoint) {
-		this.activePoint = activePoint;
-	}
-
-	/**
-	 * Get all corners
-	 * @return
-	 */
-	public Point3D[] getCornerPoints() {
-		return this.cornerPoints;
-	}
-
-	/**
-	 * Get a specific corner
-	 * @param index
-	 * @return
-	 */
-	public Point3D getCornerPoint(int index) {
-		return this.cornerPoints[index];
-	}
-
-	/**
-	 * Get the surfaces ID
-	 * @return
-	 */
-	public int getId() {
-		return this.surfaceId;
-	}
-
-	/**
-	 * Set if the surface should be hidden 
-	 * @param hidden
-	 */
-	public void setHide(boolean hidden) {
-		this.hidden = hidden;
-	}
-
-	/**
-	 * See if the surface is hidden
-	 * @return
-	 */
-	public boolean isHidden() {
-		return hidden;
-	}
-
-	/**
-	 * Toggle if surface is locked (a locked surface cannot be moved or manipulated in calibration mode, but other surfaces still snap to it)
-	 */
-	public void toggleLocked() {
-		this.isLocked = !this.isLocked;
-		this.updateCalibrateTexture();
-	}
-
-	/**
-	 * See if the surface is locked
-	 * @return
-	 */
-	public boolean getLocked() {
-		return this.isLocked;
-	}
-
-	/**
-	 * Set if the surface is locked
-	 * @param isLocked
-	 */
-	public void setLocked(boolean isLocked) {
-		this.isLocked = isLocked;
-		this.updateCalibrateTexture();
-	}
-
-	/**
-	 * See if the surface is selected
-	 * @return
-	 */
-	public boolean isSelected() {
-		return this.isSelected;
-	}
-
-	/**
-	 * Set if the surface is selected
-	 * @param selected
-	 */
-	public void setSelected(boolean selected) {
-		this.isSelected = selected;
-	}
-
-	/**
-	 * Get the currently selected corner
-	 * @return
-	 */
-	public int getSelectedCorner() {
-		return this.selectedCorner;
-	}
-	
-	/**
-	 * Set the currently selected corner
-	 * @param selectedCorner
-	 */
-	public void setSelectedCorner(int selectedCorner) {
-		this.selectedCorner = selectedCorner;
-	}
-
-	/**
-	 * Get the surface as a polygon
-	 * @return
-	 */
-	public Polygon getPolygon() {
-		return poly;
-	}
-
-	/**
-	 * Checks if the coordinates is close to any of the corners, and if not, checks if the coordinates are inside the surface.
-	 * Returns the index of the corner (0,1,2,3) or (4) if coordinates was inside the surface 
-	 * @param mX
-	 * @param mY
-	 * @return
-	 */
-	public int getActiveCornerPointIndex(int mX, int mY) {
-		for (int i = 0; i < this.cornerPoints.length; i++) {
-			if (PApplet.dist(mX, mY, this.cornerPoints[i].x, this.cornerPoints[i].y) < sm.getSelectionDistance()) {
-				setSelectedCorner(i);
-				return i;
-			}
-		}
-		if (this.isInside(mX, mY))
-			return 2000; 
-		return -1;
-	}
-
-	/**
-	 * Check if coordinates are inside the surface
-	 * @param mX
-	 * @param mY
-	 * @return
-	 */
-	public boolean isInside(float mX, float mY) {
-		if (poly.contains(mX, mY))
-			return true;
-		return false;
-	}
-
-	/**
-	 * Set all four corners of the surface
-	 * @param x0
-	 * @param y0
-	 * @param x1
-	 * @param y1
-	 * @param x2
-	 * @param y2
-	 * @param x3
-	 * @param y3
-	 */
-	public void setCornerPoints(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3) {
-		this.cornerPoints[0].x = x0;
-		this.cornerPoints[0].y = y0;
-
-		this.cornerPoints[1].x = x1;
-		this.cornerPoints[1].y = y1;
-
-		this.cornerPoints[2].x = x2;
-		this.cornerPoints[2].y = y2;
-
-		this.cornerPoints[3].x = x3;
-		this.cornerPoints[3].y = y3;
-
-		this.updateTransform();
-	}
 
 	/**
 	 * Recalculates all coordinates using the perspective transform.
 	 * Must be called whenever any change has been done to the surface.
 	 */
-	private void updateTransform() {
+	public void updateTransform() {
 		// Update the PerspectiveTransform with the current width, height, and
 		// destination coordinates.
 		this.transform = PerspectiveTransform.getQuadToQuad(0, 0, this.DEFAULT_SIZE, 0, this.DEFAULT_SIZE, this.DEFAULT_SIZE, 0, this.DEFAULT_SIZE, 
@@ -606,7 +259,6 @@ public class QuadSurface {
 
 		// Precompute the verticies for use in rendering.
 		int offset = 0;
-		int vertextIndex = 0;
 		for (int x = 0; x < this.GRID_RESOLUTION - 1; x++) {
 			for (int y = 0; y < this.GRID_RESOLUTION - 1; y++) {
 				offset = x + y * this.GRID_RESOLUTION;
@@ -643,23 +295,6 @@ public class QuadSurface {
 		poly.addPoint((int) cornerPoints[3].x, (int) cornerPoints[3].y);
 	}
 
-	/**
-	 *  Find the average position of all the control points, use that as the center point.
-	 * @return
-	 */
-	public Point3D getCenter() {
-		
-		float avgX = 0;
-		float avgY = 0;
-		for (int c = 0; c < 4; c++) {
-			avgX += this.cornerPoints[c].x;
-			avgY += this.cornerPoints[c].y;
-		}
-		avgX /= 4;
-		avgY /= 4;
-
-		return new Point3D(avgX, avgY);
-	}
 
 	/**
 	 * Translate a point on the screen into a point in the surface.
@@ -858,15 +493,5 @@ public class QuadSurface {
 		g.line(x, y - 8, x, y + 8);
 		g.line(x - 8, y, x + 8, y);
 	}
-
-	public void setSurfaceName(String surfaceName) {
-		this.surfaceName = surfaceName;
-	}
-
-	public String getSurfaceName() {
-		if(surfaceName == null) return String.valueOf(this.getId());
-		return surfaceName;
-	}
-
 
 }
