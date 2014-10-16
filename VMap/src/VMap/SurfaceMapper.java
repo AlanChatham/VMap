@@ -20,11 +20,10 @@
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-package ixagon.SurfaceMapperP2;
+package VMap;
 
 import java.awt.Rectangle;
 import java.io.File;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -38,8 +37,6 @@ import processing.opengl.PGraphics2D;
 import processing.core.PImage;
 import processing.core.PVector;
 import processing.data.XML;
-import processing.opengl.FrameBuffer;
-import processing.opengl.Texture;
 
 public class SurfaceMapper {
 		
