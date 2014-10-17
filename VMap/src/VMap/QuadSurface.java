@@ -92,9 +92,13 @@ public class QuadSurface extends SuperSurface{
 	 * @param xml
 	 */
 	QuadSurface(PApplet parent, VMap ks, XML xml) {
-
-		init(parent, ks, xml.getInt("res"), xml.getInt("id"), xml.getString("name"));
-
+		if (xml.getString("filename") != null){
+			init(xml.getString("filename"), parent, ks, xml.getInt("res"), xml.getInt("id"), xml.getString("name"));
+		}
+		else{
+			init(parent, ks, xml.getInt("res"), xml.getInt("id"), xml.getString("name"));
+		}
+		
 		if (xml.getInt("lock") == 1)
 			this.setLocked(true);
 
@@ -104,7 +108,24 @@ public class QuadSurface extends SuperSurface{
 								xml.getChild(3).getFloat("x"), xml.getChild(3).getFloat("y"));
 
 	}
-
+	
+	/**
+	 * Convenience method used by the constructors
+	 * @param filename Image filename to use
+	 * @param parent Parent applet
+	 * @param ks Vmap containing this surface
+	 * @param res resolution
+	 * @param id ID
+	 * @param name Name
+	 */
+	private void init(String filename, PApplet parent, VMap ks, int res, int id, String name){
+		init(parent, ks, res, id, name);
+		this.textureFilename = filename;
+		if (this.textureFilename != null){
+			this.texture = parent.loadImage(filename);
+		}
+	}
+	
 	/**
 	 * Convenience method used by the constructors.
 	 * @param parent
@@ -118,6 +139,7 @@ public class QuadSurface extends SuperSurface{
 		this.surfaceId = id;
 		this.surfaceName = name;
 		this.GRID_RESOLUTION = res + 1;
+		this.type = SuperSurface.QUAD;
 
 		this.cornerPoints = new Point3D[4];
 

@@ -782,12 +782,13 @@ public class VMap extends PImage implements PConstants{
 	 * @param root
 	 */
 	public void saveXML(XML root) {
-/*		root.setName("ProjectionMap");
+		root.setName("ProjectionMap");
 		// create XML elements for each surface containing the resolution
 		// and control point data
 		for (SuperSurface s : surfaces) {
 			XML surf = new XML("surface");
 			surf.setName("surface");
+			surf.setString("filename", s.textureFilename);
 			surf.setInt("type", s.getSurfaceType());
 			surf.setInt("id", s.getId());
 			surf.setString("name", s.getSurfaceName());
@@ -796,9 +797,7 @@ public class VMap extends PImage implements PConstants{
 				surf.setInt("lock", 1);
 			else
 				surf.setInt("lock", 0);
-			surf.setInt("horizontalForce", s.getHorizontalForce());
-			surf.setInt("verticalForce", s.getVerticalForce());
-
+			
 			for (int i = 0; i < s.getCornerPoints().length; i++) {
 				XML cp = new XML("cornerpoint");
 				cp.setName("cornerpoint");
@@ -809,18 +808,21 @@ public class VMap extends PImage implements PConstants{
 
 			}
 			
-			if(s.getSurfaceType() == SuperSurface.BEZIER){
+			if(s instanceof BezierSurface){
+				surf.setInt("horizontalForce", ((BezierSurface)s).getHorizontalForce());
+				surf.setInt("verticalForce", ((BezierSurface)s).getVerticalForce());
+
 				for(int i = 0; i < 8; i++){
 					XML bp = new XML("bezierpoint");
 					bp.setName("bezierpoint");
 					bp.setInt("i", i);
-					bp.setFloat("x", s.getBezierPoint(i).x);
-					bp.setFloat("y", s.getBezierPoint(i).y);
+					bp.setFloat("x", ((BezierSurface)s).getBezierPoint(i).x);
+					bp.setFloat("y", ((BezierSurface)s).getBezierPoint(i).y);
 					surf.addChild(bp);
 				}
 			}
 			root.addChild(surf);
-		}*/
+		}
 	}
 
 	/**
@@ -832,7 +834,7 @@ public class VMap extends PImage implements PConstants{
 			XML root = new XML("root");
 			this.saveXML(root);
 			try {
-				parent.saveXML(root, filename);
+				parent.saveXML(root, "data/" + filename);
 			} catch (Exception e) {
 				PApplet.println((Object)e.getStackTrace());
 			}
@@ -844,26 +846,45 @@ public class VMap extends PImage implements PConstants{
 	 * @param filename
 	 */
 	public void loadXML(String filename) {
-/*		if (this.MODE == VMap.MODE_CALIBRATE) {
+		if (this.MODE == VMap.MODE_CALIBRATE) {
 			File f = new File(parent.dataPath(filename));
 			if (f.exists()) {
+				// Clear our current state of everything
 				this.setGrouping(false);
 				selectedSurfaces.clear();
 				surfaces.clear();
+				// Load in XML data
 				XML root = parent.loadXML(filename);
-				for (int i = 0; i < root.getChildCount(); i++) {
-					SuperSurface loaded = new SuperSurface(root.getChild(i).getInt("type"), parent, this, root.getChild(i));
-					loaded.setModeCalibrate();
-					surfaces.add(loaded);
-					if (loaded.getId() > numAddedSurfaces)
-						numAddedSurfaces = loaded.getId() + 1;
+				
+				// Not sure why I have to copy this in, I think it's because
+				//  loadXML is too slow...
+				String XMLCopy = root.toString();
+				XML cleanRoot = parent.parseXML(XMLCopy);
+				// Parse the data, reconstructing all the surfaces from the data.
+				for (int i = 0; i < cleanRoot.getChildCount(); i++) {
+					SuperSurface s = null;
+					
+					XML surface = cleanRoot.getChild(i);
+					if (surface.getInt("type")  ==  SuperSurface.QUAD){
+						s = new QuadSurface(parent, this, surface);
+					}
+					else if (surface.getInt("type") == SuperSurface.BEZIER){
+						s = new BezierSurface(parent, this, surface);
+					}
+					
+					if (s != null){
+						s.setModeCalibrate();
+						surfaces.add(s);
+						if (s.getId() > numAddedSurfaces)
+							numAddedSurfaces = s.getId() + 1;
+					}
 				}
 				if(this.getDebug()) PApplet.println("Projection layout loaded from " + filename + ". " + surfaces.size() + " surfaces were loaded!");
 			} else {
 				if(this.getDebug()) PApplet.println("ERROR loading XML! No projection layout exists!");
 			}
 		}
-*/
+
 	}
 	
 	/**

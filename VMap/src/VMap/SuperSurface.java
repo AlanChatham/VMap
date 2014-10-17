@@ -56,7 +56,7 @@ public abstract class SuperSurface{
 	protected PImage texture;
 	protected String textureFilename;
 	
-	private int type;
+	protected int type;
 	
 	protected int surfaceId;
 	protected String surfaceName;
@@ -140,7 +140,7 @@ public abstract class SuperSurface{
 	 * @param ks
 	 * @param xml
 	 */
-/*public abstract SuperSurface(int type, PApplet parent, VMap ks, XML xml){
+/*public abstract SuperSurface(string fileName, PApplet parent, VMap ks, XML xml){
 		this.type = type;
 		
 		switch(type){
