@@ -427,8 +427,16 @@ public class VMap extends PImage implements PConstants{
 		return s;
 	}
 	
+	public void addQuadSurface(String imageFile, int x, int y){
+		QuadSurface s = new QuadSurface(imageFile, parent, this, x, y, 3, numAddedSurfaces);
+		if (ccolor.length > 0)
+			s.setColor(ccolor[numAddedSurfaces % ccolor.length]);
+		s.setModeCalibrate();
+		surfaces.add(s);
+		numAddedSurfaces++;
+	}
+	
 	public void addSurface(SuperSurface ss){
-		ss.setModeCalibrate();
 		surfaces.add(ss);
 		numAddedSurfaces++;
 	}
@@ -480,6 +488,22 @@ public class VMap extends PImage implements PConstants{
 		surfaces.add(s);
 		numAddedSurfaces++;
 		return s;
+	}
+	
+	/**
+	 * Adds a Bezier surface at X/Y with perspective transform. Res is the amount of subdivisioning. Returns the surface after it has been created.
+	 * @param imageFilename filename for image texture to use
+	 * @param x x coordinate of the surface's origin
+	 * @param y y coordinate of the surface's origin
+	 * @return Returns the BezierSurface you created
+	 */
+	public void addBezierSurface(String imageFilename, int x, int y) {
+		BezierSurface s = new BezierSurface(imageFilename, parent, this, x, y, 3, numAddedSurfaces);
+		if (ccolor.length > 0)
+			s.setColor(ccolor[numAddedSurfaces % ccolor.length]);
+		s.setModeCalibrate();
+		surfaces.add(s);
+		numAddedSurfaces++;
 	}
 	
 	/**

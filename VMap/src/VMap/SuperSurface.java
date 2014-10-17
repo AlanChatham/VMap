@@ -175,30 +175,12 @@ public abstract class SuperSurface{
 	 * The the amount of subdivision currently used
 	 * @return
 	 */
-	abstract public int getRes();/*{	
-		switch(type){
-			case QUAD:
-				return quadSurface.getRes();
-			case BEZIER:
-				return bezierSurface.getRes();	
-		}
-		return 0;
-		
-	}*/
+	abstract public int getRes();
 	
 	/**
 	 * Increase the amount of subdivision
 	 */
-	public abstract void increaseResolution();/*{
-		switch(type){
-			case QUAD:
-				quadSurface.increaseResolution();
-				break;
-			case BEZIER:
-				bezierSurface.increaseResolution();	
-				break;
-		}	
-	}*/
+	public abstract void increaseResolution();
 	
 	/**
 	 * Decrease the amount of subdivision
