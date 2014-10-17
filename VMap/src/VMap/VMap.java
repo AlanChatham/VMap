@@ -1129,6 +1129,9 @@ public class VMap extends PImage implements PConstants{
 		int mY = e.getY();
 
 		switch (e.getAction()) {
+		case MouseEvent.WHEEL:
+			this.mouseWheelAction(e.getCount());
+			break;
 		case MouseEvent.PRESS:
 			if (this.MODE == VMap.MODE_CALIBRATE) {
 				startPos = new PVector(mX, mY);
