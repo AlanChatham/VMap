@@ -122,11 +122,6 @@ public class VMap extends PImage implements PConstants{
 		}
 
 		this.offScreenBuffer = parent.createGraphics(width, height, P3D);
-///// TODO: Implement mouse wheel with proper form		
-//		parent.addMouseWheelListener(new java.awt.event.MouseWheelListener() { 
-//		    public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt) { 
-//		      mouseWheelAction(evt.getWheelRotation());
-//		  }}); 
 	}
 	
 	/**
@@ -136,7 +131,6 @@ public class VMap extends PImage implements PConstants{
 	public void render(PGraphics glos) {
 		glos.beginDraw();
 		glos.clear();
-//		glos.clear(50); // Former value for Processing 1.5.1 code
 		glos.endDraw();
 		if (MODE == MODE_CALIBRATE) {
 			parent.cursor();

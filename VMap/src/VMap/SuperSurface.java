@@ -26,6 +26,7 @@ import java.awt.Polygon;
 
 import processing.core.PGraphics;
 import processing.core.PImage;
+import processing.core.PVector;
 import processing.core.PApplet;
 
 public abstract class SuperSurface{
@@ -48,7 +49,7 @@ public abstract class SuperSurface{
 	static protected int SELECTED_CORNER_MARKER_COLOR;
 	
 	// The four corners of the transformed quad (in 2d screen space)
-	protected Point3D[] cornerPoints;
+	protected PVector[] cornerPoints;
 	
 	public final static int QUAD = 0;
 	public final static int BEZIER = 1;
@@ -77,10 +78,6 @@ public abstract class SuperSurface{
 	protected boolean isSelected;
 	protected boolean isLocked;
 	protected int selectedCorner;
-	
-	// TODO: Get rid of these, refactor into an abstract class
-//	QuadSurface quadSurface;
-//	BezierSurface bezierSurface;
 	
 	// Default constructor
 	public SuperSurface(){
@@ -296,17 +293,17 @@ public abstract class SuperSurface{
 	/**
 	 * Get a specific corner
 	 * @param index
-	 * @return Point3D indexed corner
+	 * @return PVector indexed corner
 	 */
-	public Point3D getCornerPoint(int index) {
+	public PVector getCornerPoint(int index) {
 		return this.cornerPoints[index];
 	}
 	
 	/**
 	 * Get all corners
-	 * @return Point3D array of the corner point
+	 * @return PVector array of the corner point
 	 */
-	public Point3D[] getCornerPoints() {
+	public PVector[] getCornerPoints() {
 		return this.cornerPoints;
 	}
 	
@@ -317,7 +314,7 @@ public abstract class SuperSurface{
 	 * @param direction
 	 */
 	public void rotateCornerPoints(int direction){
-		Point3D[] sourcePoints = cornerPoints.clone();
+		PVector[] sourcePoints = cornerPoints.clone();
 		switch(direction){
 		case 0:
 			cornerPoints[0] = sourcePoints[1];
@@ -491,9 +488,9 @@ public abstract class SuperSurface{
 	
 	/**
 	 * Get the average center point of the surface
-	 * @return Point3D center point
+	 * @return PVector center point
 	 */
-	public Point3D getCenter() {
+	public PVector getCenter() {
 		// Find the average position of all the control points, use that as the
 		// center point.
 		float avgX = 0;
@@ -505,7 +502,7 @@ public abstract class SuperSurface{
 		avgX /= 4;
 		avgY /= 4;
 
-		return new Point3D(avgX, avgY);
+		return new PVector(avgX, avgY);
 	}
 	
 	/**
@@ -514,7 +511,7 @@ public abstract class SuperSurface{
 	 * @param y
 	 * @return
 	 */
-	public abstract Point3D screenCoordinatesToQuad(float x, float y);/*{
+	public abstract PVector screenCoordinatesToQuad(float x, float y);/*{
 		switch(type){
 			case QUAD:
 				return quadSurface.screenCoordinatesToQuad(x, y);

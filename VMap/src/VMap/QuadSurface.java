@@ -31,6 +31,7 @@ import java.awt.Polygon;
 import javax.media.jai.PerspectiveTransform;
 
 import processing.core.PApplet;
+import processing.core.PVector;
 import processing.data.XML;
 import processing.core.PGraphics;
 import processing.core.PImage;
@@ -40,12 +41,12 @@ public class QuadSurface extends SuperSurface{
 	// The entire list of transformed grid points are stored in this array (from
 	// left to right, top to bottom, like pixels..).
 	// This list is updated whenever the updateTransform() method is invoked.
-	private Point3D[] gridPoints;
+	private PVector[] gridPoints;
 
 	// The raw list of verticies to be pumped out each frame. This array
 	// holds the pre-computed list, including duplicates, to save on computation
 	// during rendering.
-	private Point3D[][] vertexPoints;
+	private PVector[][] vertexPoints;
 
 	// The transform! Thank you Java Advanced Imaging, now I don't have to learn
 	// a bunch of math..
@@ -141,10 +142,10 @@ public class QuadSurface extends SuperSurface{
 		this.GRID_RESOLUTION = res + 1;
 		this.type = SuperSurface.QUAD;
 
-		this.cornerPoints = new Point3D[4];
+		this.cornerPoints = new PVector[4];
 
 		for (int i = 0; i < this.cornerPoints.length; i++) {
-			this.cornerPoints[i] = new Point3D();
+			this.cornerPoints[i] = new PVector();
 		}
 
 		GRID_LINE_COLOR = parent.color(128, 128, 128);
@@ -161,16 +162,16 @@ public class QuadSurface extends SuperSurface{
 	 * Initializes the arrays used for transformation
 	 */
 	private void initTransform() {
-		this.gridPoints = new Point3D[this.GRID_RESOLUTION * this.GRID_RESOLUTION];
-		this.vertexPoints = new Point3D[this.GRID_RESOLUTION][this.GRID_RESOLUTION];
+		this.gridPoints = new PVector[this.GRID_RESOLUTION * this.GRID_RESOLUTION];
+		this.vertexPoints = new PVector[this.GRID_RESOLUTION][this.GRID_RESOLUTION];
 
 		for (int i = 0; i < this.gridPoints.length; i++) {
-			this.gridPoints[i] = new Point3D();
+			this.gridPoints[i] = new PVector();
 		}
 
 		for (int i = 0; i < this.GRID_RESOLUTION; i++) {
 			for(int j = 0; j < this.GRID_RESOLUTION; j++)
-			this.vertexPoints[i][j] = new Point3D();
+			this.vertexPoints[i][j] = new PVector();
 		}
 	}
 
@@ -262,9 +263,9 @@ public class QuadSurface extends SuperSurface{
 			for (int x = 0; x < this.GRID_RESOLUTION; x++) {
 				float percentX = (x * stepX) / this.DEFAULT_SIZE;
 				float percentY = (y * stepY) / this.DEFAULT_SIZE;
-
-				this.gridPoints[x + y * this.GRID_RESOLUTION].u = this.DEFAULT_SIZE * percentX + this.textureX;
-				this.gridPoints[x + y * this.GRID_RESOLUTION].v = this.DEFAULT_SIZE * percentY + this.textureY; // y
+// TODO: Figure out if we need the u and v components
+//				this.gridPoints[x + y * this.GRID_RESOLUTION].u = this.DEFAULT_SIZE * percentX + this.textureX;
+//				this.gridPoints[x + y * this.GRID_RESOLUTION].v = this.DEFAULT_SIZE * percentY + this.textureY; // y
 																													// *
 																													// stepY;
 
@@ -280,7 +281,7 @@ public class QuadSurface extends SuperSurface{
 		// perform the transformation.
 		this.transform.transform(srcPoints, 0, transformed, 0, numPoints);
 
-		// convert the array of float values back into x/y pairs in the Point3D
+		// convert the array of float values back into x/y pairs in the PVector
 		// class for ease of use later.
 		for (int p = 0; p < numPoints; p++) {
 			this.gridPoints[p].x = transformed[p * 2];
@@ -292,14 +293,14 @@ public class QuadSurface extends SuperSurface{
 		for (int x = 0; x < this.GRID_RESOLUTION - 1; x++) {
 			for (int y = 0; y < this.GRID_RESOLUTION - 1; y++) {
 				offset = x + y * this.GRID_RESOLUTION;
-
-				this.vertexPoints[x][y].copyPoint(this.gridPoints[offset]);
-				this.vertexPoints[x+1][y].copyPoint(this.gridPoints[offset + 1]);
+//TODO: Figure out if this works or not, the copy operation.
+				this.vertexPoints[x][y] = this.gridPoints[offset];//.copyPoint(this.gridPoints[offset]);
+				this.vertexPoints[x+1][y] = this.gridPoints[offset + 1];//.copyPoint(this.gridPoints[offset + 1]);
 
 				offset = x + (y + 1) * this.GRID_RESOLUTION;
 
-				this.vertexPoints[x+1][y+1].copyPoint(this.gridPoints[offset + 1]);
-				this.vertexPoints[x][y+1].copyPoint(this.gridPoints[offset]);
+				this.vertexPoints[x+1][y+1] = this.gridPoints[offset + 1];// .copyPoint(this.gridPoints[offset + 1]);
+				this.vertexPoints[x][y+1] = this.gridPoints[offset];//.copyPoint(this.gridPoints[offset]);
 			}
 		}
 
@@ -332,7 +333,7 @@ public class QuadSurface extends SuperSurface{
 	 * @param y
 	 * @return
 	 */
-	public Point3D screenCoordinatesToQuad(float x, float y) {
+	public PVector screenCoordinatesToQuad(float x, float y) {
 		double[] srcPts = new double[2];
 		srcPts[0] = x;
 		srcPts[1] = y;
@@ -342,10 +343,10 @@ public class QuadSurface extends SuperSurface{
 		try {
 			this.transform.inverseTransform(srcPts, 0, dstPts, 0, 1);
 		} catch (Exception e) {
-			return new Point3D(0, 0);
+			return new PVector(0, 0);
 		}
 
-		return new Point3D((float) dstPts[0], (float) dstPts[1]);
+		return new PVector((float) dstPts[0], (float) dstPts[1]);
 	}
 
 	/**

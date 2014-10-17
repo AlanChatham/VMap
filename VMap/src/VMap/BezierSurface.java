@@ -28,16 +28,17 @@ import processing.core.PApplet;
 import processing.data.XML;
 import processing.core.PImage;
 import processing.core.PGraphics;
+import processing.core.PVector;
 
 //Parts derived from MappingTools library
 
 public class BezierSurface extends SuperSurface{
 
 	// Contains all coordinates
-	private Point3D[][] vertexPoints;
+	private PVector[][] vertexPoints;
 
 	// Coordinates of the bezier vectors
-	private Point3D[] bezierPoints;
+	private PVector[] bezierPoints;
 	
 	// Displacement forces
 
@@ -185,16 +186,16 @@ public class BezierSurface extends SuperSurface{
 		this.selectedBezierControl = -1;
 		this.type = SuperSurface.BEZIER;
 
-		this.cornerPoints = new Point3D[4];
-		this.bezierPoints = new Point3D[8];
-		this.vertexPoints = new Point3D[this.GRID_RESOLUTION+1][this.GRID_RESOLUTION+1];
+		this.cornerPoints = new PVector[4];
+		this.bezierPoints = new PVector[8];
+		this.vertexPoints = new PVector[this.GRID_RESOLUTION+1][this.GRID_RESOLUTION+1];
 
 		for (int i = 0; i < this.cornerPoints.length; i++) {
-			this.cornerPoints[i] = new Point3D();
+			this.cornerPoints[i] = new PVector();
 		}
 
 		for (int i = 0; i < this.bezierPoints.length; i++) {
-			this.bezierPoints[i] = new Point3D();
+			this.bezierPoints[i] = new PVector();
 		}
 		
 		GRID_LINE_COLOR = parent.color(128, 128, 128);
@@ -224,7 +225,7 @@ public class BezierSurface extends SuperSurface{
 	 */
 	public void increaseResolution() {
 		this.GRID_RESOLUTION += 2;
-		this.vertexPoints = new Point3D[this.GRID_RESOLUTION+1][this.GRID_RESOLUTION+1];
+		this.vertexPoints = new PVector[this.GRID_RESOLUTION+1][this.GRID_RESOLUTION+1];
 		this.updateTransform();
 	}
 
@@ -234,7 +235,7 @@ public class BezierSurface extends SuperSurface{
 	public void decreaseResolution() {
 		if ((this.GRID_RESOLUTION - 1) > 2) {
 			this.GRID_RESOLUTION -= 2;
-			this.vertexPoints = new Point3D[this.GRID_RESOLUTION+1][this.GRID_RESOLUTION+1];
+			this.vertexPoints = new PVector[this.GRID_RESOLUTION+1][this.GRID_RESOLUTION+1];
 			this.updateTransform();
 		}
 	}
@@ -304,7 +305,7 @@ public class BezierSurface extends SuperSurface{
 	 * Get all bezier points
 	 * @return
 	 */
-	public Point3D[] getBezierPoints() {
+	public PVector[] getBezierPoints() {
 		return this.bezierPoints;
 	}
 
@@ -313,7 +314,7 @@ public class BezierSurface extends SuperSurface{
 	 * @param index
 	 * @return
 	 */
-	public Point3D getBezierPoint(int index) {
+	public PVector getBezierPoint(int index) {
 		return this.bezierPoints[index];
 	}
 
@@ -377,7 +378,7 @@ public class BezierSurface extends SuperSurface{
 		        float xfix = (float)(Math.cos((j-(GRID_RESOLUTION/2))*pi1)*Math.sin((i*pi1)-((float)(GRID_RESOLUTION/2)*pi1)))*horizontalForce;
 		        float yfix = (float)(Math.cos((float)(GRID_RESOLUTION/2)*pi1)*Math.sin(j*pi1)-Math.sin((float)(GRID_RESOLUTION/2)*pi1)*Math.cos(j*pi1)*Math.cos((i*pi1)-((float)(GRID_RESOLUTION/2)*pi1)))*verticalForce;
 		        
-		        vertexPoints[i][j] = new Point3D(x+xfix, y+yfix, 0);
+		        vertexPoints[i][j] = new PVector(x+xfix, y+yfix, 0);
 			}
 		}	
 		
@@ -411,7 +412,7 @@ public class BezierSurface extends SuperSurface{
 	 * @param y
 	 * @return
 	 */
-	public Point3D screenCoordinatesToQuad(float x, float y) {
+	public PVector screenCoordinatesToQuad(float x, float y) {
 		//TODO :: maybe add this code
 		return null;
 	}
