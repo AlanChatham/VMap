@@ -21,7 +21,8 @@ void setup(){
   //Create new instance of SurfaceMapper
   sm = new VMap(this, width, height);
   //Creates one surface with subdivision 3, at center of screen
-  sm.createQuadSurface(3,width/2,height/2);
+//  sm.createQuadSurface(3,width/2,height/2);
+  sm.addSurface(new QuadSurface("img.jpg", this, sm, width/4, height/4, 3, 2));
 }
 
 void draw(){
@@ -40,8 +41,9 @@ void draw(){
       ss.render(glos,tex);
     }
   }
+  sm.render();
   //display the GLOS to screen
-  image(glos,0,0,width,height);
+  image(sm,0,0,width,height);
 }
 
 void keyPressed(){
@@ -82,25 +84,29 @@ void keyPressed(){
   //increase the horizontal force on a BEZIER surface
   if(key == 't'){
     for(SuperSurface ss : sm.getSelectedSurfaces()){
-      ss.increaseHorizontalForce();
+      if (ss instanceof BezierSurface)
+        ((BezierSurface)ss).increaseHorizontalForce();
     }
   }
   //decrease the horizontal force on a BEZIER surface  
   if(key == 'y'){
     for(SuperSurface ss : sm.getSelectedSurfaces()){
-      ss.decreaseHorizontalForce();
+      if (ss instanceof BezierSurface)
+        ((BezierSurface)ss).decreaseHorizontalForce();
     }
   }
   //increase the vertical force on a BEZIER surface  
   if(key == 'g'){
     for(SuperSurface ss : sm.getSelectedSurfaces()){
-      ss.increaseVerticalForce();
+      if (ss instanceof BezierSurface)
+        ((BezierSurface)ss).increaseVerticalForce();
     }
   }
   //decrease the vertical force on a BEZIER surface  
   if(key == 'h'){
     for(SuperSurface ss : sm.getSelectedSurfaces()){
-      ss.decreaseVerticalForce();
+      if (ss instanceof BezierSurface)
+        ((BezierSurface)ss).decreaseVerticalForce();
     }
   }
 }

@@ -284,7 +284,7 @@ public class VMap extends PImage implements PConstants{
 		else {
 			parent.noCursor();
 			for (SuperSurface ss : this.surfaces){
-				ss.render(offScreenBuffer);
+				ss.render();
 			}
 		}
 		// Now copy all those pixels that are offscreen to our own buffer
@@ -425,6 +425,12 @@ public class VMap extends PImage implements PConstants{
 		surfaces.add(s);
 		numAddedSurfaces++;
 		return s;
+	}
+	
+	public void addSurface(SuperSurface ss){
+		ss.setModeCalibrate();
+		surfaces.add(ss);
+		numAddedSurfaces++;
 	}
 	
 	/**

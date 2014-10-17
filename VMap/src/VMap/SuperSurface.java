@@ -542,6 +542,17 @@ public abstract class SuperSurface{
 		return null;
 	}*/
 	
+	public void render(){
+		if(sm != null){
+			if (this.texture != null){
+				this.render(sm.offScreenBuffer, this.texture);
+			}
+			else{
+				this.render(sm.offScreenBuffer);
+			}
+		}
+	}
+	
 	/**
 	 * Renders the surface in calibration mode
 	 * @param g

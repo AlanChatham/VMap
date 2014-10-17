@@ -68,13 +68,21 @@ public class QuadSurface extends SuperSurface{
 	 * @param res
 	 * @param id
 	 */
-	QuadSurface(PApplet parent, VMap ks, float x, float y, int res, int id) {
+	public QuadSurface(PApplet parent, VMap ks, float x, float y, int res, int id) {
 		init(parent, ks, res, id, null);
 		
 		this.setCornerPoints(	(float) (x - (this.DEFAULT_SIZE * 0.5)), (float) (y - (this.DEFAULT_SIZE * 0.5)), 
 								(float) (x + (this.DEFAULT_SIZE * 0.5)), (float) (y - (this.DEFAULT_SIZE * 0.5)), 
 								(float) (x + (this.DEFAULT_SIZE * 0.5)), (float) (y + (this.DEFAULT_SIZE * 0.5)),
 								(float) (x - (this.DEFAULT_SIZE * 0.5)), (float) (y + (this.DEFAULT_SIZE * 0.5)));
+	}
+	
+	public QuadSurface(String fileName, PApplet parent, VMap ks, float x, float y, int res, int id){
+		this(parent, ks, x, y, res, id);
+		this.textureFilename = fileName;
+		if (this.textureFilename != null){
+			this.texture = parent.loadImage(fileName);
+		}
 	}
 
 	/**

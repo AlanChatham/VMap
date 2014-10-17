@@ -57,6 +57,23 @@ public class BezierSurface extends SuperSurface{
 	 * @param res
 	 * @param id
 	 */
+	BezierSurface(String fileName, PApplet parent, VMap ks, float x, float y, int res, int id) {
+		this(parent, ks, x, y, res, id);
+		this.textureFilename = fileName;
+		if (this.textureFilename != null){
+			this.texture = parent.loadImage(fileName);
+		}
+	}
+	
+	/**
+	 * Constructor for creating a new surface at X,Y with RES subdivision.
+	 * @param parent
+	 * @param ks
+	 * @param x
+	 * @param y
+	 * @param res
+	 * @param id
+	 */
 	BezierSurface(PApplet parent, VMap ks, float x, float y, int res, int id) {
 		init(parent, ks, res, id, null);
 
