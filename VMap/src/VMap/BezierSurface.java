@@ -36,6 +36,8 @@ public class BezierSurface extends SuperSurface{
 
 	// Contains all coordinates
 	private PVector[][] vertexPoints;
+	
+	private BezierPoint3D[] cornerPoints;
 
 	// Coordinates of the bezier vectors
 	private PVector[] bezierPoints;
@@ -78,7 +80,7 @@ public class BezierSurface extends SuperSurface{
 	 */
 	BezierSurface(PApplet parent, VMap ks, float x, float y, int res, int id) {
 		init(parent, ks, res, id, null);
-
+		PApplet.println("instantiating corner 0...");
 		this.cornerPoints[0].x = (float) (x - (this.DEFAULT_SIZE * 0.5));
 		this.cornerPoints[0].y = (float) (y - (this.DEFAULT_SIZE * 0.5));
 
@@ -88,34 +90,34 @@ public class BezierSurface extends SuperSurface{
 		this.cornerPoints[2].x = (float) (x + (this.DEFAULT_SIZE * 0.5));
 		this.cornerPoints[2].y = (float) (y + (this.DEFAULT_SIZE * 0.5));
 
+		PApplet.println("instantiating corner 3...");
 		this.cornerPoints[3].x = (float) (x - (this.DEFAULT_SIZE * 0.5));
 		this.cornerPoints[3].y = (float) (y + (this.DEFAULT_SIZE * 0.5));
 		
 		//bezier points init
+		this.cornerPoints[0].controlPoint0.x = (float) (this.cornerPoints[0].x + (this.DEFAULT_SIZE * 0.0));
+		this.cornerPoints[0].controlPoint0.y = (float) (this.cornerPoints[0].y + (this.DEFAULT_SIZE * 0.3));
+
+		this.cornerPoints[0].controlPoint1.x = (float) (this.cornerPoints[0].x + (this.DEFAULT_SIZE * 0.3));
+		this.cornerPoints[0].controlPoint1.y = (float) (this.cornerPoints[0].y + (this.DEFAULT_SIZE * 0.0));
+
+		this.cornerPoints[1].controlPoint0.x = (float) (this.cornerPoints[1].x - (this.DEFAULT_SIZE * 0.3));
+		this.cornerPoints[1].controlPoint0.y = (float) (this.cornerPoints[1].y + (this.DEFAULT_SIZE * 0.0));
+
+		this.cornerPoints[1].controlPoint1.x = (float) (this.cornerPoints[1].x - (this.DEFAULT_SIZE * 0.0));
+		this.cornerPoints[1].controlPoint1.y = (float) (this.cornerPoints[1].y + (this.DEFAULT_SIZE * 0.3));
 		
-		this.bezierPoints[0].x = (float) (this.cornerPoints[0].x + (this.DEFAULT_SIZE * 0.0));
-		this.bezierPoints[0].y = (float) (this.cornerPoints[0].y + (this.DEFAULT_SIZE * 0.3));
+		this.cornerPoints[2].controlPoint0.x = (float) (this.cornerPoints[2].x - (this.DEFAULT_SIZE * 0.0));
+		this.cornerPoints[2].controlPoint0.y = (float) (this.cornerPoints[2].y - (this.DEFAULT_SIZE * 0.3));
 
-		this.bezierPoints[1].x = (float) (this.cornerPoints[0].x + (this.DEFAULT_SIZE * 0.3));
-		this.bezierPoints[1].y = (float) (this.cornerPoints[0].y + (this.DEFAULT_SIZE * 0.0));
+		this.cornerPoints[2].controlPoint1.x = (float) (this.cornerPoints[2].x - (this.DEFAULT_SIZE * 0.3));
+		this.cornerPoints[2].controlPoint1.y = (float) (this.cornerPoints[2].y - (this.DEFAULT_SIZE * 0.0));
 
-		this.bezierPoints[2].x = (float) (this.cornerPoints[1].x - (this.DEFAULT_SIZE * 0.3));
-		this.bezierPoints[2].y = (float) (this.cornerPoints[1].y + (this.DEFAULT_SIZE * 0.0));
+		this.cornerPoints[3].controlPoint0.x = (float) (this.cornerPoints[3].x + (this.DEFAULT_SIZE * 0.3));
+		this.cornerPoints[3].controlPoint0.y = (float) (this.cornerPoints[3].y + (this.DEFAULT_SIZE * 0.0));
 
-		this.bezierPoints[3].x = (float) (this.cornerPoints[1].x - (this.DEFAULT_SIZE * 0.0));
-		this.bezierPoints[3].y = (float) (this.cornerPoints[1].y + (this.DEFAULT_SIZE * 0.3));
-		
-		this.bezierPoints[4].x = (float) (this.cornerPoints[2].x - (this.DEFAULT_SIZE * 0.0));
-		this.bezierPoints[4].y = (float) (this.cornerPoints[2].y - (this.DEFAULT_SIZE * 0.3));
-
-		this.bezierPoints[5].x = (float) (this.cornerPoints[2].x - (this.DEFAULT_SIZE * 0.3));
-		this.bezierPoints[5].y = (float) (this.cornerPoints[2].y - (this.DEFAULT_SIZE * 0.0));
-
-		this.bezierPoints[6].x = (float) (this.cornerPoints[3].x + (this.DEFAULT_SIZE * 0.3));
-		this.bezierPoints[6].y = (float) (this.cornerPoints[3].y + (this.DEFAULT_SIZE * 0.0));
-
-		this.bezierPoints[7].x = (float) (this.cornerPoints[3].x - (this.DEFAULT_SIZE * 0.0));
-		this.bezierPoints[7].y = (float) (this.cornerPoints[3].y - (this.DEFAULT_SIZE * 0.3));
+		this.cornerPoints[3].controlPoint1.x = (float) (this.cornerPoints[3].x - (this.DEFAULT_SIZE * 0.0));
+		this.cornerPoints[3].controlPoint1.y = (float) (this.cornerPoints[3].y - (this.DEFAULT_SIZE * 0.3));
 
 		this.updateTransform();
 	}
@@ -186,17 +188,20 @@ public class BezierSurface extends SuperSurface{
 		this.selectedBezierControl = -1;
 		this.type = SuperSurface.BEZIER;
 
-		this.cornerPoints = new PVector[4];
+		this.cornerPoints = new BezierPoint3D[4];
 		this.bezierPoints = new PVector[8];
 		this.vertexPoints = new PVector[this.GRID_RESOLUTION+1][this.GRID_RESOLUTION+1];
 
 		for (int i = 0; i < this.cornerPoints.length; i++) {
-			this.cornerPoints[i] = new PVector();
+			this.cornerPoints[i] = new BezierPoint3D();
 		}
 
 		for (int i = 0; i < this.bezierPoints.length; i++) {
 			this.bezierPoints[i] = new PVector();
 		}
+		
+		// Updating the superclass's cornerPoints array to point to the same stuff
+		super.cornerPoints = this.cornerPoints;
 		
 		GRID_LINE_COLOR = parent.color(128, 128, 128);
 		GRID_LINE_SELECTED_COLOR = parent.color(160, 160, 160);
@@ -204,7 +209,7 @@ public class BezierSurface extends SuperSurface{
 		SELECTED_OUTLINE_INNER_COLOR = parent.color(255, 255, 255);
 		CORNER_MARKER_COLOR = parent.color(255, 255, 255);
 		SELECTED_CORNER_MARKER_COLOR = parent.color(255, 0, 0);
-
+		
 		this.updateTransform();
 	}
 	
@@ -359,14 +364,19 @@ public class BezierSurface extends SuperSurface{
 		for (int i = 0; i <= GRID_RESOLUTION; i++) {
 			for (int j = 0; j <= GRID_RESOLUTION; j++) {
 				
-		        float start_x = parent.bezierPoint(cornerPoints[0].x, bezierPoints[0].x, bezierPoints[7].x, cornerPoints[3].x, (float)j/GRID_RESOLUTION);
-		        float end_x = parent.bezierPoint(cornerPoints[1].x, bezierPoints[3].x, bezierPoints[4].x, cornerPoints[2].x, (float)j/GRID_RESOLUTION);
+		        float start_x = parent.bezierPoint(cornerPoints[0].x, cornerPoints[0].controlPoint0.x, cornerPoints[3].controlPoint1.x, cornerPoints[3].x, (float)j/GRID_RESOLUTION);
+		        //float end_x = parent.bezierPoint(cornerPoints[1].x, bezierPoints[3].x, bezierPoints[4].x, cornerPoints[2].x, (float)j/GRID_RESOLUTION);
+		        float end_x = parent.bezierPoint(cornerPoints[1].x, cornerPoints[1].controlPoint1.x, cornerPoints[2].controlPoint0.x, cornerPoints[2].x, (float)j/GRID_RESOLUTION);
 
-		        float start_y = parent.bezierPoint(cornerPoints[0].y, bezierPoints[0].y, bezierPoints[7].y, cornerPoints[3].y, (float)j/GRID_RESOLUTION);
-		        float end_y = parent.bezierPoint(cornerPoints[1].y, bezierPoints[3].y, bezierPoints[4].y, cornerPoints[2].y, (float)j/GRID_RESOLUTION);
+		        //float start_y = parent.bezierPoint(cornerPoints[0].y, bezierPoints[0].y, bezierPoints[7].y, cornerPoints[3].y, (float)j/GRID_RESOLUTION);
+		        float start_y = parent.bezierPoint(cornerPoints[0].y, cornerPoints[0].controlPoint0.y, cornerPoints[3].controlPoint1.y, cornerPoints[3].y, (float)j/GRID_RESOLUTION);
+		        //float end_y = parent.bezierPoint(cornerPoints[1].y, bezierPoints[3].y, bezierPoints[4].y, cornerPoints[2].y, (float)j/GRID_RESOLUTION);
+		        float end_y = parent.bezierPoint(cornerPoints[1].y, cornerPoints[1].controlPoint1.y, cornerPoints[2].controlPoint0.y, cornerPoints[2].y, (float)j/GRID_RESOLUTION);
 
-		        float x = parent.bezierPoint(start_x, ((bezierPoints[1].x - bezierPoints[6].x) * (1.0f - (float)j/GRID_RESOLUTION)) + bezierPoints[6].x, ((bezierPoints[2].x - bezierPoints[5].x) * (1.0f - (float)j/GRID_RESOLUTION)) + bezierPoints[5].x, end_x, (float)i/GRID_RESOLUTION);
-		        float y = parent.bezierPoint(start_y, ((bezierPoints[1].y - bezierPoints[6].y) * (1.0f - (float)j/GRID_RESOLUTION)) + bezierPoints[6].y, ((bezierPoints[2].y - bezierPoints[5].y) * (1.0f - (float)j/GRID_RESOLUTION)) + bezierPoints[5].y, end_y, (float)i/GRID_RESOLUTION);
+		        //float x = parent.bezierPoint(start_x, ((bezierPoints[1].x - bezierPoints[6].x) * (1.0f - (float)j/GRID_RESOLUTION)) + bezierPoints[6].x, ((bezierPoints[2].x - bezierPoints[5].x) * (1.0f - (float)j/GRID_RESOLUTION)) + bezierPoints[5].x, end_x, (float)i/GRID_RESOLUTION);
+		        float x = parent.bezierPoint(start_x, ((cornerPoints[0].controlPoint1.x - cornerPoints[3].controlPoint0.x) * (1.0f - (float)j/GRID_RESOLUTION)) + cornerPoints[3].controlPoint0.x, ((cornerPoints[1].controlPoint0.x - cornerPoints[2].controlPoint1.x) * (1.0f - (float)j/GRID_RESOLUTION)) + cornerPoints[2].controlPoint1.x, end_x, (float)i/GRID_RESOLUTION);
+		        //float y = parent.bezierPoint(start_y, ((bezierPoints[1].y - bezierPoints[6].y) * (1.0f - (float)j/GRID_RESOLUTION)) + bezierPoints[6].y, ((bezierPoints[2].y - bezierPoints[5].y) * (1.0f - (float)j/GRID_RESOLUTION)) + bezierPoints[5].y, end_y, (float)i/GRID_RESOLUTION);
+		        float y = parent.bezierPoint(start_y, ((cornerPoints[0].controlPoint1.y - cornerPoints[3].controlPoint0.y) * (1.0f - (float)j/GRID_RESOLUTION)) + cornerPoints[3].controlPoint0.y, ((cornerPoints[1].controlPoint0.y - cornerPoints[2].controlPoint1.y) * (1.0f - (float)j/GRID_RESOLUTION)) + cornerPoints[2].controlPoint1.y, end_y, (float)i/GRID_RESOLUTION);
 
 		        //the formula for Orthographic Projection
 		        //x = cos(latitude) * sin(longitude-referenceLongitude);

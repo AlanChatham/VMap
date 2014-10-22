@@ -261,8 +261,8 @@ public class QuadSurface extends SuperSurface{
 		int i = 0;
 		for (int y = 0; y < this.GRID_RESOLUTION; y++) {
 			for (int x = 0; x < this.GRID_RESOLUTION; x++) {
-				float percentX = (x * stepX) / this.DEFAULT_SIZE;
-				float percentY = (y * stepY) / this.DEFAULT_SIZE;
+//				float percentX = (x * stepX) / this.DEFAULT_SIZE;
+//				float percentY = (y * stepY) / this.DEFAULT_SIZE;
 // TODO: Figure out if we need the u and v components
 //				this.gridPoints[x + y * this.GRID_RESOLUTION].u = this.DEFAULT_SIZE * percentX + this.textureX;
 //				this.gridPoints[x + y * this.GRID_RESOLUTION].v = this.DEFAULT_SIZE * percentY + this.textureY; // y
