@@ -196,8 +196,9 @@ public class BezierSurface extends SuperSurface{
 			this.cornerPoints[i] = new BezierPoint3D();
 		}
 
-		for (int i = 0; i < this.bezierPoints.length; i++) {
-			this.bezierPoints[i] = new PVector();
+		for (int i = 0; i < this.cornerPoints.length; i++) {
+			this.bezierPoints[i * 2] = cornerPoints[i].controlPoint0;
+			this.bezierPoints[i * 2 + 1] = cornerPoints[i].controlPoint1;
 		}
 		
 		// Updating the superclass's cornerPoints array to point to the same stuff
