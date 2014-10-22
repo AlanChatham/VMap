@@ -421,6 +421,21 @@ public class VMap extends PImage implements PConstants{
 		return s;
 	}
 	
+	/**
+	 * Creates a blank QuadSurface, adds it to the VMap's internal registry
+	 * @param x X position
+	 * @param y Y position
+	 */
+	public void addQuadSurface(int x, int y){
+		addQuadSurface(null, x, y);
+	}
+	
+	/**
+	 * Creates a QuadSurface, adds it to the VMap's internal registry
+	 * @param imageFile File to use
+	 * @param x X position
+	 * @param y Y position
+	 */
 	public void addQuadSurface(String imageFile, int x, int y){
 		QuadSurface s = new QuadSurface(imageFile, parent, this, x, y, 3, numAddedSurfaces);
 		if (ccolor.length > 0)
@@ -431,6 +446,7 @@ public class VMap extends PImage implements PConstants{
 	}
 	
 	public void addSurface(SuperSurface ss){
+		ss.setModeCalibrate();
 		surfaces.add(ss);
 		numAddedSurfaces++;
 	}
@@ -498,6 +514,15 @@ public class VMap extends PImage implements PConstants{
 		s.setModeCalibrate();
 		surfaces.add(s);
 		numAddedSurfaces++;
+	}
+	
+	/**
+	 * Creates a blank BezierSurface, adds it to the Vmap's registry
+	 * @param x X position
+	 * @param y Y position
+	 */
+	public void addBezierSurface(int x, int y){
+		addBezierSurface(null, x, y);
 	}
 	
 	/**

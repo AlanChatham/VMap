@@ -129,6 +129,22 @@ public abstract class SuperSurface{
 	public SuperSurface(int type, PApplet parent, VMap ks, float x, float y, int res, int id){
 		this(null, type, parent, ks, x, y, res, id);
 	}
+	
+	/**
+	 * Gets the surface's current texture
+	 * @return Current texture, null if no texture assigned
+	 */
+	public PImage getTexture(){
+		return this.texture;
+	}
+	
+	/**
+	 * Sets the surface's texture
+	 * @param tex Texture to set
+	 */
+	public void setTexture(PImage tex){
+		this.texture = tex;
+	}
 
 	/**
 	 * Constructor for loading a surface from file
@@ -523,6 +539,8 @@ public abstract class SuperSurface{
 	
 	public void render(){
 		if(sm != null){
+			// Update the shaking
+			this.shake();
 			if (this.texture != null){
 				this.render(sm.offScreenBuffer, this.texture);
 			}
@@ -534,34 +552,25 @@ public abstract class SuperSurface{
 	
 	/**
 	 * Renders the surface in calibration mode
-	 * @param g
+	 * @param g PGraphics buffer to render to
 	 */
-	public abstract void render(PGraphics g);/*{
-		switch(type){
-			case QUAD:
-				quadSurface.render(g);
-				break;
-			case BEZIER:
-				bezierSurface.render(g);	
-				break;
-		}
-	}*/
+	public abstract void render(PGraphics g);
 	
 	/**
 	 * Render the surface with texture
-	 * @param g
-	 * @param tex
+	 * @param tex Texture to render to the surface
 	 */
-	public abstract void render(PGraphics g, PImage tex);/*{
-		switch(type){
-			case QUAD:
-				quadSurface.render(g, tex);
-				break;
-			case BEZIER:
-				bezierSurface.render(g, tex);	
-				break;
-		}
-	}*/
+	public void render(PImage tex){
+		this.texture = tex;
+		render();
+	}
+	
+	/**
+	 * Render the surface with texture
+	 * @param g PGraphics buffer to write to
+	 * @param tex Texture to render to the surface
+	 */
+	public abstract void render(PGraphics g, PImage tex);
 	
 	/**
 	 * See which type this surface is
