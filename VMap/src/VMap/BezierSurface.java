@@ -80,7 +80,6 @@ public class BezierSurface extends SuperSurface{
 	 */
 	BezierSurface(PApplet parent, VMap ks, float x, float y, int res, int id) {
 		init(parent, ks, res, id, null);
-		PApplet.println("instantiating corner 0...");
 		this.cornerPoints[0].x = (float) (x - (this.DEFAULT_SIZE * 0.5));
 		this.cornerPoints[0].y = (float) (y - (this.DEFAULT_SIZE * 0.5));
 
@@ -90,7 +89,6 @@ public class BezierSurface extends SuperSurface{
 		this.cornerPoints[2].x = (float) (x + (this.DEFAULT_SIZE * 0.5));
 		this.cornerPoints[2].y = (float) (y + (this.DEFAULT_SIZE * 0.5));
 
-		PApplet.println("instantiating corner 3...");
 		this.cornerPoints[3].x = (float) (x - (this.DEFAULT_SIZE * 0.5));
 		this.cornerPoints[3].y = (float) (y + (this.DEFAULT_SIZE * 0.5));
 		
