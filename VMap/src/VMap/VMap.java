@@ -445,6 +445,10 @@ public class VMap extends PImage implements PConstants{
 		numAddedSurfaces++;
 	}
 	
+	/**
+	 * Adds a SuperSurface to the internal surfaces array
+	 * @param ss SuperSurface to add
+	 */
 	public void addSurface(SuperSurface ss){
 		ss.setModeCalibrate();
 		surfaces.add(ss);

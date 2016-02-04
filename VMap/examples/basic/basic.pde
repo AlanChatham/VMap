@@ -1,29 +1,37 @@
-import VMap.*;
 
 /***********************************************************
-* EXAMPLE PROVIDED WITH SURFACEMAPPER LIBRARY DEVELOPED BY *
-* IXAGON AB.                                               *
+* Example Code provided by 
+* IXAGON AB + Laboratory                                   *
 * This example shows you how to setup the library and      *
 * and display single texture to multiple surfaces.         *
 * Check the keyPressed method to see how to access         *
 * different settings                                       *
 ***********************************************************/
+
+import VMap.*;
 VMap vmap;
 
 void setup(){
   size(800,600, P3D);
   
-  //Create new instance of SurfaceMapper
- vmap = new VMap(this, width, height);
+  //Create new instance of the VMap buffer - this is actually
+  // an extension of the PGraphics class, which we'll be drawing to
+  // when we create our VMap surfaces
+  vmap = new VMap(this, width, height);
+  
   //Creates one surface with subdivision 3, at center of screen
- vmap.addQuadSurface("img.jpg", width/2, height/2);
+  vmap.addQuadSurface("img.jpg", width/2, height/2);
+  println("added surface");
 }
 
 void draw(){
+  println("entered draw");
+  // Draw the background black
   background(0);
 
+  // Now update the VMap buffer
   vmap.render();
-  //display the GLOS to screen
+  // Finally, draw the VMap buffer to the window
   image(vmap,0,0,width,height);
 }
 

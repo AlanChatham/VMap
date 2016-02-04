@@ -1,60 +1,69 @@
-import processing.video.*;
 
-import VMap.*;
 
 /***********************************************************
-* EXAMPLE PROVIDED WITH SURFACEMAPPER LIBRARY DEVELOPED BY *
-* IXAGON AB.                                               *
+* Example Code provided by                                 *
+* IXAGON AB + Laboratory                                   *
 * This example shows you how to setup the library and      *
 * and display a movie to multiple surfaces.                *
-* Check the keyPressed method to see how to access         *
-* different settings                                       *
+*                                                          *
+* To add new surfaces, press 'a' to create Quad Surfaces   *
+*                      press 'z' to create Bezier Surfaces *
+*                                                          *
+* To go between calibration and image mode, press 'c'      *
+*                                                          *
+* You can save mappings to a file by pressing 's',         *
+* and load previously saved data by pressing 'l'           *
+*                                                          *
+* There are other options available in the keyPressed()    *
+* function below, check them out!                          *
 ***********************************************************/
 
-PImage tex;
-PGraphics glos;
-VMap sm;
+import processing.video.*;
+import VMap.*;
+
+VMap vmap;
 Movie movie;
 
 void setup(){
+  // Create our window. VMap only works in P3D mode!
   size(800,600, P3D);
-  glos = createGraphics(width, height, P3D);
   
-  //Create new instance of SurfaceMapper
-  sm = new VMap(this, width, height);
+  //Create new instance of the VMap buffer - this is actually
+  // an extension of the PGraphics class, which we'll be drawing to
+  // when we create our VMap surfaces
+  vmap = new VMap(this, width, height);
+
   //Creates one surface with subdivision 3, at center of screen
-  sm.createQuadSurface(3,width/2,height/2);
-  movie = new Movie(this, "streets.mp4");
-  movie.loop();
+  vmap.addQuadSurface("img.jpg", width/2, height/2);
+
+  
 }
 
 void draw(){
+  // Draw the background black
   background(0);
-  glos.beginDraw();
-  glos.clear();
-  glos.hint(ENABLE_DEPTH_TEST);
-  glos.endDraw();
   
   //Updates the shaking of the surfaces in render mode
   sm.shake();
   
-  //render all surfaces in calibration mode
-  if(sm.getMode() == sm.MODE_CALIBRATE)sm.render(glos);
-  
-  //render all surfaces in render mode
-  if(sm.getMode() == sm.MODE_RENDER){
-    for(SuperSurface ss : sm.getSurfaces()){
-      //render this surface to GLOS, use TEX as texture
-      ss.render(glos,movie);
-    }
-  }
-  //display the GLOS to screen
-  image(glos,0,0,width,height);
+  // Now update the VMap buffer
+  vmap.render();
+  // Finally, draw the VMap buffer to the window
+  image(vmap,0,0,width,height);
 }
 
 void movieEvent(Movie movie) {
   movie.read();
 }
+
+
+// Copy-paste the following block of code into your sketches
+//  in order to use the standard keyboard commands
+//  for manipulating VMap. We'd include it in the library,
+//  but it wouldn't be clear that the keys were double-mapped,
+//  making it opaque and harder to not run into conflicts
+//  for people needing keyboard input. Feel free to change
+//  the bindings in your programs, though.
 
 void keyPressed(){
   //create a new QUAD surface at mouse pos
