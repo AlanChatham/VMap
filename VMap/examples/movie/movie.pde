@@ -33,8 +33,12 @@ void setup(){
   // when we create our VMap surfaces
   vmap = new VMap(this, width, height);
 
+  //Set up a movie
+  movie = new Movie(this, "streets.mp4");
+  movie.loop();
+  
   //Creates one surface with subdivision 3, at center of screen
-  vmap.addQuadSurface("img.jpg", width/2, height/2);
+  vmap.addQuadSurface(width/2, height/2);
 
   
 }
@@ -42,6 +46,12 @@ void setup(){
 void draw(){
   // Draw the background black
   background(0);
+  
+  // Loop through all the surfaces to map  
+  for(SuperSurface ss : vmap.getSurfaces()){
+    // Use movie as the texture for all surfaces
+    ss.setTexture(movie);
+  }
   
   //Updates the shaking of the surfaces in render mode
   vmap.shake();
