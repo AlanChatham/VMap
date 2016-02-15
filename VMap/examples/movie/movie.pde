@@ -44,7 +44,7 @@ void draw(){
   background(0);
   
   //Updates the shaking of the surfaces in render mode
-  sm.shake();
+  vmap.shake();
   
   // Now update the VMap buffer
   vmap.render();
