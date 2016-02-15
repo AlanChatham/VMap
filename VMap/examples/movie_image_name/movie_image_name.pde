@@ -113,16 +113,18 @@ void keyPressed(){
     }
   }
   //save layout to xml
-  if(key == 's')vmap.saveXML("bla.xml");
+  if(key == 's')
+    vmap.saveXML("positions.xml");
   //load layout from xml
-  if(key == 'l')vmap.loadXML("bla.xml");
-  //rotate how the texture is mapped in the QUAD (clockwise)
+  if(key == 'l')
+    vmap.loadXML("positions.xml");
+  //rotate how the texture is mapped in to the QUAD (clockwise)
   if(key == 'j'){
     for(SuperSurface ss : vmap.getSelectedSurfaces()){
       ss.rotateCornerPoints(0);
     }
   }
-  //rotate how the texture is mapped in the QUAD (counter clockwise)
+  //rotate how the texture is mapped in to the QUAD (counter clockwise)
   if(key == 'k'){
     for(SuperSurface ss : vmap.getSelectedSurfaces()){
       ss.rotateCornerPoints(1);
@@ -156,8 +158,7 @@ void keyPressed(){
         ((BezierSurface)ss).decreaseVerticalForce();
     }
   }
-
-  //shake all surfaces with strength (max z displacement), speed, and duration (0 - 1000)
+    //shake all surfaces with strength (max z displacement), speed, and duration (0 - 1000)
   if(key == 'q'){
     vmap.setShakeAll(50, 850, 20);
   }
