@@ -37,7 +37,7 @@ void setup(){
   // Set the name of the surface
   //  To do this, we'll get the list of mapped surfaces,
   //  pick one, then give it a name
-  ArrayList<SuperSurface> listOfSurfaces;
+  ArrayList<SuperSurface> listOfSurfaces = vmap.getSurfaces();
   SuperSurface surfaceToName = listOfSurfaces.get(0);
   surfaceToName.setSurfaceName("name");
   
