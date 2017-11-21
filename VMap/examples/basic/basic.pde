@@ -1,17 +1,27 @@
 
 /***********************************************************
-* Example Code provided by 
+* Example Code provided by                                 *
 * IXAGON AB + Laboratory                                   *
 * This example shows you how to setup the library and      *
 * and display single texture to multiple surfaces.         *
-* Check the keyPressed method to see how to access         *
-* different settings                                       *
+*                                                          *
+* To add new surfaces, press 'a' to create Quad Surfaces   *
+*                      press 'z' to create Bezier Surfaces *
+*                                                          *
+* To go between calibration and image mode, press 'c'      *
+*                                                          *
+* You can save mappings to a file by pressing 's',         *
+* and load previously saved data by pressing 'l'           *
+*                                                          *
+* There are other options available in the keyPressed()    *
+* function below, check them out!                          *
 ***********************************************************/
 
 import VMap.*;
 VMap vmap;
 
 void setup(){
+  // Create our window. VMap only works in P3D mode!
   size(800,600, P3D);
   
   //Create new instance of the VMap buffer - this is actually
@@ -21,7 +31,7 @@ void setup(){
   
   //Creates one surface with subdivision 3, at center of screen
   vmap.addQuadSurface("img.jpg", width/2, height/2);
-  println("added surface");
+
 }
 
 void draw(){
@@ -34,6 +44,14 @@ void draw(){
   // Finally, draw the VMap buffer to the window
   image(vmap,0,0,width,height);
 }
+
+// Copy-paste the following block of code into your sketches
+//  in order to use the standard keyboard commands
+//  for manipulating VMap. We'd include it in the library,
+//  but it wouldn't be clear that the keys were double-mapped,
+//  making it opaque and harder to not run into conflicts
+//  for people needing keyboard input. Feel free to change
+//  the bindings in your programs, though.
 
 void keyPressed(){
   //create a new QUAD surface at mouse pos

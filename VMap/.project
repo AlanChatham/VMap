@@ -14,4 +14,10 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
+	<variableList>
+		<variable>
+			<name>JAVA_HOME</name>
+			<value>file:/C:/Program%20Files/Java/jdk1.8.0_65</value>
+		</variable>
+	</variableList>
 </projectDescription>

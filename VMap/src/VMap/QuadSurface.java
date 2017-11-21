@@ -379,9 +379,14 @@ public class QuadSurface extends SuperSurface{
 	private void renderQuad(PGraphics g, PImage tex) {
 		g.beginDraw();
 		g.noStroke();
+		// Begin drawing a shape in our graphics buffer
 		g.beginShape(PApplet.QUADS);
-
+		// Give it a texture
 		g.texture(tex);
+		
+		// Set up some verticies. Each has a X,Y,Z, and a U,V for texture mapping,
+		//  since we're not yet using proper shaders. This means our polycount increases
+		//  at the square of how granular we make our surface resolutions
 		
 		for (int i = 0; i < GRID_RESOLUTION-1; i++) {
 			for (int j = 0; j < GRID_RESOLUTION-1; j++) {

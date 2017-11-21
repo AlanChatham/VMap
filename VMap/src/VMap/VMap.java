@@ -35,9 +35,18 @@ import processing.core.PFont;
 import processing.core.PGraphics;
 import processing.opengl.PGraphics2D;
 import processing.opengl.PGraphics3D;
+import processing.core.PMatrix;
+import processing.core.PMatrix2D;
+import processing.core.PMatrix3D;
+import processing.core.PShape;
 import processing.core.PImage;
 import processing.core.PVector;
 import processing.data.XML;
+import processing.opengl.PGL;
+import processing.opengl.PShader;
+import processing.core.PStyle;
+// Add this in after updating to a new processing.core library
+//import processing.core.PSurface;
 
 public class VMap extends PImage implements PConstants{
 		
@@ -49,6 +58,10 @@ public class VMap extends PImage implements PConstants{
 	
 	//Off-screen PGraphics buffer, in case anyone needs access to that
 	public PGraphics offScreenBuffer;
+	
+	//Default PGraphics buffer - this will get 
+	// drawn by default 
+	public PGraphics defaultDrawBuffer;
 	
 	private boolean allowUserInput;
 	
@@ -85,6 +98,11 @@ public class VMap extends PImage implements PConstants{
 	private PFont idFont;
 
 	private boolean debug = true;
+	
+	// Should we use the defaultDrawBuffer, 
+	//  which lets us do vmap.rect() and stuff,
+	//  and automatically apply it to mapped areas with no texture?
+	private boolean useDefault = true;
 
 	private boolean shaking;
 	private int shakeStrength;
@@ -122,6 +140,7 @@ public class VMap extends PImage implements PConstants{
 		}
 
 		this.offScreenBuffer = parent.createGraphics(width, height, P3D);
+		this.defaultDrawBuffer = parent.createGraphics(width, height, P3D);
 	}
 	
 	/**
@@ -276,8 +295,15 @@ public class VMap extends PImage implements PConstants{
 		}
 		// Render mode!
 		else {
+			
 			parent.noCursor();
 			for (SuperSurface ss : this.surfaces){
+				// Add the default draw buffer on blank surfaces
+				if (useDefault){
+					if (ss.texture == null){
+					    ss.setTexture(defaultDrawBuffer);
+					}
+				}
 				ss.render();
 			}
 		}
@@ -1424,4 +1450,272 @@ public class VMap extends PImage implements PConstants{
 			list.remove(--size);
 		}
 	}
+
+	// This section has a partial list of
+	//  the PGraphics functions that get passed
+	//  through to the defaultDrawBuffer
+	// This allows you to do the simple mode of VMap,
+	//  where you just do stuff like
+	//   vmap.rect()
+	
+	public void ambient(float gray){ defaultDrawBuffer.ambient(gray);}
+	public void ambient(float v1, float v2, float v3){ defaultDrawBuffer.ambient(v1,v2,v3);}
+	public void ambient(int rgb){defaultDrawBuffer.ambient(rgb);}
+	public void ambientLight(float v1, float v2, float v3){defaultDrawBuffer.ambientLight(v1, v2, v3);}
+	public void ambientLight(float v1, float v2, float v3, float x, float y, float z) {defaultDrawBuffer.ambientLight(v1, v2, v3, x, y, z);}
+	public void applyMatrix(float n00, float n01, float n02, float n10, float n11, float n12) { defaultDrawBuffer.applyMatrix(n00, n01, n02, n10, n11, n12);}
+	public void applyMatrix(float n00, float n01, float n02, float n03, float n10, float n11, float n12, float n13, float n20, float n21, float n22, float n23, float n30, float n31, float n32, float n33) {defaultDrawBuffer.applyMatrix(n00, n01, n02, n03, n10, n11, n12, n13, n20, n21, n22, n23, n30, n31, n32, n33);}
+	public void applyMatrix(PMatrix source){defaultDrawBuffer.applyMatrix(source);}
+	public void applyMatrix(PMatrix2D source){defaultDrawBuffer.applyMatrix(source);}
+	public void applyMatrix(PMatrix3D source){defaultDrawBuffer.applyMatrix(source);}
+	public void arc(float a, float b, float c, float d, float start, float stop){defaultDrawBuffer.arc(a, b, c, d, start, stop);}
+	public void arc(float a, float b, float c, float d, float start, float stop, int mode) {defaultDrawBuffer.arc(a, b, c, d, start, stop, mode);}
+	public void background(float gray){defaultDrawBuffer.background(gray);}
+	public void background(float gray, float alpha) {defaultDrawBuffer.background(gray, alpha);}
+	public void background(float v1, float v2, float v3){defaultDrawBuffer.background(v1, v2, v3);}
+	public void background(float v1, float v2, float v3, float alpha) {defaultDrawBuffer.background(v1, v2, v3, alpha);}
+	public void background(int rgb){defaultDrawBuffer.background(rgb);}
+	public void background(int rgb, float alpha) {defaultDrawBuffer.background(rgb, alpha);}
+	public void background(PImage image){defaultDrawBuffer.background(image);}
+	public void beginCamera(){defaultDrawBuffer.beginCamera();}
+	public void beginContour() {defaultDrawBuffer.beginContour();}
+	public void beginDraw(){defaultDrawBuffer.beginDraw();}
+	public PGL beginPGL() {return defaultDrawBuffer.beginPGL();}
+	public void beginRaw(PGraphics rawGraphics){defaultDrawBuffer.beginRaw(rawGraphics);}
+	public void beginShape(){defaultDrawBuffer.beginShape();}
+	public void bezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) {defaultDrawBuffer.bezier(x1, y1, x2, y2, x3, y3, x4, y4);}
+	public void bezier(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4){defaultDrawBuffer.bezier(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4);}
+	public void bezierDetail(int detail){defaultDrawBuffer.bezierDetail(detail);}
+	public float bezierPoint(float a, float b, float c, float d, float t) {return defaultDrawBuffer.bezierPoint(a, b, c, d, t);}
+	public float bezierTangent(float a, float b, float c, float d, float t){return defaultDrawBuffer.bezierTangent(a, b, c, d, t);}
+	public void bezierVertex(float x2, float y2, float x3, float y3, float x4, float y4) {defaultDrawBuffer.bezierVertex(x2, y2, x3, y3, x4, y4);}
+	public void bezierVertex(float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4){defaultDrawBuffer.bezierVertex(x2, y2, z2, x3, y3, z3, x4, y4, z4);}
+	public void blendMode(int mode){defaultDrawBuffer.blendMode(mode);}
+	public float blue(int rgb){return defaultDrawBuffer.blue(rgb);}
+	public void box(float size){defaultDrawBuffer.box(size);}
+	public void box(float w, float h, float d) {defaultDrawBuffer.box(w, h, d);}
+	public float brightness(int rgb){return defaultDrawBuffer.brightness(rgb);}
+	public void camera(){defaultDrawBuffer.camera();}
+	public void camera(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ) {defaultDrawBuffer.camera(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);}
+	public void clear() {defaultDrawBuffer.clear();}
+	public void clip(float a, float b, float c, float d){defaultDrawBuffer.clip(a, b, c, d);}
+	public int color(float gray) {return defaultDrawBuffer.color(gray);}
+	public int color(float gray, float alpha) {return defaultDrawBuffer.color(gray, alpha);}
+	public int color(float v1, float v2, float v3) {return defaultDrawBuffer.color(v1, v2, v3);}
+	public int color(float v1, float v2, float v3, float a) {return defaultDrawBuffer.color(v1, v2, v3, a);}
+	public int color(int c) {return defaultDrawBuffer.color(c);}
+	public int color(int c, float alpha) {return defaultDrawBuffer.color(c, alpha);}
+	public int color(int c, int alpha) {return defaultDrawBuffer.color(c, alpha);}
+	public int color(int v1, int v2, int v3) {return defaultDrawBuffer.color(v1, v2, v3);}
+	public int color(int v1, int v2, int v3, int a) {return defaultDrawBuffer.color(v1, v2, v3, a);}
+	public void colorMode(int mode){defaultDrawBuffer.colorMode(mode);}
+	public void colorMode(int mode, float max) {defaultDrawBuffer.colorMode(mode, max);}
+	public void colorMode(int mode, float max1, float max2, float max3) {defaultDrawBuffer.colorMode(mode, max1, max2, max3);}
+	public void colorMode(int mode, float max1, float max2, float max3, float maxA) {defaultDrawBuffer.colorMode(mode, max1, max2, max3, maxA);}
+	public PShape createShape() {return defaultDrawBuffer.createShape();}
+	public PShape createShape(int type) {return defaultDrawBuffer.createShape(type);}
+	public PShape createShape(int kind, float... p) {return defaultDrawBuffer.createShape(kind, p);}
+//	public PSurface createSurface() {return defaultDrawBuffer.createSuface();}
+	public void	curve(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) {defaultDrawBuffer.curve(x1, y1, x2, y2, x3, y3, x4, y4);}
+	public void	curve(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4) {defaultDrawBuffer.curve(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4);}
+	public void	curveDetail(int detail) {defaultDrawBuffer.curveDetail(detail);}
+	public float	curvePoint(float a, float b, float c, float d, float t) {return defaultDrawBuffer.curvePoint(a, b, c, d, t);}
+	public float	curveTangent(float a, float b, float c, float d, float t) {return defaultDrawBuffer.curveTangent(a, b, c, d, t);}
+	public void	curveTightness(float tightness) {defaultDrawBuffer.curveTightness(tightness);}
+	public void	curveVertex(float x, float y) {defaultDrawBuffer.curveVertex(x, y);}
+	public void	curveVertex(float x, float y, float z)  {defaultDrawBuffer.curveVertex(x, y, z);}
+	public void	directionalLight(float v1, float v2, float v3, float nx, float ny, float nz) {defaultDrawBuffer.directionalLight(v1, v2, v3, nx, ny, nz);}
+	public boolean	displayable() {return defaultDrawBuffer.displayable();}
+	public void	dispose() {defaultDrawBuffer.dispose();}
+	public void	edge(boolean edge) {defaultDrawBuffer.edge(edge);}
+	public void	ellipse(float a, float b, float c, float d) {defaultDrawBuffer.ellipse(a, b, c, d);}
+	public void	ellipseMode(int mode) {defaultDrawBuffer.ellipseMode(mode);}
+	public void	emissive(float gray) {defaultDrawBuffer.emissive(gray);}
+	public void	emissive(float v1, float v2, float v3) {defaultDrawBuffer.emissive(v1, v2, v3);} 
+	public void	emissive(int rgb) {defaultDrawBuffer.emissive(rgb);}
+	public void	endCamera() {defaultDrawBuffer.endCamera();}
+	public void	endContour()  {defaultDrawBuffer.endContour();}
+	public void	endDraw() {defaultDrawBuffer.endDraw();}
+	public void	endPGL()  {defaultDrawBuffer.endPGL();}
+	public void	endRaw()  {defaultDrawBuffer.endRaw();}
+	public void	endShape()  {defaultDrawBuffer.endShape();}
+	public void	endShape(int mode) {defaultDrawBuffer.endShape(mode);}
+	public void	fill(float gray)  {defaultDrawBuffer.fill(gray);}
+	public void	fill(float gray, float alpha)  {defaultDrawBuffer.fill(gray, alpha);}
+	public void	fill(float v1, float v2, float v3)  {defaultDrawBuffer.fill(v1, v2, v3);}
+	public void	fill(float v1, float v2, float v3, float alpha)  {defaultDrawBuffer.fill(v1, v2, v3, alpha);}
+	public void	fill(int rgb) {defaultDrawBuffer.fill(rgb);}
+	public void	fill(int rgb, float alpha)  {defaultDrawBuffer.fill(rgb, alpha);}
+	public void	filter(PShader shader)  {defaultDrawBuffer.filter(shader);}
+	public void	filter(int kind){defaultDrawBuffer.filter(kind);}
+	public void	filter(int kind, float param) { defaultDrawBuffer.filter(kind, param);}
+	public void	flush()  {defaultDrawBuffer.flush();}
+	public void	frustum(float left, float right, float bottom, float top, float near, float far) {defaultDrawBuffer.frustum(left, right, bottom, top, near, far);}
+	public Object	getCache(PImage image) {return defaultDrawBuffer.getCache(image);}
+	public PMatrix	getMatrix() {return defaultDrawBuffer.getMatrix();}
+	public PMatrix2D	getMatrix(PMatrix2D target) {return defaultDrawBuffer.getMatrix(target);}
+	public PMatrix3D	getMatrix(PMatrix3D target) {return defaultDrawBuffer.getMatrix(target);}
+	public PGraphics	getRaw() {return defaultDrawBuffer.getRaw();}
+	public PStyle	getStyle() {return defaultDrawBuffer.getStyle();}
+	public PStyle	getStyle(PStyle s) {return defaultDrawBuffer.getStyle(s);}
+	public float	green(int rgb) {return defaultDrawBuffer.green(rgb);}
+	public boolean	haveRaw() {return defaultDrawBuffer.haveRaw();}
+	public void	hint(int which) {defaultDrawBuffer.hint(which);}
+	public float	hue(int rgb) {return defaultDrawBuffer.hue(rgb);}
+	public void	image(PImage img, float a, float b) {defaultDrawBuffer.image(img, a, b);}
+	public void	image(PImage img, float a, float b, float c, float d)  {defaultDrawBuffer.image(img, a, b, c, d);}
+	public void	image(PImage img, float a, float b, float c, float d, int u1, int v1, int u2, int v2) {defaultDrawBuffer.image(img, a, b, c, d, u1, v1, u2, v2);}
+	public void	imageMode(int mode) {defaultDrawBuffer.imageMode(mode);}
+	public boolean	is2D() {return defaultDrawBuffer.is2D();}
+	public boolean	is3D() {return defaultDrawBuffer.is3D();}
+	public boolean	isGL() {return defaultDrawBuffer.isGL();}
+	public int	lerpColor(int c1, int c2, float amt) {return defaultDrawBuffer.lerpColor(c1, c2, amt);}
+//	static int	lerpColor(int c1, int c2, float amt, int mode) {return defaultDrawBuffer.lerpColor
+	public void	lightFalloff(float constant, float linear, float quadratic) {defaultDrawBuffer.lightFalloff(constant, linear, quadratic);}
+	public void	lights() {defaultDrawBuffer.lights();}
+	public void	lightSpecular(float v1, float v2, float v3) {defaultDrawBuffer.lightSpecular(v1, v2, v3);}
+	public void	line(float x1, float y1, float x2, float y2) {defaultDrawBuffer.line(x1, y1, x2, y2);}
+	public void	line(float x1, float y1, float z1, float x2, float y2, float z2) {defaultDrawBuffer.line(x1, y1, z1, x2, y2, z2);}
+	public PShader	loadShader(String fragFilename) {return defaultDrawBuffer.loadShader(fragFilename);}
+	public PShader	loadShader(String fragFilename, String vertFilename)  {return defaultDrawBuffer.loadShader(fragFilename, vertFilename);}
+	public PShape	loadShape(String filename)  {return defaultDrawBuffer.loadShape(filename);}
+	public PShape	loadShape(String filename, String options)  {return defaultDrawBuffer.loadShape(filename, options);}
+	public float	modelX(float x, float y, float z) {return defaultDrawBuffer.modelX(x, y, z);}
+	public float	modelY(float x, float y, float z) {return defaultDrawBuffer.modelY(x, y, z);}
+	public float	modelZ(float x, float y, float z) {return defaultDrawBuffer.modelZ(x, y, z);}
+	public void	noClip() {defaultDrawBuffer.noClip();}
+	public void	noFill() {defaultDrawBuffer.noFill();}
+	public void	noLights() {defaultDrawBuffer.noLights();}
+	public void	normal(float nx, float ny, float nz) {defaultDrawBuffer.normal(nx, ny, nz);}
+	public void	noSmooth()  {defaultDrawBuffer.noSmooth();}
+	public void	noStroke() {defaultDrawBuffer.noStroke();}
+	public void	noTexture() {defaultDrawBuffer.noTexture();}
+	public void	noTint() {defaultDrawBuffer.noTint();}
+	public void	ortho() {defaultDrawBuffer.ortho();}
+	public void	ortho(float left, float right, float bottom, float top)  {defaultDrawBuffer.ortho(left, right, bottom, top);}
+	public void	ortho(float left, float right, float bottom, float top, float near, float far) {defaultDrawBuffer.ortho(left, right, bottom, top, near, far);}
+	public void	perspective() {defaultDrawBuffer.perspective();}
+	public void	perspective(float fovy, float aspect, float zNear, float zFar)  {defaultDrawBuffer.perspective(fovy, aspect, zNear, zFar);}
+	public void	point(float x, float y) {defaultDrawBuffer.point(x, y);}
+	public void	point(float x, float y, float z)  {defaultDrawBuffer.point(x, y, z);}
+	public void	pointLight(float v1, float v2, float v3, float x, float y, float z) {defaultDrawBuffer.pointLight(v1, v2, v3, x, y, z);}
+	public void	popMatrix() {defaultDrawBuffer.popMatrix();}
+	public void	popStyle() {defaultDrawBuffer.popStyle();}
+	public void	printCamera() {defaultDrawBuffer.printCamera();}
+	public void	printMatrix() {defaultDrawBuffer.printMatrix();}
+	public void	printProjection() {defaultDrawBuffer.printProjection();}
+	public void	pushMatrix() {defaultDrawBuffer.pushMatrix();}
+	public void	pushStyle() {defaultDrawBuffer.pushStyle();}
+	public void	quad(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) {defaultDrawBuffer.quad(x1, y1, x2, y2, x3, y3, x4, y4);}
+	public void	quadraticVertex(float cx, float cy, float x3, float y3)  {defaultDrawBuffer.quadraticVertex(cx, cy, x3, y3);}
+	public void	quadraticVertex(float cx, float cy, float cz, float x3, float y3, float z3) {defaultDrawBuffer.quadraticVertex(cx, cy, cz, x3, y3, z3);}
+	public void	rect(float a, float b, float c, float d) {defaultDrawBuffer.rect(a, b, c, d);}
+	public void	rect(float a, float b, float c, float d, float r)  {defaultDrawBuffer.rect(a, b, c, d, r);}
+	public void	rect(float a, float b, float c, float d, float tl, float tr, float br, float bl)  {defaultDrawBuffer.rect(a, b, c, d, tl, tr, br, bl);}
+	public void	rectMode(int mode) {defaultDrawBuffer.rectMode(mode);}
+	public float	red(int rgb) {return defaultDrawBuffer.red(rgb);}
+	public void	removeCache(PImage image) {defaultDrawBuffer.removeCache(image);}
+	public void	resetMatrix() {defaultDrawBuffer.resetMatrix();}
+	public void	resetShader() {defaultDrawBuffer.resetShader();}
+	public void	resetShader(int kind)  {defaultDrawBuffer.resetShader(kind);}
+	public void	rotate(float angle) {defaultDrawBuffer.rotate(angle);}
+	public void	rotate(float angle, float x, float y, float z) {defaultDrawBuffer.rotate(angle, x, y, z);}
+	public void	rotateX(float angle) {defaultDrawBuffer.rotateX(angle);}
+	public void	rotateY(float angle) {defaultDrawBuffer.rotateY(angle);}
+	public void	rotateZ(float angle) {defaultDrawBuffer.rotateZ(angle);}
+	public float	saturation(int rgb) {return defaultDrawBuffer.saturation(rgb);}
+	public boolean	save(String filename) {return defaultDrawBuffer.save(filename);}
+	public void	scale(float s) {defaultDrawBuffer.scale(s);}
+	public void	scale(float x, float y) {defaultDrawBuffer.scale(x, y);}
+	public void	scale(float x, float y, float z)  {defaultDrawBuffer.scale(x, y, z);}
+	public float	screenX(float x, float y) {return defaultDrawBuffer.screenX(x, y);}
+	public float	screenX(float x, float y, float z) {return defaultDrawBuffer.screenX(x, y, z);}
+	public float	screenY(float x, float y) {return defaultDrawBuffer.screenY(x, y);}
+	public float	screenY(float x, float y, float z) {return defaultDrawBuffer.screenY(x, y, z);}
+	public float	screenZ(float x, float y, float z) {return defaultDrawBuffer.screenZ(x, y, z);}
+	public void	setCache(PImage image, Object storage) {defaultDrawBuffer.setCache(image, storage);}
+	public void	setMatrix(PMatrix source) {defaultDrawBuffer.setMatrix(source);}
+	public void	setMatrix(PMatrix2D source) {defaultDrawBuffer.setMatrix(source);}
+	public void	setMatrix(PMatrix3D source) {defaultDrawBuffer.setMatrix(source);}
+	public void	setParent(PApplet parent)  {defaultDrawBuffer.setParent(parent);}
+	public void	setPath(String path)  {defaultDrawBuffer.setPath(path);}
+	public void	setPrimary(boolean primary) {defaultDrawBuffer.setPrimary(primary);}
+	public void	setSize(int w, int h) {defaultDrawBuffer.setSize(w, h);}
+	public void	shader(PShader shader) {defaultDrawBuffer.shader(shader);}
+	public void	shader(PShader shader, int kind)  {defaultDrawBuffer.shader(shader, kind);}
+	public void	shape(PShape shape)  {defaultDrawBuffer.shape(shape);}
+	public void	shape(PShape shape, float x, float y) {defaultDrawBuffer.shape(shape, x, y);}
+	public void	shape(PShape shape, float a, float b, float c, float d)  {defaultDrawBuffer.shape(shape, a, b, c, d);}
+	public void	shapeMode(int mode) {defaultDrawBuffer.shapeMode(mode);}
+	public void	shearX(float angle) {defaultDrawBuffer.shearX(angle);}
+	public void	shearY(float angle) {defaultDrawBuffer.shearY(angle);}
+	public void	shininess(float shine) {defaultDrawBuffer.shininess(shine);}
+//	static void	showDepthWarning(String method) {defaultDrawBuffer
+//	static void	showDepthWarningXYZ(String method) {defaultDrawBuffe
+//	static void	showException(String msg) {defaultDrawBuffe
+//	static void	showMethodWarning(String method) {defaultDrawBuffe
+//	static void	showMissingWarning(String method) {defaultDrawBuffe
+//	static void	showVariationWarning(Stringstatic void	showWarning(String msg, Object... args) str) {defaultDrawBuffe
+//	static void	showWarning(String msg) {defaultDrawBuffe
+	public void	smooth() {defaultDrawBuffer.smooth();}
+	public void	smooth(int quality) {defaultDrawBuffer.smooth(quality);}
+	public void	specular(float gray) {defaultDrawBuffer.specular(gray);}
+	public void	specular(float v1, float v2, float v3) {defaultDrawBuffer.specular(v1, v2, v3);} 
+	public void	specular(int rgb) {defaultDrawBuffer.specular(rgb);}
+	public void	sphere(float r) {defaultDrawBuffer.sphere(r);}
+	public void	sphereDetail(int res) {defaultDrawBuffer.sphereDetail(res);}
+	public void	sphereDetail(int ures, int vres) {defaultDrawBuffer.sphereDetail(ures, vres);}
+	public void	spotLight(float v1, float v2, float v3, float x, float y, float z, float nx, float ny, float nz, float angle, float concentration) {defaultDrawBuffer.spotLight(v1, v2, v3, x, y, z, nx, ny, nz, angle, concentration);}
+	public void	stroke(float gray)  {defaultDrawBuffer.stroke(gray);}
+	public void	stroke(float gray, float alpha)  {defaultDrawBuffer.stroke(gray, alpha);}
+	public void	stroke(float v1, float v2, float v3)  {defaultDrawBuffer.stroke(v1, v2, v3);}
+	public void	stroke(float v1, float v2, float v3, float alpha)  {defaultDrawBuffer.stroke(v1, v2, v3, alpha);}
+	public void	stroke(int rgb) {defaultDrawBuffer.stroke(rgb);}
+	public void	stroke(int rgb, float alpha) {defaultDrawBuffer.stroke(rgb, alpha);}
+	public void	strokeCap(int cap) {defaultDrawBuffer.strokeCap(cap);}
+	public void	strokeJoin(int join) {defaultDrawBuffer.strokeJoin(join);}
+	public void	strokeWeight(float weight) {defaultDrawBuffer.strokeWeight(weight);}
+	public void	style(PStyle s) {defaultDrawBuffer.style(s);}
+	public void	text(char[] chars, int start, int stop, float x, float y) {defaultDrawBuffer.text(chars, start, stop, x, y);}
+	public void	text(char[] chars, int start, int stop, float x, float y, float z) {defaultDrawBuffer.text(chars, start, stop, x, y, z);}
+	public void	text(char c, float x, float y) {defaultDrawBuffer.text(c, x, y);}
+	public void	text(char c, float x, float y, float z)  {defaultDrawBuffer.text(c, x, y, z);}
+	public void	text(float num, float x, float y) {defaultDrawBuffer.text(num, x, y);}
+	public void	text(float num, float x, float y, float z)  {defaultDrawBuffer.text(num, x, y, z);}
+	public void	text(int num, float x, float y)  {defaultDrawBuffer.text(num, x, y);}
+	public void	text(int num, float x, float y, float z)  {defaultDrawBuffer.text(num, x, y, z);}
+	public void	text(String str, float x, float y) {defaultDrawBuffer.text(str, x, y);}
+	public void	text(String str, float x, float y, float z) {defaultDrawBuffer.text(str, x, y, z);}
+	public void	text(String str, float x1, float y1, float x2, float y2) {defaultDrawBuffer.text(str, x1, y1, x2, y2);}
+	public void	textAlign(int alignX)  {defaultDrawBuffer.textAlign(alignX);}
+	public void	textAlign(int alignX, int alignY) {defaultDrawBuffer.textAlign(alignX, alignY);}
+	public float	textAscent() {return defaultDrawBuffer.textAscent();}
+	public float	textDescent() {return defaultDrawBuffer.textDescent();}
+	public void	textFont(PFont which) {defaultDrawBuffer.textFont(which);}
+	public void	textFont(PFont which, float size) {defaultDrawBuffer.textFont(which, size);}
+	public void	textLeading(float leading) {defaultDrawBuffer.textLeading(leading);}
+	public void	textMode(int mode) {defaultDrawBuffer.textMode(mode);}
+	public void	textSize(float size) {defaultDrawBuffer.textSize(size);}
+	public void	texture(PImage image) {defaultDrawBuffer.texture(image);}
+	public void	textureMode(int mode) {defaultDrawBuffer.textureMode(mode);}
+	public void	textureWrap(int wrap) {defaultDrawBuffer.textureWrap(wrap);}
+	public float	textWidth(char c) {return defaultDrawBuffer.textWidth(c);}
+	public float	textWidth(char[] chars, int start, int length) {return defaultDrawBuffer.textWidth(chars, start, length);}
+	public float	textWidth(String str) {return defaultDrawBuffer.textWidth(str);}
+	public void	tint(float gray)  {defaultDrawBuffer.tint(gray);}
+	public void	tint(float gray, float alpha) {defaultDrawBuffer.tint(gray, alpha);}
+	public void	tint(float v1, float v2, float v3)  {defaultDrawBuffer.tint(v1, v2, v3);}
+	public void	tint(float v1, float v2, float v3, float alpha) {defaultDrawBuffer.tint(v1, v2, v3, alpha);}
+	public void	tint(int rgb) {defaultDrawBuffer.tint(rgb);}
+	public void	tint(int rgb, float alpha)  {defaultDrawBuffer.tint(rgb, alpha);}
+	public void	translate(float x, float y) {defaultDrawBuffer.translate(x, y);}
+	public void	translate(float x, float y, float z)  {defaultDrawBuffer.translate(x, y, z);}
+	public void	triangle(float x1, float y1, float x2, float y2, float x3, float y3) {defaultDrawBuffer.triangle(x1, y1, x2, y2, x3, y3);}
+	public void	vertex(float[] v) {defaultDrawBuffer.vertex(v);}
+	public void	vertex(float x, float y) {defaultDrawBuffer.vertex(x, y);}
+	public void	vertex(float x, float y, float z) {defaultDrawBuffer.vertex(x, y, z);}
+	public void	vertex(float x, float y, float u, float v) {defaultDrawBuffer.vertex(x, y, u, v);}
+	public void	vertex(float x, float y, float z, float u, float v) {defaultDrawBuffer.vertex(x, y, z, u, v);}
 }
+
+
