@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ProjectionMap>
+  <surface filename="img.jpg" id="0" lock="0" name="0" res="3" type="0">
+    <cornerpoint i="0" x="106.0" y="143.0"/>
+    <cornerpoint i="1" x="380.0" y="320.0"/>
+    <cornerpoint i="2" x="384.0" y="563.0"/>
+    <cornerpoint i="3" x="106.0" y="410.0"/>
+  </surface>
+  <surface filename="" id="1" lock="0" name="1" res="3" type="0">
+    <cornerpoint i="0" x="380.0" y="320.0"/>
+    <cornerpoint i="1" x="722.0" y="130.0"/>
+    <cornerpoint i="2" x="701.0" y="408.0"/>
+    <cornerpoint i="3" x="384.0" y="563.0"/>
+  </surface>
+  <surface filename="img.jpg" id="2" lock="0" name="2" res="3" type="0">
+    <cornerpoint i="0" x="398.0" y="24.0"/>
+    <cornerpoint i="1" x="722.0" y="130.0"/>
+    <cornerpoint i="2" x="380.0" y="320.0"/>
+    <cornerpoint i="3" x="106.0" y="143.0"/>
+  </surface>
+  <surface filename="img.jpg" id="3" lock="0" name="3" res="3" type="0">
+    <cornerpoint i="0" x="638.0" y="449.0"/>
+    <cornerpoint i="1" x="738.0" y="449.0"/>
+    <cornerpoint i="2" x="738.0" y="549.0"/>
+    <cornerpoint i="3" x="638.0" y="549.0"/>
+  </surface>
+  <surface filename="img.jpg" id="4" lock="0" name="4" res="3" type="0">
+    <cornerpoint i="0" x="334.0" y="276.0"/>
+    <cornerpoint i="1" x="434.0" y="276.0"/>
+    <cornerpoint i="2" x="434.0" y="376.0"/>
+    <cornerpoint i="3" x="334.0" y="376.0"/>
+  </surface>
+</ProjectionMap>

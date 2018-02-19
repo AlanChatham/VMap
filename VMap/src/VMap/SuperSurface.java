@@ -55,6 +55,9 @@ public abstract class SuperSurface{
 	public final static int QUAD = 0;
 	public final static int BEZIER = 1;
 	
+	public final static int CLOCKWISE = 0;
+	public final static int COUNTERCLOCKWISE = 1;
+	
 	protected PImage texture;
 	protected String textureFilename;
 	
@@ -347,19 +350,19 @@ public abstract class SuperSurface{
 	 * Rotate the corners of surface (0=ClockWise, 1=CounterClockWise)
 	 * TODO Broken for Bezier Surfaces
 	 * TODO Abstact out?
-	 * @param direction
+	 * @param direction CLOCKWISE or COUNTERCLOCKWISE
 	 */
 	public void rotateCornerPoints(int direction){
 		PVector[] sourcePoints = cornerPoints.clone();
 		switch(direction){
-		case 0:
+		case SuperSurface.CLOCKWISE:
 			cornerPoints[0] = sourcePoints[1];
 			cornerPoints[1] = sourcePoints[2];
 			cornerPoints[2] = sourcePoints[3];
 			cornerPoints[3] = sourcePoints[0];
 			this.updateTransform();
 			break;
-		case 1:
+		case SuperSurface.COUNTERCLOCKWISE:
 			cornerPoints[0] = sourcePoints[3];
 			cornerPoints[1] = sourcePoints[0];
 			cornerPoints[2] = sourcePoints[1];

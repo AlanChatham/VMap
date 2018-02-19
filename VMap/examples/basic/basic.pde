@@ -60,7 +60,7 @@ void draw(){
 //  for people needing keyboard input. Feel free to change
 //  the bindings in your programs, though.
 
-void keyPressed(){
+void kepyPressed(){
   //create a new QUAD surface at mouse pos
   if(key == 'a')
    vmap.addQuadSurface("img.jpg",mouseX,mouseY);

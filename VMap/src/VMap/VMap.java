@@ -90,6 +90,7 @@ public class VMap extends PImage implements PConstants{
 	private boolean snap = true;
 
 	private PVector prevMouse = new PVector();
+	private boolean keybindingsEnabled = true;
 	private boolean ctrlDown;
 	private boolean altDown;
 	private boolean grouping;
@@ -155,6 +156,8 @@ public class VMap extends PImage implements PConstants{
 	
 	PJOGL pgl;
 	GL3ES3 gl;
+	
+	public String DefaultSaveLocation = "mapping.xml";
 	
 	
 	/**
@@ -814,7 +817,6 @@ public class VMap extends PImage implements PConstants{
 			
 			setupGridTexture(surfaces.get(i).texture);
 			int numVertices = this.quadVertices.size() / 10;
-			PApplet.println("number of vertices to draw: " +  numVertices);
 			gl.glDrawArrays(GL.GL_TRIANGLES, 0, numVertices);
 			
 			currentMainShader.unbind();
@@ -1556,12 +1558,59 @@ public class VMap extends PImage implements PConstants{
 	}
 	
 	/**
+	 * Returns whether or not keybindings are enabled
+	 * @return Returns true or false if keyboard shortcuts are enabled or disabled
+	 */
+	public boolean getKeybindingsEnabled(){
+		return this.keybindingsEnabled;
+	}
+	/**
+	 * Sets keyboard shortcuts to on or off (true/false)
+	 * @param value true for enabled, false for disabled
+	 */
+	public void setKeybindingsEnabled(boolean value){
+		this.keybindingsEnabled = value;
+	}
+	
+	/**
+	 * Turns on keyboard shortcuts. Keyboard shortcuts default to being enabled.
+	 */
+	public void enableKeybindings(){
+		this.setKeybindingsEnabled(true);
+	}
+	
+	/**
+	 * Disables keyboard shortcuts. Keyboard shortcuts default to being enabled.
+	 *  Use this if the keybindings are interfering with the program you're writing,
+	 *  most likely to happen if you're program might accept a 'c' as an input,
+	 *  since that's the one keybinding that's active oustide of configuration mode
+	 */
+	public void disableKeybindings(){
+		this.setKeybindingsEnabled(false);
+	}
+	
+	
+	
+	/**
 	 * KeyEvent method
 	 * @param k KeyEvent thrown from Processing
 	 */
 	public void keyEvent(KeyEvent k) {
-		if (MODE == MODE_RENDER)
+		
+		//If key bindings are disabled, just return immediately
+		if (this.keybindingsEnabled == false){
+			return;
+		}
+		
+		// Make sure that, assuming keybindings work,
+		//  you can always toggle calibration mode with 'c'
+		if (k.getKey() == 'c' && k.getAction() == KeyEvent.PRESS){
+			this.toggleCalibration();;
+		}
+		// Ignore everything else we're in render mode (instead of calibration mode)
+		if (MODE == MODE_RENDER){
 			return; // ignore everything unless we're in calibration mode
+		}
 
 		switch (k.getAction()) {
 		case KeyEvent.RELEASE:
@@ -1582,107 +1631,141 @@ public class VMap extends PImage implements PConstants{
 			break;
 
 		case KeyEvent.PRESS:
-
+			// Coded keys (as opposed to ASCII letters
 			switch (k.getKeyCode()) {
-			case '1':
-				if (selectedSurfaces.size() == 1)
-					selectedSurfaces.get(0).setSelectedCorner(0);
-				break;
-
-			case '2':
-				if (selectedSurfaces.size() == 1)
-					selectedSurfaces.get(0).setSelectedCorner(1);
-				break;
-
-			case '3':
-				if (selectedSurfaces.size() == 1)
-					selectedSurfaces.get(0).setSelectedCorner(2);
-				break;
-
-			case '4':
-				if (selectedSurfaces.size() == 1)
-					selectedSurfaces.get(0).setSelectedCorner(3);
-				break;
-
-			case PConstants.UP:
-				for (SuperSurface ss : selectedSurfaces) {
-					movePoint(ss, 0,-1);
-				}
-				break;
-
-			case PConstants.DOWN:
-				for (SuperSurface ss : selectedSurfaces) {
-					movePoint(ss, 0, 1);
-				}
-				break;
-
-			case PConstants.LEFT:
-				for (SuperSurface ss : selectedSurfaces) {
-					movePoint(ss, -1, 0);
-				}
-				break;
-
-			case PConstants.RIGHT:
-				for (SuperSurface ss : selectedSurfaces) {
-					movePoint(ss, 1, 0);
-				}
-				break;
-				/*
-			case KeyEvent.VK_O:
-				for (SuperSurface ss : selectedSurfaces) {
-					ss.increaseResolution();
-				}
-				break;
-
-			case KeyEvent.VK_P:
-				for (SuperSurface ss : selectedSurfaces) {
-					ss.decreaseResolution();
-				}
-				break;
+				case '1':
+					if (selectedSurfaces.size() == 1)
+						selectedSurfaces.get(0).setSelectedCorner(0);
+					break;
+	
+				case '2':
+					if (selectedSurfaces.size() == 1)
+						selectedSurfaces.get(0).setSelectedCorner(1);
+					break;
+	
+				case '3':
+					if (selectedSurfaces.size() == 1)
+						selectedSurfaces.get(0).setSelectedCorner(2);
+					break;
+	
+				case '4':
+					if (selectedSurfaces.size() == 1)
+						selectedSurfaces.get(0).setSelectedCorner(3);
+					break;
+	
+				case PConstants.UP:
+					for (SuperSurface ss : selectedSurfaces) {
+						movePoint(ss, 0,-1);
+					}
+					break;
+	
+				case PConstants.DOWN:
+					for (SuperSurface ss : selectedSurfaces) {
+						movePoint(ss, 0, 1);
+					}
+					break;
+	
+				case PConstants.LEFT:
+					for (SuperSurface ss : selectedSurfaces) {
+						movePoint(ss, -1, 0);
+					}
+					break;
+	
+				case PConstants.RIGHT:
+					for (SuperSurface ss : selectedSurfaces) {
+						movePoint(ss, 1, 0);
+					}
+					break;
+					
+				case PConstants.DELETE:
+				case PConstants.BACKSPACE:
+					removeSelectedSurfaces();
+					break;
 				
-			case KeyEvent.VK_U:
-				for (SuperSurface ss : selectedSurfaces) {
-					ss.increaseHorizontalForce();
-				}
-				break;
-
-			case KeyEvent.VK_I:
-				for (SuperSurface ss : selectedSurfaces) {
-					ss.decreaseHorizontalForce();
-				}
-				break;
+				case PConstants.CONTROL:
+				case CMD:
+					ctrlDown = true;
+					grouping = true;
+					break;
+	
+				case PConstants.ALT:
+					altDown = true;
+					break;
+			}
 			
-			case KeyEvent.VK_J:
-				for (SuperSurface ss : selectedSurfaces) {
-					ss.increaseVerticalForce();
-				}
-				break;
-
-			case KeyEvent.VK_K:
-				for (SuperSurface ss : selectedSurfaces) {
-					ss.decreaseVerticalForce();
-				}
-				break;
-
-			case KeyEvent.VK_T:
-				for (SuperSurface ss : selectedSurfaces) {
-					ss.toggleLocked();
-				}
-				break;
-
-			case KeyEvent.VK_BACK_SPACE:
-				removeSelectedSurfaces();
-				break;
-			*/
-			case PConstants.CONTROL:
-			case CMD:
-				ctrlDown = true;
-				grouping = true;
-				break;
-
-			case PConstants.ALT:
-				altDown = true;
-				break;
+			switch (k.getKey()){
+				
+				case 'o':
+					for (SuperSurface ss : selectedSurfaces) {
+						ss.increaseResolution();
+					}
+					break;
+	
+				case 'p':
+					for (SuperSurface ss : selectedSurfaces) {
+						ss.decreaseResolution();
+					}
+					break;
+				/*	
+				case 'u':
+					for (SuperSurface ss : selectedSurfaces) {
+						ss.increaseHorizontalForce();
+					}
+					break;
+	
+				case 'i':
+					for (SuperSurface ss : selectedSurfaces) {
+						ss.decreaseHorizontalForce();
+					}
+					break;
+				
+				case 'j':
+					for (SuperSurface ss : selectedSurfaces) {
+						ss.increaseVerticalForce();
+					}
+					break;
+	
+				case 'k':
+					for (SuperSurface ss : selectedSurfaces) {
+						ss.decreaseVerticalForce();
+					}
+					break;
+	*/
+				case 't':
+					for (SuperSurface ss : selectedSurfaces) {
+						ss.toggleLocked();
+					}
+					break;
+				
+				case 'a':
+					this.addQuadSurface(this.parent.mouseX, this.parent.mouseY);
+					break;
+					
+				case 'z':
+					this.addBezierSurface(this.parent.mouseX, this.parent.mouseY);
+					break;
+					
+				case 's':
+					this.saveXML(this.DefaultSaveLocation);
+					break;	
+					
+				case 'l':
+					this.loadXML(this.DefaultSaveLocation);
+					break;
+					
+				case 'w':
+					for(SuperSurface ss : this.selectedSurfaces){
+					    ss.rotateCornerPoints(SuperSurface.CLOCKWISE);
+					}
+					break;
+					
+				case 'q':
+					for(SuperSurface ss : this.selectedSurfaces){
+					    ss.rotateCornerPoints(SuperSurface.COUNTERCLOCKWISE);
+					}
+					break;
+					  
+			
 			}
 		}
 	}
