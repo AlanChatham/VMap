@@ -31,15 +31,22 @@ void setup(){
   
   //Creates one surface with subdivision 3, at center of screen
   vmap.addQuadSurface("img.jpg", width/2, height/2);
-
+  vmap.addQuadSurface(100,100);
 }
 
 void draw(){
-  println("entered draw");
   // Draw the background black
-  background(0);
+  //background(0);
 
+  vmap.beginDraw();
+  vmap.fill(50,50,255, 50);
+  vmap.rect(50,50,200,200);
+  vmap.endDraw();
   // Now update the VMap buffer
+  
+  //Set a shader mode
+//vmap.currentMainShader = vmap.projectiveShader;
+  
   vmap.render();
   // Finally, draw the VMap buffer to the window
   image(vmap,0,0,width,height);

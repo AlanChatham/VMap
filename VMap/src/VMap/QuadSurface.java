@@ -369,6 +369,17 @@ public class QuadSurface extends SuperSurface{
 		if(this.isHidden()) return;
 		this.renderQuad(g, tex);
 	}
+	
+	/**
+	 * Actual rendering of the QUAD using direct OpenGL calls
+	 * Is called from the render method.
+	 * Should normally not be accessed directly.
+	 * @param g PGraphics buffer to draw to
+	 * @param tex texture to apply
+	 */
+	private void renderQuadOpenGL(PGraphics g, PImage tex) {
+	
+	}
 
 	/**
 	 * Actual rendering of the QUAD. Is called from the render method.
@@ -466,13 +477,13 @@ public class QuadSurface extends SuperSurface{
 			g.stroke(QuadSurface.GRID_LINE_SELECTED_COLOR);
 
 		if (!isLocked) {
-			// Draw vertial grid lines
+			// Draw vertical grid lines
 			int rowOffset = (this.GRID_RESOLUTION * this.GRID_RESOLUTION) - this.GRID_RESOLUTION;
 			for (int i = 0; i < this.GRID_RESOLUTION; i++) {
 				g.line(this.gridPoints[i].x, this.gridPoints[i].y, this.gridPoints[i + rowOffset].x, this.gridPoints[i + rowOffset].y);
 			}
 
-			// Draw horezontal grid lines
+			// Draw horizontal grid lines
 			for (int y = 0; y < this.GRID_RESOLUTION; y++) {
 				int row = this.GRID_RESOLUTION * y;
 				g.line(this.gridPoints[row].x, this.gridPoints[row].y, this.gridPoints[row + this.GRID_RESOLUTION - 1].x, this.gridPoints[row + this.GRID_RESOLUTION - 1].y);

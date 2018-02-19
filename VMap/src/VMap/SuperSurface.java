@@ -27,6 +27,7 @@ import java.awt.Polygon;
 import processing.core.PGraphics;
 import processing.core.PImage;
 import processing.core.PVector;
+import processing.opengl.PShader;
 import processing.core.PApplet;
 
 public abstract class SuperSurface{
@@ -78,6 +79,9 @@ public abstract class SuperSurface{
 	protected boolean isSelected;
 	protected boolean isLocked;
 	protected int selectedCorner;
+	
+	// Allow each SuperSurface to have it's own shader, just in case
+	protected PShader shader;
 	
 	// Default constructor
 	public SuperSurface(){
@@ -144,6 +148,22 @@ public abstract class SuperSurface{
 	 */
 	public void setTexture(PImage tex){
 		this.texture = tex;
+	}
+	
+	/**
+	 * Sets the surface's shader
+	 * @param tex Texture to set
+	 */
+	public void setShader(PShader s){
+		this.shader = s;
+	}
+	
+	/**
+	 * gets the surface's texture
+	 * @return PShader set to this texture, often null
+	 */
+	public PShader getShader(){
+		return this.shader;
 	}
 
 	/**
@@ -490,17 +510,7 @@ public abstract class SuperSurface{
 		this.updateTransform();
 	}
 	
-	protected abstract void updateTransform();/*{
-		switch(type){
-			case QUAD:
-				quadSurface.updateTransform();
-				break;
-			case BEZIER:
-				bezierSurface.updateTransform();;	
-				break;
-		
-		}
-	}*/
+	protected abstract void updateTransform();
 	
 	/**
 	 * Get the average center point of the surface
@@ -541,6 +551,7 @@ public abstract class SuperSurface{
 		if(sm != null){
 			// Update the shaking
 			this.shake();
+			// Handle rendering if there is a texture or not
 			if (this.texture != null){
 				this.render(sm.offScreenBuffer, this.texture);
 			}

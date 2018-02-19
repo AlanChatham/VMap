@@ -27,14 +27,14 @@ public class BezierPoint3D extends PVector{
 	    controlPoint1 = new PVector(x + 25, y + 25, 0);
 	}
 	
-	public void add(float x, float y){
+	public void addControl(float x, float y){ // formerly known as add, maybe should put back, and set output to PVector
 		PVector additional = new PVector(x,y);
 		this.add(additional);
 		this.controlPoint0.add(additional);
 		this.controlPoint1.add(additional);
 	}
 
-	public void rotate(float theta){
+	public void rotateControl(float theta){// formerly known as rotate, maybe should put back, and set output to PVector
 		PVector root = new PVector(this.x,this.y);
 		controlPoint0.sub(root);
 		controlPoint0.rotate(theta);

@@ -3,7 +3,8 @@
 	<classpathentry kind="src" output="bin" path="src"/>
 	<classpathentry exported="true" kind="lib" path="C:/Program Files/Java/jdk1.8.0_65/lib/tools.jar"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry exported="true" kind="lib" path="C:/Users/Alan/Desktop/processing-2.2.1/core/library/core.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Alan/Desktop/processing-3.3.6/core/library/core.jar"/>
 	<classpathentry kind="lib" path="libs/jai_core.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Alan/Desktop/processing-3.3.6/core/library/jogl-all.jar"/>
 	<classpathentry kind="output" path="resources/code"/>
 </classpath>

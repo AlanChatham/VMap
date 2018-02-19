@@ -35,6 +35,7 @@ import processing.core.PFont;
 import processing.core.PGraphics;
 import processing.opengl.PGraphics2D;
 import processing.opengl.PGraphics3D;
+import processing.opengl.PJOGL;
 import processing.core.PMatrix;
 import processing.core.PMatrix2D;
 import processing.core.PMatrix3D;
@@ -47,6 +48,16 @@ import processing.opengl.PShader;
 import processing.core.PStyle;
 // Add this in after updating to a new processing.core library
 //import processing.core.PSurface;
+
+//OpenGL imports
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GL3ES3;
 
 public class VMap extends PImage implements PConstants{
 		
@@ -99,6 +110,9 @@ public class VMap extends PImage implements PConstants{
 
 	private boolean debug = true;
 	
+	private int TEXT_LEFT_MARGIN = 20;
+	private int TEXT_BOTTOM_MARGIN = 20;
+	
 	// Should we use the defaultDrawBuffer, 
 	//  which lets us do vmap.rect() and stuff,
 	//  and automatically apply it to mapped areas with no texture?
@@ -109,6 +123,39 @@ public class VMap extends PImage implements PConstants{
 	private int shakeSpeed;
 	private float shakeAngle;
 	private float shakeZ;
+	
+	// OpenGL stuff
+	public PImage gridTexture;
+	
+	
+	public PShader testShader;
+	public PShader projectiveShader;
+	public PShader bilinearShader;
+	public PShader currentMainShader;
+	
+	// Shader attribute locations
+	private int basicPosLoc;
+	private int basicColorLoc;
+	private int basicTexLoc;
+	
+	private int projectivePosLoc;
+	private int projectiveColorLoc;
+	private int projectiveTexLoc;
+	
+	private int bilinearPosLoc;
+	private int bilinearColorLoc;
+	private int bilinearTexLoc;
+	
+	
+	private int VAOAddress;
+	private int VBOAddress;
+	private int gridTexAddress;
+	
+	private ArrayList<Float> quadVertices;
+	
+	PJOGL pgl;
+	GL3ES3 gl;
+	
 	
 	/**
 	 * Create instance of VMap
@@ -141,6 +188,392 @@ public class VMap extends PImage implements PConstants{
 
 		this.offScreenBuffer = parent.createGraphics(width, height, P3D);
 		this.defaultDrawBuffer = parent.createGraphics(width, height, P3D);
+		
+		
+		// OpenGL setup stuff //
+		// use newer, nicer OpenGL features, mainly for EBOs
+		//PJOGL.profile = 4;
+		
+		quadVertices = new ArrayList<Float>();		
+		// Load in our shaders
+		this.testShader = parent.loadShader("testShader.frag", "testShader.vert");
+		this.projectiveShader = parent.loadShader("projectiveShader.frag", "projectiveShader.vert");
+		this.bilinearShader = parent.loadShader("bilinearInterpolation.frag", "bilinearInterpolation.vert");
+		
+		this.currentMainShader = this.bilinearShader;
+		
+		PApplet.println("Loaded shaders");
+		
+		this.gridTexture = parent.loadImage("grid.png");
+		
+		//Set up our OpenGL contexts
+		//this.beginDraw();
+		
+		
+		this.pgl = (PJOGL) parent.beginPGL(); 
+		PApplet.print("Loaded pgl: ");
+		PApplet.println(pgl);
+		
+		gl = pgl.gl.getGL3ES3();
+		PApplet.print("Loaded GL3ES3 context: ");
+		PApplet.println(gl);
+		
+		
+		
+		
+		parent.ellipse(200,200,200,200);
+
+		setupOpenGLAddresses();
+		
+		this.findVertexAttributeLocations();
+		
+
+		PApplet.println("finished setup");
+		//this.endDraw();
+		
+	}
+	
+	/**
+	 * Sets up vertex attribute locations
+	 *  by getting them from the shaders.
+	 *  Only have to do this once at the start
+	 */
+	private void findVertexAttributeLocations(){
+		// Get Vertex Attribute Location for position
+		this.testShader.bind();
+	    basicPosLoc = gl.glGetAttribLocation(testShader.glProgram, "position");
+	    basicColorLoc = gl.glGetAttribLocation(testShader.glProgram, "color");
+	    basicTexLoc = gl.glGetAttribLocation(testShader.glProgram, "texLoc");
+	    this.testShader.unbind();
+	    
+	    this.projectiveShader.bind();
+	    projectivePosLoc = gl.glGetAttribLocation(projectiveShader.glProgram, "position");
+	    projectiveColorLoc = gl.glGetAttribLocation(projectiveShader.glProgram, "color");
+	    projectiveTexLoc = gl.glGetAttribLocation(projectiveShader.glProgram, "texLoc");
+	    this.projectiveShader.unbind();
+	    
+	    this.bilinearShader.bind();
+	    bilinearPosLoc = gl.glGetAttribLocation(bilinearShader.glProgram, "position");
+	    bilinearColorLoc = gl.glGetAttribLocation(bilinearShader.glProgram, "color");
+	    bilinearTexLoc = gl.glGetAttribLocation(bilinearShader.glProgram, "texLoc");    
+	    this.bilinearShader.unbind();
+	
+	}
+	
+	/**
+	 * Set up addresses for OpenGL buffers
+	 *  Sets up a VAO, VBO, and a texture buffer
+	 */
+	private void setupOpenGLAddresses(){
+		// Let's set up some Vertex Attribute Objects
+				IntBuffer VAONames = IntBuffer.allocate(1);
+				gl.glGenVertexArrays(1, VAONames);
+				VAOAddress = VAONames.get(0);
+	
+				// Get a buffer address from the GPU
+				IntBuffer VBONames = IntBuffer.allocate(1); 
+				gl.glGenBuffers(1, VBONames);
+				VBOAddress = VBONames.get(0);
+				
+				// Get a texture address
+				IntBuffer TexNames = IntBuffer.allocate(1);
+				gl.glGenTextures(1, TexNames);
+				gridTexAddress = TexNames.get(0);
+	}
+	
+	/**
+	 * Sets up geometry in OpenGL
+	 *  Kind of a disaster right now, since
+	 *  it involves pulling mystery data out of thin air
+	 *  from a global set of coordinates in setOpenGLVerticies
+	 *  which should probably be refactored.
+	 */
+	private void setupOpenGLGeometry(){
+		
+		// Bind our VAO
+		gl.glBindVertexArray(VAOAddress);
+
+		// Now, create a VBO, bind it, add data to it,
+		//  and keep it bound for us to use in this function
+		setOpenGLVertices();		
+		
+		
+		// Now tell the shader how our data in our VBO is structured,
+		//  using Vertex Attribute pointers, like you do
+		gl.glVertexAttribPointer(basicPosLoc, 3, GL.GL_FLOAT,
+				                 false, 10 * Float.BYTES, 0);
+		gl.glEnableVertexAttribArray(basicPosLoc);  
+		
+		// color
+		gl.glVertexAttribPointer(basicColorLoc, 4, GL.GL_FLOAT,
+		                         false, 10 * Float.BYTES, 3 * Float.BYTES);
+		gl.glEnableVertexAttribArray(basicColorLoc);
+		  
+		  // texture position
+		gl.glVertexAttribPointer(basicTexLoc, 3, GL.GL_FLOAT,
+		                         false, 10 * Float.BYTES, 7 * Float.BYTES);
+		gl.glEnableVertexAttribArray(basicTexLoc);
+		
+		
+		//Unbind our VAO, just for s's and g's
+		//gl.glBindVertexArray(0);
+		// Do the same for our VBO
+		//gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+	}
+	
+	/**
+	 * This helper function is suuuuuper important
+	 *  It takes in an array of exactly 4 PVector vertices, and
+	 *  calculates helper values that our projective and bilinear
+	 *  interpolation shaders need. Where the magic happens.
+	 * @param vertices Array of 4 PVectors, taking the 4 corner points of the 
+	 *                  quad in screen pixel coordinates
+	 * @param projective Are we using the projective shader? If so, we need
+	 *                    to know, since we do extra calculations on our UV points
+	 */
+	private void addQuadPointsToVertexList(PVector[] vertices, boolean projective){
+		if (vertices.length != 4){
+			PApplet.println("Warning! One of your superSurfaces has less than 4 vertices");
+		}
+		// For more sensible internal calculation
+		PVector topLeft = convertPixelToOpenGLCoords(vertices[0]);
+		PVector topRight = convertPixelToOpenGLCoords(vertices[1]);
+		PVector bottomRight = convertPixelToOpenGLCoords(vertices[2]);
+		PVector bottomLeft = convertPixelToOpenGLCoords(vertices[3]);
+		
+		// Figure out q values for projective projection
+		// Figure out the diagonal intersection point
+		PVector di = new PVector (0,0);
+		float m1 = (topRight.y - bottomLeft.y) / (topRight.x - bottomLeft.x);
+		float m2 = (bottomRight.y - topLeft.y) / (bottomRight.x - topLeft.x);
+		//  println(m1);
+		//  println(m2);
+		// y = mx + b, y - mx = b
+		float b1 = topRight.y - (m1 * topRight.x);  
+		float b2 = topLeft.y - (m2 * topLeft.x);
+
+		//  println(b1);
+		//  println(b2);
+		// woo more algebra
+		// y1 = m1x1 + b1,        y1 = y2 and x1 = x2
+		// y2 = m2x2 + b2,  m1x + b1 = m2x2 + b2
+        //                 m1x - m2x = b2 - b1
+		//                   m1 - m2 = (b2 - b1) / x
+		//     (m1 - m2) / (b2 - b1) = 1/x
+		//     (b2 - b1) / (m1 - m2) = x
+		di.x = (b2 - b1) / (m1 - m2);
+		di.y = di.x * m1 + b1;
+
+		// distances between the points and the intersection point
+		float dtr = di.dist(topRight);
+		float dbr = di.dist(bottomRight);
+		float dbl = di.dist(bottomLeft);
+		float dtl = di.dist(topLeft);
+
+		// uvq values for the points
+		float q = 1;
+		if (projective == true) {q = (dtr + dbl) / dbl;}  
+		PVector topRightUVQ = new PVector(1.0f * q, 0.0f * q, q); 
+
+		if (projective == true) {q = (dbr + dtl) / dtl;}
+		PVector bottomRightUVQ = new PVector(1.0f * q, 1.0f * q, q);
+
+		if (projective == true) {q = (dtr + dbl) / dtr;}
+		PVector bottomLeftUVQ = new PVector(0.0f * q, 1.0f * q, q); 
+
+		if (projective == true) {q = (dbr + dtl) / dbr;}
+		PVector topLeftUVQ = new PVector(0.0f * q, 0.0f * q, q); 
+		
+		// Set the actual quad vertices
+		PVectorToQuadVertices(bottomLeft, bottomLeftUVQ); // bottom left
+		PVectorToQuadVertices(bottomRight, bottomRightUVQ); // bottom right
+		PVectorToQuadVertices(topLeft, topLeftUVQ); // top left
+		PVectorToQuadVertices(bottomRight, bottomRightUVQ); // bottom right
+		PVectorToQuadVertices(topRight, topRightUVQ); // top right
+		PVectorToQuadVertices(topLeft, topLeftUVQ); // top left
+//		
+//		PVectorToQuadVertices(convertPixelToOpenGLCoords(vertices[3]), 0.0f, 0.0f); // bottom left
+//		PVectorToQuadVertices(convertPixelToOpenGLCoords(vertices[2]), 1.0f, 0.0f); // bottom right
+//		PVectorToQuadVertices(convertPixelToOpenGLCoords(vertices[0]), 0.0f, 1.0f); // top left
+//		PVectorToQuadVertices(convertPixelToOpenGLCoords(vertices[2]), 1.0f, 0.0f); // bottom right
+//		PVectorToQuadVertices(convertPixelToOpenGLCoords(vertices[1]), 1.0f, 1.0f); // top right
+//		PVectorToQuadVertices(convertPixelToOpenGLCoords(vertices[0]), 0.0f, 1.0f); // top left
+	}
+	
+	
+//	private void PVectorToQuadVertices(PVector vector, float U, float V){
+//		PVectorToQuadVertices(vector, U, V, 1.0f);
+//	}
+	
+	/**
+	 * Helper function that adds a default color (1.0f, 1.0f, 1.0f)
+	 *  and UV texture mapping data to a coordinate PVector,
+	 *  getting it ready to send to the shader
+	 *  to our 
+	 * @param positions PVector containing X,Y (and Z, but that gets set to 0) points
+	 * @param texCoords PVector containing U,V texture mapping data for the point
+	 */
+	private void PVectorToQuadVertices(PVector positions, PVector texCoords){
+		this.PVectorToQuadVertices(positions, texCoords.x, texCoords.y, texCoords.z);
+	}
+	
+	/**
+	 * Helper function that adds a default color (1.0f, 1.0f, 1.0f)
+	 *  and UV texture mapping data to a coordinate PVector,
+	 *  getting it ready to send to the shader
+	 *  to our 
+	 * @param positions PVector containing X,Y (and Z, but that gets set to 0) points
+	 * @param U U texture sampling point for this vertex
+	 * @param V V texture sampling point for this vertex
+	 * @param Q Special mapping value, used in our projective mapping shader
+	 */
+	private void PVectorToQuadVertices(PVector vector, float U, float V, float Q){
+		float[] vertex = {vector.x, vector.y, 0.0f, //position
+						  1.0f, 1.0f, 1.0f, 1.0f,   //color
+						  U, V, Q};				//UVs
+		
+		for (int i = 0; i < vertex.length; i++){
+			quadVertices.add(vertex[i]);
+		}
+		
+	}
+	
+	/*
+	 * This function passes quad points to our bilinear shader
+	 *  It uses some magic data stored in our global quadVerticies
+	 *  array, which is dumb.
+	 */
+	private void setBilinearPoints(){
+		// Sanity check to make sure we have points to send
+		if (quadVertices.size() != 60){
+			PApplet.println("Warning: tried to set bilinear shader points without the right number of vertices");
+			PApplet.println("Expected 6, had " + quadVertices.size());
+			return;
+		}
+		// Also, make sure we've bound the bilinear shader
+		if (this.bilinearShader == null) {
+			PApplet.println("Warning: bilinearShader was null when trying to use setBilinearPoints");
+			return;
+		}
+		if (this.bilinearShader.bound() == false){
+		  PApplet.println("Warning: bilinear shader needs to be bound in order for setBilinearPoints to work");
+		  return;
+		}
+		
+		// Now actually get points!
+		int p0Location = gl.glGetUniformLocation(bilinearShader.glProgram, "p0");
+		int p1Location = gl.glGetUniformLocation(bilinearShader.glProgram, "p1");
+		int p2Location = gl.glGetUniformLocation(bilinearShader.glProgram, "p2");
+		int p3Location = gl.glGetUniformLocation(bilinearShader.glProgram, "p3");
+		
+		// Since we have our nice points, let's send them to the shader
+		gl.glUniform2f(p0Location, quadVertices.get(20), quadVertices.get(21)); //Top left//40Top right, set in addQuadPointsToVertex
+		gl.glUniform2f(p1Location, quadVertices.get(40), quadVertices.get(41)); //Top right //10Bottom right, set in addQuadPointsToVertex
+		gl.glUniform2f(p2Location, quadVertices.get(0), quadVertices.get(1)); //Bottom left //20Top left, set in addQuadPointsToVertex
+		gl.glUniform2f(p3Location, quadVertices.get(10), quadVertices.get(11)); //Bottom right//0Bottom left, set in addQuadPointsToVertex
+		
+		
+	}
+	
+	/**
+	 * This loads in a texture to the graphics card for OpenGL to use
+	 * @param texture Texture we want to use for the next OpenGL draw operations
+	 */
+	private void setupGridTexture(PImage texture){
+		// If we're in calibration mode, 
+		//  set the texture to our grid texture
+		if (MODE == MODE_CALIBRATE){
+		    texture = gridTexture;
+		}
+		// If there's no texture, draw VMap's defaultDrawBuffer
+					//  i.e., basic mode
+		else if (texture == null){
+				texture = this.defaultDrawBuffer;
+		}
+		
+		texture.loadPixels();
+		IntBuffer buf = allocateDirectIntBuffer(texture.width * texture.height);
+		buf.put(texture.pixels);
+		buf.rewind();
+		
+		// Bind the texture
+		gl.glBindTexture(GL.GL_TEXTURE_2D, gridTexAddress);
+		// Now generate the texture on the graphics card
+		gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_BGRA,
+		                  texture.width, texture.height, 0, GL.GL_BGRA, 
+		                  GL.GL_UNSIGNED_BYTE, buf);
+		gl.glGenerateMipmap(GL.GL_TEXTURE_2D);
+		
+		
+	}
+	
+	/**
+	 * Helper function that creates a buffer of size n. Mostly exists to make our code prettier
+	 * @param n Size of buffer
+	 * @return Returns a FloatBuffer of size n
+	 */
+	private FloatBuffer allocateDirectFloatBuffer(int n) {
+		  return ByteBuffer.allocateDirect(n * Float.BYTES).order(ByteOrder.nativeOrder()).asFloatBuffer();
+		}
+	
+	/**
+	 * Helper function that creates a buffer of size n. Mostly exists to make our code prettier
+	 * @param n Size of buffer
+	 * @return Returns an IBuffer of size n
+	 */
+	private IntBuffer allocateDirectIntBuffer(int n) {
+		  return ByteBuffer.allocateDirect(n * Integer.BYTES).order(ByteOrder.nativeOrder()).asIntBuffer();
+		}
+	
+	/**
+	 * Convert a point on the screen to OpenGL -1.0f to 1.0f coordinates
+	 * @param point Point to convert
+	 * @return Returns a PVector containing coordinates translated into OpenGL scale
+	 */
+	private PVector convertPixelToOpenGLCoords(PVector point){
+		float convertedX = point.x - (parent.width/2);
+		convertedX = convertedX / (parent.width/2);
+		
+		// Processing has opposite Y coordinates, so we need to invert
+		float convertedY = -point.y + (parent.height/2);
+		convertedY = convertedY / (parent.height/2);
+
+		PVector convertedVector = new PVector(convertedX, convertedY);
+		return convertedVector;
+	}
+	
+	/**
+	 * Takes some magic data (from our global quadVertices array)
+	 *  and sticks it into the OpenGL vertex buffer object (VBO)
+	 *  that we are currently using. Needs refactoring to at least
+	 *  pass our data like civilized people, probably the VBO address too
+	 */
+	private void setOpenGLVertices(){
+
+		// create a buffer for our vertices, and then add them in
+		FloatBuffer verticesBuffer = allocateDirectFloatBuffer(this.quadVertices.size());
+		verticesBuffer.rewind();
+		for (int i = 0; i < this.quadVertices.size(); i++){
+			verticesBuffer.put(quadVertices.get(i));
+		}
+		verticesBuffer.rewind();
+		
+		// debugging printing
+//		PApplet.println(verticesBuffer);
+//		for (int j = 0; j < quadVertices.size()/9; j++){
+//			for (int i = 0; i < 9; i++){
+//				PApplet.print(" " + verticesBuffer.get());
+//			}
+//			PApplet.println(" ");
+//		}
+//		verticesBuffer.rewind();
+		
+		
+		// Put the vertices in it!
+		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOAddress);
+		gl.glBufferData(GL.GL_ARRAY_BUFFER, Float.BYTES * quadVertices.size(),
+                verticesBuffer, GL.GL_STATIC_DRAW);
+		
 	}
 	
 	/**
@@ -214,7 +647,13 @@ public class VMap extends PImage implements PConstants{
 				glos.noStroke();
 				glos.ellipse(parent.mouseX, parent.mouseY, this.getSnapDistance()*2, this.getSnapDistance()*2);
 			}
+			
+			// Set up some instruction text
+			glos.text("New quad: a", 10, glos.width - 50);		
+			
 			glos.endDraw();
+			
+			
 			
 		} else {
 			parent.noCursor();
@@ -226,6 +665,7 @@ public class VMap extends PImage implements PConstants{
 	 */
 	public void render() {
 		offScreenBuffer.beginDraw();
+		// parent.clear();
 		offScreenBuffer.clear();
 		offScreenBuffer.endDraw();
 		
@@ -273,8 +713,15 @@ public class VMap extends PImage implements PConstants{
 			
 			offScreenBuffer.endDraw();
 
+			// in preparation for rendering, we need to reset our vertex list
+			
 			for (int i = 0; i < surfaces.size(); i++) {
 				surfaces.get(i).render(offScreenBuffer);
+//				
+//				PVector[] surfaceVertices = surfaces.get(i).cornerPoints;
+//				addQuadPointsToVertexList(surfaceVertices);			
+			
+				
 			}
 			
 			//Draw circles for SelectionDistance or SnapDistance (snap if CMD is down)
@@ -292,6 +739,9 @@ public class VMap extends PImage implements PConstants{
 			}
 			offScreenBuffer.endDraw();
 			
+			
+			
+			
 		}
 		// Render mode!
 		else {
@@ -304,15 +754,78 @@ public class VMap extends PImage implements PConstants{
 					    ss.setTexture(defaultDrawBuffer);
 					}
 				}
-				ss.render();
+//				ss.render();
 			}
 		}
+
+		// Now that we've drawn all our surfaces, let's show them with OpenGL!
+		drawOpenGLGeometry();
+		
 		// Now copy all those pixels that are offscreen to our own buffer
 		//  This could probably be taken out by a big refactor, but I don't understand
 		//  the PGraphics side well enough, and it's easier to understand new VMap(width, height)
 		//  than createGraphics()...
 		
+		
 		this.copy(offScreenBuffer, 0, 0, width, height, 0, 0, width, height);
+
+	}
+	
+	/**
+	 * Use OpenGL to draw some stuff. Textured quads, in particular.
+	 *  This function actually draws all of our surfaces
+	 */
+	private void drawOpenGLGeometry(){
+		// OpenGL rendering of our stuff
+		//  draws the actual surfaces
+		//  as OpenGL triangle-quads
+		
+		//Draw our test triangle
+		offScreenBuffer.beginDraw();
+		offScreenBuffer.beginPGL();
+		
+		
+		// Boo, we have to do a full draw routine for each
+		//  surface. Lame. Which means maybe we want
+		//  to move all the GL code to render() inside QuadSurface later?
+		for (int i = 0; i < surfaces.size(); i++) {
+			// First, get all the points of the surface
+			PVector[] surfaceVertices = surfaces.get(i).cornerPoints;
+			
+			// Pick our shader
+			if (this.currentMainShader == null){
+				this.currentMainShader = this.testShader;
+			}
+			
+			if (this.currentMainShader == this.projectiveShader){
+				addQuadPointsToVertexList(surfaceVertices, true);
+			}
+			else {
+				addQuadPointsToVertexList(surfaceVertices, false);
+			}
+		    
+			this.currentMainShader.bind();
+			
+			setupOpenGLGeometry();
+			
+			if (this.currentMainShader == this.bilinearShader){
+				this.setBilinearPoints();
+			}
+			
+			setupGridTexture(surfaces.get(i).texture);
+			int numVertices = this.quadVertices.size() / 10;
+			PApplet.println("number of vertices to draw: " +  numVertices);
+			gl.glDrawArrays(GL.GL_TRIANGLES, 0, numVertices);
+			
+			currentMainShader.unbind();
+			
+			this.quadVertices.clear();
+		}
+	
+		
+		offScreenBuffer.endPGL();
+		offScreenBuffer.endDraw();
+		
 	}
 	
 	
@@ -375,10 +888,18 @@ public class VMap extends PImage implements PConstants{
 		this.selectionDistance = selectionDistance;
 	}
 	
+	/**
+	 * Sets the color of the mouse selection
+	 * @param selectionMouseColor Color to set it to
+	 */
 	public void setSelectionMouseColor(int selectionMouseColor) {
 		this.selectionMouseColor = selectionMouseColor;
 	}
-
+	
+	/**
+	 * Gets the color of the mouse selection
+	 * @return Returns an int containing the selection color
+	 */
 	public int getSelectionMouseColor() {
 		return selectionMouseColor;
 	}

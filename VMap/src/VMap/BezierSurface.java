@@ -155,9 +155,9 @@ public class BezierSurface extends SuperSurface{
 	 * Convenience method used by the constructors
 	 * @param filename Image filename to use
 	 * @param parent Parent applet
-	 * @param ks Vmap containing this surface
+	 * @param ks Vmap object containing this surface
 	 * @param res resolution
-	 * @param id ID
+	 * @param id ID of this BezierSurface
 	 * @param name Name
 	 */
 	private void init(String filename, PApplet parent, VMap ks, int res, int id, String name){
@@ -170,10 +170,10 @@ public class BezierSurface extends SuperSurface{
 
 	/**
 	 * Convenience method used by the constructors.
-	 * @param parent
-	 * @param ks
-	 * @param res
-	 * @param id
+	 * @param parent Parent applet
+	 * @param ks Vmap object containing this surface
+	 * @param res resolution
+	 * @param id ID of this BezierSurface
 	 */
 	private void init(PApplet parent, VMap ks, int res, int id, String name) {
 		this.parent = parent;
@@ -216,7 +216,7 @@ public class BezierSurface extends SuperSurface{
 
 	/**
 	 * Get the amount of subdivision used in the surface
-	 * @return
+	 * @return GRID_RESOLUTION Grid Resolution
 	 */
 	public int getRes() {
 		// The actual resolution is the number of tiles, not the number of mesh
@@ -279,7 +279,7 @@ public class BezierSurface extends SuperSurface{
 	
 	/**
 	 * Get the amount of horizontal displacement force used for spherical mapping for bezier surfaces.
-	 * @return
+	 * @return horizontalForce
 	 */
 	public int getHorizontalForce(){
 		return horizontalForce;
@@ -287,7 +287,7 @@ public class BezierSurface extends SuperSurface{
 	
 	/**
 	 * Get the amount of vertical displacement force used for spherical mapping for bezier surfaces.
-	 * @return
+	 * @return verticalForce
 	 */
 	public int getVerticalForce(){
 		return verticalForce;
@@ -295,9 +295,9 @@ public class BezierSurface extends SuperSurface{
 	
 	/**
 	 * Set target bezier control point to coordinates
-	 * @param pointIndex
-	 * @param x
-	 * @param y
+	 * @param pointIndex index of control point
+	 * @param x X position of control point
+	 * @param y Y position of control point
 	 */
 	public void setBezierPoint(int pointIndex, float x, float y) {
 		this.bezierPoints[pointIndex].x = x;
@@ -307,7 +307,7 @@ public class BezierSurface extends SuperSurface{
 	
 	/**
 	 * Get all bezier points
-	 * @return
+	 * @return PVector array of all bezier points
 	 */
 	public PVector[] getBezierPoints() {
 		return this.bezierPoints;
@@ -315,8 +315,8 @@ public class BezierSurface extends SuperSurface{
 
 	/**
 	 * Get the target bezier point
-	 * @param index
-	 * @return
+	 * @param index Index of bezeier
+	 * @return PVector of bezier point
 	 */
 	public PVector getBezierPoint(int index) {
 		return this.bezierPoints[index];
@@ -324,7 +324,7 @@ public class BezierSurface extends SuperSurface{
 
 	/**
 	 * Set target bezier control to selected
-	 * @param selectedBezierControl
+	 * @param selectedBezierControl Index of Bezier control point to select
 	 */
 	public void setSelectedBezierControl(int selectedBezierControl) {
 		this.selectedBezierControl = selectedBezierControl;
@@ -332,7 +332,7 @@ public class BezierSurface extends SuperSurface{
 
 	/**
 	 * Get the currently selected bezier control
-	 * @return
+	 * @return currently selected control
 	 */
 	public int getSelectedBezierControl() {
 		return selectedBezierControl;
@@ -340,9 +340,9 @@ public class BezierSurface extends SuperSurface{
 	
 	/**
 	 * Returns index 0-7 if coordinates are on a bezier control
-	 * @param mX
-	 * @param mY
-	 * @return
+	 * @param mX mouseX
+	 * @param mY mouseY
+	 * @return index of first nearby bezier point
 	 */
 	public int getActiveBezierPointIndex(int mX, int mY){
 		for(int i = 0; i < this.bezierPoints.length; i++){
@@ -428,7 +428,7 @@ public class BezierSurface extends SuperSurface{
 
 	/**
 	 * Render method for rendering while in calibration mode
-	 * @param g
+	 * @param g PGraphics to draw on
 	 */
 	public void render(PGraphics g) {
 		if (this.MODE == this.MODE_CALIBRATE && !this.isHidden()) {
@@ -438,9 +438,9 @@ public class BezierSurface extends SuperSurface{
 
 	/**
 	 * Render method for rendering in RENDER mode. 
-	 * Takes one PGraphicsand one Texture. The Texture is the texture used for the surface, and is drawn to the offscreen buffer.
-	 * @param g
-	 * @param tex
+	 * Takes one PGraphics and one Texture. The Texture is the texture used for the surface, and is drawn to the offscreen buffer.
+	 * @param g PGraphics to work on
+	 * @param tex Texture to draw
 	 */
 	public void render(PGraphics g, PImage tex) {
 		if(this.isHidden()) return;
@@ -450,8 +450,8 @@ public class BezierSurface extends SuperSurface{
 	/**
 	 * Actual rendering of the surface. Is called from the render method.
 	 * Should normally not be accessed directly.
-	 * @param g
-	 * @param tex
+	 * @param g PGraphics to draw surface on
+	 * @param tex Texture to apply to the surface
 	 */
 	private void renderSurface(PGraphics g, PImage tex) {
 		g.beginDraw();
@@ -496,7 +496,7 @@ public class BezierSurface extends SuperSurface{
 
 	/**
 	 * Renders the grid in the surface. (useful in calibration mode)
-	 * @param g
+	 * @param g PGraphics to render to
 	 */
 	private void renderGrid(PGraphics g) {
 		g.beginDraw();
@@ -592,7 +592,7 @@ public class BezierSurface extends SuperSurface{
 
 	/**
 	 * Draws the Corner points
-	 * @param g
+	 * @param g PGraphics to draw on
 	 * @param x
 	 * @param y
 	 * @param selected
