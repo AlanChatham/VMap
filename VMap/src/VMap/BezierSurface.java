@@ -53,16 +53,17 @@ public class BezierSurface extends SuperSurface{
 	private int selectedBezierControl;
 	
 	/**
-	 * Constructor for creating a new surface at X,Y with RES subdivision.
-	 * @param parent
-	 * @param ks
-	 * @param x
-	 * @param y
-	 * @param res
-	 * @param id
+	 * Constructor for creating a new surface at X,Y with RES subdivision, and showing an image from a file
+	 * @param fileName Filename of the image to show on this surface
+	 * @param parent PApplet this belongs to
+	 * @param vm VMap instance this surface belongs to
+	 * @param x Starting X position
+	 * @param y Starting Y position
+	 * @param res Resolution
+	 * @param id ID of this surface
 	 */
-	BezierSurface(String fileName, PApplet parent, VMap ks, float x, float y, int res, int id) {
-		this(parent, ks, x, y, res, id);
+	BezierSurface(String fileName, PApplet parent, VMap vm, float x, float y, int res, int id) {
+		this(parent, vm, x, y, res, id);
 		this.textureFilename = fileName;
 		if (this.textureFilename != null){
 			this.texture = parent.loadImage(fileName);
@@ -71,15 +72,15 @@ public class BezierSurface extends SuperSurface{
 	
 	/**
 	 * Constructor for creating a new surface at X,Y with RES subdivision.
-	 * @param parent
-	 * @param ks
-	 * @param x
-	 * @param y
-	 * @param res
-	 * @param id
+	 * @param parent PApplet this belongs to
+	 * @param vm VMap instance this surface belongs to
+	 * @param x Starting X position
+	 * @param y Starting Y position
+	 * @param res Resolution
+	 * @param id ID of this surface
 	 */
-	BezierSurface(PApplet parent, VMap ks, float x, float y, int res, int id) {
-		init(parent, ks, res, id, null);
+	BezierSurface(PApplet parent, VMap vm, float x, float y, int res, int id) {
+		init(parent, vm, res, id, null);
 		this.cornerPoints[0].x = (float) (x - (this.DEFAULT_SIZE * 0.5));
 		this.cornerPoints[0].y = (float) (y - (this.DEFAULT_SIZE * 0.5));
 
@@ -122,16 +123,16 @@ public class BezierSurface extends SuperSurface{
 
 	/**
 	 * Constructor used when loading a surface from file
-	 * @param parent
-	 * @param ks
-	 * @param xml
+	 * @param parent PApplet this belongs to
+	 * @param vm VMap instance this is a part of
+	 * @param xml XML object to load this from
 	 */
-	BezierSurface(PApplet parent, VMap ks, XML xml) {
+	BezierSurface(PApplet parent, VMap vm, XML xml) {
 		if (xml.getString("filename") != null){
-			init(xml.getString("filename"), parent, ks, xml.getInt("res"), xml.getInt("id"), xml.getString("name"));
+			init(xml.getString("filename"), parent, vm, xml.getInt("res"), xml.getInt("id"), xml.getString("name"));
 		}
 		else{
-			init(parent, ks, (xml.getInt("res")), xml.getInt("id"), xml.getString("name"));
+			init(parent, vm, (xml.getInt("res")), xml.getInt("id"), xml.getString("name"));
 		}
 		if (xml.getInt("lock") == 1)
 			this.toggleLocked();
@@ -155,13 +156,13 @@ public class BezierSurface extends SuperSurface{
 	 * Convenience method used by the constructors
 	 * @param filename Image filename to use
 	 * @param parent Parent applet
-	 * @param ks Vmap object containing this surface
+	 * @param vm VMap object containing this surface
 	 * @param res resolution
 	 * @param id ID of this BezierSurface
 	 * @param name Name
 	 */
-	private void init(String filename, PApplet parent, VMap ks, int res, int id, String name){
-		init(parent, ks, res, id, name);
+	private void init(String filename, PApplet parent, VMap vm, int res, int id, String name){
+		init(parent, vm, res, id, name);
 		this.textureFilename = filename;
 		if (this.textureFilename != null){
 			this.texture = parent.loadImage(filename);
@@ -171,13 +172,13 @@ public class BezierSurface extends SuperSurface{
 	/**
 	 * Convenience method used by the constructors.
 	 * @param parent Parent applet
-	 * @param ks Vmap object containing this surface
+	 * @param vm VMap object containing this surface
 	 * @param res resolution
 	 * @param id ID of this BezierSurface
 	 */
-	private void init(PApplet parent, VMap ks, int res, int id, String name) {
+	private void init(PApplet parent, VMap vm, int res, int id, String name) {
 		this.parent = parent;
-		this.sm = ks;
+		this.sm = vm;
 		this.surfaceName = name;
 		this.surfaceId = id;
 		this.GRID_RESOLUTION = res;
@@ -617,11 +618,11 @@ public class BezierSurface extends SuperSurface{
 	
 	/**
 	 * Draws the bezier points
-	 * @param g
-	 * @param x
-	 * @param y
-	 * @param selected
-	 * @param cornerIndex
+	 * @param g PGraphics instance to draw onto
+	 * @param x X coordinate of the point
+	 * @param y Y coordinate of the point
+	 * @param selected Whether or not the point is selected
+	 * @param cornerIndex The cornerIndex of the point
 	 */
 	private void renderBezierPoint(PGraphics g, float x, float y, boolean selected, int cornerIndex) {
 		g.noFill();
@@ -639,5 +640,4 @@ public class BezierSurface extends SuperSurface{
 		g.line(x, y - 5, x, y + 5);
 		g.line(x - 5, y, x + 5, y);
 	}
-
 }

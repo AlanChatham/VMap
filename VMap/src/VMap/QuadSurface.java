@@ -62,15 +62,15 @@ public class QuadSurface extends SuperSurface{
 	
 	/**
 	 * Constructor for creating a new surface at X,Y with RES subdivision.
-	 * @param parent
-	 * @param ks
-	 * @param x
-	 * @param y
-	 * @param res
-	 * @param id
+	 * @param parent PApplet this is all a part of
+	 * @param vm VMap object this belongs to
+	 * @param x X position
+	 * @param y Y position
+	 * @param res Resolution
+	 * @param id ID for our new surface
 	 */
-	public QuadSurface(PApplet parent, VMap ks, float x, float y, int res, int id) {
-		init(parent, ks, res, id, null);
+	public QuadSurface(PApplet parent, VMap vm, float x, float y, int res, int id) {
+		init(parent, vm, res, id, null);
 		
 		this.setCornerPoints(	(float) (x - (this.DEFAULT_SIZE * 0.5)), (float) (y - (this.DEFAULT_SIZE * 0.5)), 
 								(float) (x + (this.DEFAULT_SIZE * 0.5)), (float) (y - (this.DEFAULT_SIZE * 0.5)), 
@@ -78,6 +78,17 @@ public class QuadSurface extends SuperSurface{
 								(float) (x - (this.DEFAULT_SIZE * 0.5)), (float) (y + (this.DEFAULT_SIZE * 0.5)));
 	}
 	
+
+	/**
+	 * Constructor for creating a new surface at X,Y with RES subdivision and an image for it's texture
+	 * @param fileName Filename of image file to use
+	 * @param parent PApplet this is all a part of
+	 * @param vm VMap object this belongs to
+	 * @param x X position
+	 * @param y Y position
+	 * @param res Resolution
+	 * @param id ID for our new surface
+	 */
 	public QuadSurface(String fileName, PApplet parent, VMap ks, float x, float y, int res, int id){
 		this(parent, ks, x, y, res, id);
 		this.textureFilename = fileName;
@@ -88,16 +99,16 @@ public class QuadSurface extends SuperSurface{
 
 	/**
 	 * Constructor used when loading a surface from file
-	 * @param parent
-	 * @param ks
-	 * @param xml
+	 * @param parent PApplet this belongs to
+	 * @param vm VMap instance this surface belongs to
+	 * @param xml XML object to load from
 	 */
-	QuadSurface(PApplet parent, VMap ks, XML xml) {
+	QuadSurface(PApplet parent, VMap vm, XML xml) {
 		if (xml.getString("filename") != null){
-			init(xml.getString("filename"), parent, ks, xml.getInt("res"), xml.getInt("id"), xml.getString("name"));
+			init(xml.getString("filename"), parent, vm, xml.getInt("res"), xml.getInt("id"), xml.getString("name"));
 		}
 		else{
-			init(parent, ks, xml.getInt("res"), xml.getInt("id"), xml.getString("name"));
+			init(parent, vm, xml.getInt("res"), xml.getInt("id"), xml.getString("name"));
 		}
 		
 		if (xml.getInt("lock") == 1)
@@ -114,13 +125,13 @@ public class QuadSurface extends SuperSurface{
 	 * Convenience method used by the constructors
 	 * @param filename Image filename to use
 	 * @param parent Parent applet
-	 * @param ks Vmap containing this surface
+	 * @param vm Vmap containing this surface
 	 * @param res resolution
 	 * @param id ID
 	 * @param name Name
 	 */
-	private void init(String filename, PApplet parent, VMap ks, int res, int id, String name){
-		init(parent, ks, res, id, name);
+	private void init(String filename, PApplet parent, VMap vm, int res, int id, String name){
+		init(parent, vm, res, id, name);
 		this.textureFilename = filename;
 		if (this.textureFilename != null){
 			this.texture = parent.loadImage(filename);
@@ -129,14 +140,14 @@ public class QuadSurface extends SuperSurface{
 	
 	/**
 	 * Convenience method used by the constructors.
-	 * @param parent
-	 * @param ks
-	 * @param res
-	 * @param id
+	 * @param parent PApplet this belongs to
+	 * @param vm VMap instance this surface is a part of
+	 * @param res Resolution
+	 * @param id ID number of this surface
 	 */
-	private void init(PApplet parent, VMap ks, int res, int id, String name) {
+	private void init(PApplet parent, VMap vm, int res, int id, String name) {
 		this.parent = parent;
-		this.sm = ks;
+		this.sm = vm;
 		this.surfaceId = id;
 		this.surfaceName = name;
 		this.GRID_RESOLUTION = res + 1;
@@ -223,9 +234,9 @@ public class QuadSurface extends SuperSurface{
 
 	/**
 	 * Set the coordinates of one of the target corner points.
-	 * @param pointIndex
-	 * @param x
-	 * @param y
+	 * @param pointIndex Target corner point
+	 * @param x X coordinate to set it to
+	 * @param y Y coordinate to set it to
 	 */
 	public void setCornerPoint(int pointIndex, float x, float y) {
 		this.cornerPoints[pointIndex].x = x;
@@ -518,11 +529,11 @@ public class QuadSurface extends SuperSurface{
 
 	/**
 	 * Draws the Cornerpoints
-	 * @param g
-	 * @param x
-	 * @param y
-	 * @param selected
-	 * @param cornerIndex
+	 * @param g PGraphics instance to draw onto
+	 * @param x X coordinate of the point
+	 * @param y Y coordinate of the point
+	 * @param selected Whether or not the point is selected
+	 * @param cornerIndex The cornerIndex of the point
 	 */
 	private void renderCornerPoint(PGraphics g, float x, float y, boolean selected, int cornerIndex) {
 		g.noFill();

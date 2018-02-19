@@ -48,6 +48,7 @@ import processing.opengl.PShader;
 import processing.core.PStyle;
 // Add this in after updating to a new processing.core library
 //import processing.core.PSurface;
+import processing.core.PSurface;
 
 //OpenGL imports
 import java.nio.ByteBuffer;
@@ -128,7 +129,9 @@ public class VMap extends PImage implements PConstants{
 	// OpenGL stuff
 	public PImage gridTexture;
 	
-	
+	public static final int BASIC = 0;
+	public static final int PROJECTIVE = 1;
+	public static final int BILINEAR = 2;
 	public PShader testShader;
 	public PShader projectiveShader;
 	public PShader bilinearShader;
@@ -209,9 +212,6 @@ public class VMap extends PImage implements PConstants{
 		
 		this.gridTexture = parent.loadImage("grid.png");
 		
-		//Set up our OpenGL contexts
-		//this.beginDraw();
-		
 		
 		this.pgl = (PJOGL) parent.beginPGL(); 
 		PApplet.print("Loaded pgl: ");
@@ -230,10 +230,65 @@ public class VMap extends PImage implements PConstants{
 		
 		this.findVertexAttributeLocations();
 		
+	}
+	
+	/**
+	 * Create instance of VMap, and set your projection type while you're at it.
+	 *  Projection shader shoices are:
+	 *    BILINEAR (which is the default) - Edges that share vertices will line up, but diagonals may curve
+	 *    PROJECTIVE - Diagonals stay straight, but edges will probably not line up
+	 *    BASIC - Textures get mapped to quads naively. Not recommended.
+	 *    
+	 *    For more information, and to see the math we used, check out these webpages:
+	 *    http://reedbeta.com
+	 *    
+	 * @param parent Parent applet, usually the processing sketch using it
+	 * @param width Width of the sketch window
+	 * @param height Height of the sketch window
+	 * @param projectionShader Built-in shader to use for projection - options are BASIC, PROJECTIVE, BILINEAR (BILINEAR is the default)
+	 */
 
-		PApplet.println("finished setup");
-		//this.endDraw();
-		
+	public VMap(PApplet parent, int width, int height, int projectionShader) {
+		this(parent, width, height);
+		this.setShader(projectionShader);
+	}
+	
+	/**
+	 * Sets the main shader to use for projecting into our shapes.
+	 *  This is probably NOT where you want to implement your own shader;
+	 *  you probably want to apply your shader to your own PGraphics instance,
+	 *  then apply that as a texture to a surface. The shaders at this step
+	 *  are more for sampling that texture to map it properly to the shape.
+	 *  
+	 *  But, you do you.
+	 * @param shader PShader to use
+	 */	
+	public void setShader(PShader shader){
+		this.currentMainShader = shader;
+	}
+	
+	/**
+	 * Sets the shader to use for our projective step here, out of
+	 *  the options built-in to VMap.
+	 *  Choices are:
+	 *    BILINEAR (which is the default) - Edges that share vertices will line up, but diagonals may curve
+	 *    PROJECTIVE - Diagonals stay straight, but edges will probably not line up
+	 *    BASIC - Textures get mapped to quads naively. Not recommended.
+	 *    
+	 *    For more information, and to see the math we used, check out these webpages:
+	 *    http://reedbeta.com
+	 *    
+	 * @param shaderToUse BILINEAR, PROJECTIVE, or BASIC
+	 */
+	public void setShader(int shaderToUse){
+		if (shaderToUse == VMap.BASIC){
+			this.currentMainShader = this.testShader;
+		}
+		else if (shaderToUse == VMap.PROJECTIVE){
+			this.currentMainShader = this.projectiveShader;
+		}
+		else
+			this.currentMainShader = this.bilinearShader;
 	}
 	
 	/**
@@ -403,10 +458,6 @@ public class VMap extends PImage implements PConstants{
 //		PVectorToQuadVertices(convertPixelToOpenGLCoords(vertices[0]), 0.0f, 1.0f); // top left
 	}
 	
-	
-//	private void PVectorToQuadVertices(PVector vector, float U, float V){
-//		PVectorToQuadVertices(vector, U, V, 1.0f);
-//	}
 	
 	/**
 	 * Helper function that adds a default color (1.0f, 1.0f, 1.0f)
@@ -1274,7 +1325,7 @@ public class VMap extends PImage implements PConstants{
 	}
 	
 	/**
-	 * Toggle the mode
+	 * Toggle the mode between calibration and rendering mode
 	 */
 	public void toggleCalibration() {
 		if (MODE == MODE_RENDER)
@@ -2037,6 +2088,9 @@ public class VMap extends PImage implements PConstants{
 			numAddedSurfaces = 0;
 	}
 
+	/**
+	 * Iterates through an ArrayList and removes duplicated items within 
+	 */
 	public static <T> void removeDuplicates(ArrayList<T> list) {
 		int size = list.size();
 		int out = 0;
@@ -2174,7 +2228,6 @@ public class VMap extends PImage implements PConstants{
 	public boolean	is3D() {return defaultDrawBuffer.is3D();}
 	public boolean	isGL() {return defaultDrawBuffer.isGL();}
 	public int	lerpColor(int c1, int c2, float amt) {return defaultDrawBuffer.lerpColor(c1, c2, amt);}
-//	static int	lerpColor(int c1, int c2, float amt, int mode) {return defaultDrawBuffer.lerpColor
 	public void	lightFalloff(float constant, float linear, float quadratic) {defaultDrawBuffer.lightFalloff(constant, linear, quadratic);}
 	public void	lights() {defaultDrawBuffer.lights();}
 	public void	lightSpecular(float v1, float v2, float v3) {defaultDrawBuffer.lightSpecular(v1, v2, v3);}
@@ -2254,13 +2307,6 @@ public class VMap extends PImage implements PConstants{
 	public void	shearX(float angle) {defaultDrawBuffer.shearX(angle);}
 	public void	shearY(float angle) {defaultDrawBuffer.shearY(angle);}
 	public void	shininess(float shine) {defaultDrawBuffer.shininess(shine);}
-//	static void	showDepthWarning(String method) {defaultDrawBuffer
-//	static void	showDepthWarningXYZ(String method) {defaultDrawBuffe
-//	static void	showException(String msg) {defaultDrawBuffe
-//	static void	showMethodWarning(String method) {defaultDrawBuffe
-//	static void	showMissingWarning(String method) {defaultDrawBuffe
-//	static void	showVariationWarning(Stringstatic void	showWarning(String msg, Object... args) str) {defaultDrawBuffe
-//	static void	showWarning(String msg) {defaultDrawBuffe
 	public void	smooth() {defaultDrawBuffer.smooth();}
 	public void	smooth(int quality) {defaultDrawBuffer.smooth(quality);}
 	public void	specular(float gray) {defaultDrawBuffer.specular(gray);}

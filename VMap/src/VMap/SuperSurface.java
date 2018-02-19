@@ -87,6 +87,9 @@ public abstract class SuperSurface{
 	protected PShader shader;
 	
 	// Default constructor
+	/**
+	 * Default constructor
+	 */
 	public SuperSurface(){
 		this.ccolor = 0;
 	}
@@ -221,16 +224,7 @@ public abstract class SuperSurface{
 	/**
 	 * Decrease the amount of subdivision
 	 */
-	public abstract void decreaseResolution();/*{
-		switch(type){
-			case QUAD:
-				quadSurface.decreaseResolution();
-				break;
-			case BEZIER:
-				bezierSurface.decreaseResolution();	
-				break;
-		}	
-	}*/
+	public abstract void decreaseResolution();
 	
 	
 	/**
@@ -536,19 +530,12 @@ public abstract class SuperSurface{
 	
 	/**
 	 * Translates a point on the screen into a point in the surface. (not implemented in Bezier Surfaces)
+	 * TODO: Implement in Bezier surfaces
 	 * @param x
 	 * @param y
 	 * @return
 	 */
-	public abstract PVector screenCoordinatesToQuad(float x, float y);/*{
-		switch(type){
-			case QUAD:
-				return quadSurface.screenCoordinatesToQuad(x, y);
-			case BEZIER:
-				return bezierSurface.screenCoordinatesToQuad(x, y);	
-		}
-		return null;
-	}*/
+	public abstract PVector screenCoordinatesToQuad(float x, float y);
 	
 	public void render(){
 		if(sm != null){
