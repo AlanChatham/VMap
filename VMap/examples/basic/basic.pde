@@ -5,6 +5,9 @@
 * This example shows you how to setup the library and      *
 * and display single texture to multiple surfaces.         *
 *                                                          *
+* Check the keyPressed method to see how to access         *
+* different settings                                       *
+*                                                          *
 * To add new surfaces, press 'a' to create Quad Surfaces   *
 *                      press 'z' to create Bezier Surfaces *
 *                                                          *
@@ -82,9 +85,9 @@ void kepyPressed(){
     }
   }
   //save layout to xml
-  if(key == 's')vmap.saveXML("bla.xml");
+  if(key == 's')vmap.saveXML("positions.xml");
   //load layout from xml
-  if(key == 'l')vmap.loadXML("bla.xml");
+  if(key == 'l')vmap.loadXML("positions.xml");
   //rotate how the texture is mapped in to the QUAD (clockwise)
   if(key == 'j'){
     for(SuperSurface ss :vmap.getSelectedSurfaces()){

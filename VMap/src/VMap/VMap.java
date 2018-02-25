@@ -771,6 +771,7 @@ public class VMap extends PImage implements PConstants{
 			
 			for (int i = 0; i < surfaces.size(); i++) {
 				surfaces.get(i).render(offScreenBuffer);
+				surfaces.get(i).renderControlPoints(offScreenBuffer);
 //				
 //				PVector[] surfaceVertices = surfaces.get(i).cornerPoints;
 //				addQuadPointsToVertexList(surfaceVertices);			

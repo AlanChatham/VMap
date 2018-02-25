@@ -526,9 +526,22 @@ public class QuadSurface extends SuperSurface{
 
 		g.endDraw();
 	}
+	
+	public void renderControlPoints(PGraphics g){
+		g.beginDraw();
+		
+		if (!this.isLocked) {
+			// Draw the control points.
+			for (int i = 0; i < this.cornerPoints.length; i++) {
+				this.renderCornerPoint(g, this.cornerPoints[i].x, this.cornerPoints[i].y, (this.activePoint == i), i);
+			}
+		}
+		
+		g.endDraw();
+	}
 
 	/**
-	 * Draws the Cornerpoints
+	 * Draws a corner point
 	 * @param g PGraphics instance to draw onto
 	 * @param x X coordinate of the point
 	 * @param y Y coordinate of the point

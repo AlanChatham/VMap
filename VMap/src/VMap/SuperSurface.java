@@ -574,6 +574,12 @@ public abstract class SuperSurface{
 	public abstract void render(PGraphics g, PImage tex);
 	
 	/**
+	 * Renders the control points of the surface to a PGraphics object, for calibration
+	 * @param g PGraphics to draw on
+	 */
+	public abstract void renderControlPoints(PGraphics g);
+	
+	/**
 	 * See which type this surface is
 	 * @return
 	 */

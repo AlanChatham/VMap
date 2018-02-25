@@ -590,6 +590,28 @@ public class BezierSurface extends SuperSurface{
 
 		g.endDraw();
 	}
+	
+	public void renderControlPoints(PGraphics g){
+		g.beginDraw();
+		
+		if (!isLocked) {
+			// Draw the control points.
+			for (int i = 0; i < this.cornerPoints.length; i++) {
+				this.renderCornerPoint(g, this.cornerPoints[i].x, this.cornerPoints[i].y, (this.activePoint == i), i);
+				
+			}
+			
+			for(int i = 0; i < this.bezierPoints.length; i++){
+				this.renderBezierPoint(g, this.bezierPoints[i].x, this.bezierPoints[i].y, (this.selectedBezierControl == i), i);
+				g.strokeWeight(1);
+				g.stroke(255);
+				g.line(this.bezierPoints[i].x, this.bezierPoints[i].y, this.cornerPoints[(i/2)].x, this.cornerPoints[(i/2)].y);
+			}
+			
+		}
+		
+		g.endDraw();
+	}
 
 	/**
 	 * Draws the Corner points

@@ -33,8 +33,12 @@ void setup(){
   // when we create our VMap surfaces
   vmap = new VMap(this, width, height);
 
+  //Set up a movie
+  movie = new Movie(this, "streets.mp4");
+  movie.loop();
+  
   //Creates one surface with subdivision 3, at center of screen
-  vmap.addQuadSurface("img.jpg", width/2, height/2);
+  vmap.addQuadSurface(width/2, height/2);
 
   
 }
@@ -43,8 +47,14 @@ void draw(){
   // Draw the background black
   background(0);
   
+  // Loop through all the surfaces to map  
+  for(SuperSurface ss : vmap.getSurfaces()){
+    // Use movie as the texture for all surfaces
+    ss.setTexture(movie);
+  }
+  
   //Updates the shaking of the surfaces in render mode
-  sm.shake();
+  vmap.shake();
   
   // Now update the VMap buffer
   vmap.render();
@@ -67,78 +77,84 @@ void movieEvent(Movie movie) {
 
 void keyPressed(){
   //create a new QUAD surface at mouse pos
-  if(key == 'a')sm.createQuadSurface(3,mouseX,mouseY);
+  if(key == 'a')vmap.createQuadSurface(3,mouseX,mouseY);
   //create new BEZIER surface at mouse pos
-  if(key == 'z')sm.createBezierSurface(3,mouseX,mouseY);
+  if(key == 'z')vmap.createBezierSurface(3,mouseX,mouseY);
   //switch between calibration and render mode
-  if(key == 'c')sm.toggleCalibration();
+  if(key == 'c')vmap.toggleCalibration();
   //increase subdivision of surface
   if(key == 'p'){
-    for(SuperSurface ss : sm.getSelectedSurfaces()){
+    for(SuperSurface ss : vmap.getSelectedSurfaces()){
       ss.increaseResolution();
     }
   }
   //decrease subdivision of surface
   if(key == 'o'){
-    for(SuperSurface ss : sm.getSelectedSurfaces()){
+    for(SuperSurface ss : vmap.getSelectedSurfaces()){
       ss.decreaseResolution();
     }
   }
   //save layout to xml
-  if(key == 's')sm.save("bla.xml");
+  if(key == 's')
+    vmap.saveXML("positions.xml");
   //load layout from xml
-  if(key == 'l')sm.load("bla.xml");
+  if(key == 'l')
+    vmap.loadXML("positions.xml");
   //rotate how the texture is mapped in to the QUAD (clockwise)
   if(key == 'j'){
-    for(SuperSurface ss : sm.getSelectedSurfaces()){
+    for(SuperSurface ss : vmap.getSelectedSurfaces()){
       ss.rotateCornerPoints(0);
     }
   }
   //rotate how the texture is mapped in to the QUAD (counter clockwise)
   if(key == 'k'){
-    for(SuperSurface ss : sm.getSelectedSurfaces()){
+    for(SuperSurface ss : vmap.getSelectedSurfaces()){
       ss.rotateCornerPoints(1);
     }
   }
   //increase the horizontal force on a BEZIER surface
   if(key == 't'){
-    for(SuperSurface ss : sm.getSelectedSurfaces()){
-      ss.increaseHorizontalForce();
+    for(SuperSurface ss :vmap.getSelectedSurfaces()){
+      if (ss instanceof BezierSurface)
+        ((BezierSurface)ss).increaseHorizontalForce();
     }
   }
   //decrease the horizontal force on a BEZIER surface  
   if(key == 'y'){
-    for(SuperSurface ss : sm.getSelectedSurfaces()){
-      ss.decreaseHorizontalForce();
+    for(SuperSurface ss :vmap.getSelectedSurfaces()){
+      if (ss instanceof BezierSurface)
+        ((BezierSurface)ss).decreaseHorizontalForce();
     }
   }
   //increase the vertical force on a BEZIER surface  
   if(key == 'g'){
-    for(SuperSurface ss : sm.getSelectedSurfaces()){
-      ss.increaseVerticalForce();
+    for(SuperSurface ss :vmap.getSelectedSurfaces()){
+      if (ss instanceof BezierSurface)
+        ((BezierSurface)ss).increaseVerticalForce();
     }
   }
   //decrease the vertical force on a BEZIER surface  
   if(key == 'h'){
-    for(SuperSurface ss : sm.getSelectedSurfaces()){
-      ss.decreaseVerticalForce();
+    for(SuperSurface ss :vmap.getSelectedSurfaces()){
+      if (ss instanceof BezierSurface)
+        ((BezierSurface)ss).decreaseVerticalForce();
     }
   }
     //shake all surfaces with strength (max z displacement), speed, and duration (0 - 1000)
   if(key == 'q'){
-    sm.setShakeAll(50, 850, 20);
+    vmap.setShakeAll(50, 850, 20);
   }
     //shake all surfaces with strength (max z displacement), speed, and duration (0 - 1000)
   if(key == 'w'){
-    sm.setShakeAll(75, 650, 130);
+    vmap.setShakeAll(75, 650, 130);
   }
     //shake all surfaces with strength (max z displacement), speed, and duration (0 - 1000)
   if(key == 'e'){
-    sm.setShakeAll(100, 450, 300);
+    vmap.setShakeAll(100, 450, 300);
   }
     //shake only the selected surfaces with strength (max z displacement), speed, and duration (0 - 1000)
   if(key == 'r'){
-    for(SuperSurface ss : sm.getSelectedSurfaces()){
+    for(SuperSurface ss : vmap.getSelectedSurfaces()){
       ss.setShake(200,400, 50);
     }
   }
