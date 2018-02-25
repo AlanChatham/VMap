@@ -60,6 +60,105 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GL3ES3;
 
+
+
+/** VMap - Projection mapping for Processing
+ * 
+ * This library allows you to easily (I hope) integrate 
+ * projection mapping with your processing sketches.
+ * 
+ * To use it, you'll create a VMap object, which will
+ * act as a canvas (and you'll probably draw this to
+ * the size of your screen), and then you'll create
+ * mapping surfaces which will accept the imagery
+ * you want to map. When you run your sketch, you'll
+ * see the surfaces in calibration mode, where you
+ * can deform them to map onto your real-world surface,
+ * then you can press 'c' (by default) to switch to 
+ * rendering mode, where your imagery will automatically
+ * be deformed to match your configured map.
+ * 
+ * You can save your mapping to an XML file via the
+ * saveXML(filename) command, or just by pressing 's'
+ * (which will add a positions.xml file to your data folder,
+ * and then load those positions the next time you run
+ * your sketch with loadXML(filename), or pressing 'l'
+ * to load from a previously saved positions.xml.
+ * 
+ * In it's most basic form, you can use use the usual
+ * Processing draw commands on your VMap object, and
+ * those things you draw will by default be 
+ * 
+ * {@code
+ * import VMap.*;
+ * VMap vmap;
+
+void setup(){
+  // Create our window. VMap only works in P3D mode!
+  size(800,600, P3D);
+  
+  //Create new instance of the VMap buffer - this is actually
+  // an extension of the PGraphics class, which we'll be drawing to
+  // when we create our VMap surfaces
+  vmap = new VMap(this, width, height);
+  
+  //Creates one surface at center of screen
+  vmap.addQuadSurface(width/2,height/2);
+}
+
+void draw(){
+  // Draw some stuff
+  vmap.beginDraw();
+  vmap.fill(200,255,255, 50);
+  vmap.ellipse(mouseX, mouseY, 200, 200);
+  vmap.endDraw();
+  
+  // Now update the VMap buffer
+  vmap.render();
+  // Finally, draw the VMap buffer to the window
+  image(vmap,0,0,width,height);
+}
+}
+ * 
+ * If you want to do more advanced things, like
+ * drawing multiple images to different surfaces,
+ * you can find surfaces in the vmap.surfaces ArrayList,
+ * then draw directly to them with each surface's
+ * setTexture(PImage yourImagery) function - 
+ * see the examples for more details.
+ *
+ * VMap uses OpenGL shaders for calculating it's mapping
+ * distortions, and it has a couple different
+ * options for how it deforms QuadSurfaces.
+ * We default to using a bilinear sampling method,
+ * since it will make images on two surfaces that
+ * share an edge line up correctly regardless of
+ * how we distort the shape. However, this introduces
+ * other distortions, so you may prefer to use
+ * the included projective shader instead, which
+ * maintains an image's internal geometry better,
+ * but may cause poor mapping between multiple
+ * surfaces. Or, if you want to get weird, you can
+ * use the basic shader, which does a naive mapping,
+ * although it could be what you want if you're actually
+ * mapping onto a rectangle which is actually 2 hinged 
+ * triangles. Or you could write your own shader and
+ * use that, if you want to have your own mapping pass.
+ * 
+ * Special thanks goes to Nathan Reed and his fantastic
+ * blog posts about texture mapping - all the shader
+ * math is from him, and if you want to know more
+ * about the differences between bilinear and projective
+ * mapping, and see the math, check out these two articles:
+ * <a href="http://reedbeta.com/blog/quadrilateral-interpolation-part-1/">Projective mapping</a>
+ * <a href="http://reedbeta.com/blog/quadrilateral-interpolation-part-2/">Bilinear mapping</a>
+
+ *
+ * @author Ixagon AB
+ * @author Laboratory
+ * <a href="http://laboratoryspokane.com">http://laboratoryspokane.com/a>
+ */
+
 public class VMap extends PImage implements PConstants{
 		
 	public final String VERSION = "2";
@@ -255,12 +354,15 @@ public class VMap extends PImage implements PConstants{
 	
 	/**
 	 * Sets the main shader to use for projecting into our shapes.
-	 *  This is probably NOT where you want to implement your own shader;
+	 *  This is probably NOT where you want to implement your own shader if
+	 *  you're using your shader to make pretty patterns and images that
+	 *  you're looking to map onto surfaces;
 	 *  you probably want to apply your shader to your own PGraphics instance,
 	 *  then apply that as a texture to a surface. The shaders at this step
 	 *  are more for sampling that texture to map it properly to the shape.
 	 *  
 	 *  But, you do you.
+	 * 
 	 * @param shader PShader to use
 	 */	
 	public void setShader(PShader shader){
@@ -276,7 +378,8 @@ public class VMap extends PImage implements PConstants{
 	 *    BASIC - Textures get mapped to quads naively. Not recommended.
 	 *    
 	 *    For more information, and to see the math we used, check out these webpages:
-	 *    http://reedbeta.com
+	 * <a href="http://reedbeta.com/blog/quadrilateral-interpolation-part-1/">Projective mapping</a>
+	 * <a href="http://reedbeta.com/blog/quadrilateral-interpolation-part-2/">Bilinear mapping</a>
 	 *    
 	 * @param shaderToUse BILINEAR, PROJECTIVE, or BASIC
 	 */
@@ -859,7 +962,13 @@ public class VMap extends PImage implements PConstants{
 				addQuadPointsToVertexList(surfaceVertices, false);
 			}
 		    
-			this.currentMainShader.bind();
+			// Bind the correct shader
+			if (surfaces.get(i).shader == null){
+				this.currentMainShader.bind();
+			}
+			else{
+				surfaces.get(i).shader.bind();
+			}
 			
 			setupOpenGLGeometry();
 			
@@ -871,7 +980,13 @@ public class VMap extends PImage implements PConstants{
 			int numVertices = this.quadVertices.size() / 10;
 			gl.glDrawArrays(GL.GL_TRIANGLES, 0, numVertices);
 			
-			currentMainShader.unbind();
+			// unbind the shader
+			if (surfaces.get(i).shader == null){
+				this.currentMainShader.unbind();
+			}
+			else{
+				surfaces.get(i).shader.unbind();
+			}
 			
 			this.quadVertices.clear();
 		}
