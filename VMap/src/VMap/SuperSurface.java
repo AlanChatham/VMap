@@ -343,9 +343,28 @@ public abstract class SuperSurface{
 	/**
 	 * Rotate the corners of surface (0=ClockWise, 1=CounterClockWise)
 	 * TODO Broken for Bezier Surfaces
+	 * TODO Abstact out?
 	 * @param direction CLOCKWISE or COUNTERCLOCKWISE
 	 */
-	public abstract void rotateCornerPoints(int direction);
+	public void rotateCornerPoints(int direction){
+		PVector[] sourcePoints = cornerPoints.clone();
+		switch(direction){
+		case SuperSurface.CLOCKWISE:
+			cornerPoints[0] = sourcePoints[1];
+			cornerPoints[1] = sourcePoints[2];
+			cornerPoints[2] = sourcePoints[3];
+			cornerPoints[3] = sourcePoints[0];
+			this.updateTransform();
+			break;
+		case SuperSurface.COUNTERCLOCKWISE:
+			cornerPoints[0] = sourcePoints[3];
+			cornerPoints[1] = sourcePoints[0];
+			cornerPoints[2] = sourcePoints[1];
+			cornerPoints[3] = sourcePoints[2];
+			this.updateTransform();
+			break;
+		}
+	}
 	
 	/**
 	 * Get the surfaces ID
@@ -516,7 +535,7 @@ public abstract class SuperSurface{
 	 * @param y
 	 * @return
 	 */
-//	public abstract PVector screenCoordinatesToQuad(float x, float y);
+	public abstract PVector screenCoordinatesToQuad(float x, float y);
 	
 	public void render(){
 		if(sm != null){
