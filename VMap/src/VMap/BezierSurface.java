@@ -662,4 +662,42 @@ public class BezierSurface extends SuperSurface{
 		g.line(x, y - 5, x, y + 5);
 		g.line(x - 5, y, x + 5, y);
 	}
+	
+	public void rotateCornerPoints(int direction){
+		BezierPoint3D[] sourcePoints = cornerPoints.clone();
+		PVector[] sourceBezierPoints = bezierPoints.clone();
+		switch(direction){
+		case SuperSurface.CLOCKWISE:
+			cornerPoints[0] = sourcePoints[1];
+			bezierPoints[0] = sourceBezierPoints[2];
+			bezierPoints[1] = sourceBezierPoints[3];
+			cornerPoints[1] = sourcePoints[2];
+			bezierPoints[2] = sourceBezierPoints[4];
+			bezierPoints[3] = sourceBezierPoints[5];
+			cornerPoints[2] = sourcePoints[3];
+			bezierPoints[4] = sourceBezierPoints[6];
+			bezierPoints[5] = sourceBezierPoints[7];
+			cornerPoints[3] = sourcePoints[0];
+			bezierPoints[6] = sourceBezierPoints[0];
+			bezierPoints[7] = sourceBezierPoints[1];
+			this.updateTransform();
+			break;
+		case SuperSurface.COUNTERCLOCKWISE:
+			cornerPoints[0] = sourcePoints[3];
+			bezierPoints[0] = sourceBezierPoints[6];
+			bezierPoints[1] = sourceBezierPoints[7];
+			cornerPoints[1] = sourcePoints[0];
+			bezierPoints[2] = sourceBezierPoints[0];
+			bezierPoints[3] = sourceBezierPoints[1];
+			cornerPoints[2] = sourcePoints[1];
+			bezierPoints[4] = sourceBezierPoints[2];
+			bezierPoints[5] = sourceBezierPoints[3];
+			cornerPoints[3] = sourcePoints[2];
+			bezierPoints[6] = sourceBezierPoints[4];
+			bezierPoints[7] = sourceBezierPoints[5];
+			this.updateTransform();
+			break;
+		}
+	}
+	
 }

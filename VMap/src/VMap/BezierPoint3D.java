@@ -3,10 +3,12 @@ package VMap;
 import processing.core.PVector;
 
 public class BezierPoint3D extends PVector{
-	/**
-	 * 
-	 */
+	
 	private static final long serialVersionUID = 1L;
+	
+	/**
+	 * First control point, relative to the 
+	 */
 	public PVector controlPoint0;
 	public PVector controlPoint1;
 	

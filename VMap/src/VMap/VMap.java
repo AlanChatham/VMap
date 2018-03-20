@@ -296,8 +296,6 @@ public class VMap extends PImage implements PConstants{
 		
 		
 		// OpenGL setup stuff //
-		// use newer, nicer OpenGL features, mainly for EBOs
-		//PJOGL.profile = 4;
 		
 		quadVertices = new ArrayList<Float>();		
 		// Load in our shaders
