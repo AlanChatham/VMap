@@ -28,7 +28,7 @@ package VMap;
 
 import java.awt.Polygon;
 
-import javax.media.jai.PerspectiveTransform;
+//import javax.media.jai.PerspectiveTransform;
 
 import processing.core.PApplet;
 import processing.core.PVector;
@@ -52,7 +52,7 @@ public class QuadSurface extends SuperSurface{
 	// a bunch of math..
 	// Docs:
 	// http://download.oracle.com/docs/cd/E17802_01/products/products/java-media/jai/forDevelopers/jai-apidocs/javax/media/jai/PerspectiveTransform.html
-	private PerspectiveTransform transform;
+//	private PerspectiveTransform transform;
 
 	private int GRID_RESOLUTION;
 	// Metrics for the projected texture..
@@ -249,6 +249,8 @@ public class QuadSurface extends SuperSurface{
 	 * Must be called whenever any change has been done to the surface.
 	 */
 	public void updateTransform() {
+	}
+/*	
 		// Update the PerspectiveTransform with the current width, height, and
 		// destination coordinates.
 		this.transform = PerspectiveTransform.getQuadToQuad(0, 0, this.DEFAULT_SIZE, 0, this.DEFAULT_SIZE, this.DEFAULT_SIZE, 0, this.DEFAULT_SIZE, 
@@ -337,6 +339,8 @@ public class QuadSurface extends SuperSurface{
 		poly.addPoint((int) cornerPoints[3].x, (int) cornerPoints[3].y);
 	}
 
+	
+*/
 
 	/**
 	 * Translate a point on the screen into a point in the surface.
@@ -344,7 +348,7 @@ public class QuadSurface extends SuperSurface{
 	 * @param y
 	 * @return
 	 */
-	public PVector screenCoordinatesToQuad(float x, float y) {
+/*	public PVector screenCoordinatesToQuad(float x, float y) {
 		double[] srcPts = new double[2];
 		srcPts[0] = x;
 		srcPts[1] = y;
@@ -359,7 +363,7 @@ public class QuadSurface extends SuperSurface{
 
 		return new PVector((float) dstPts[0], (float) dstPts[1]);
 	}
-
+*/
 	/**
 	 * Render method for rendering while in calibration mode
 	 * @param g
@@ -563,6 +567,26 @@ public class QuadSurface extends SuperSurface{
 		g.ellipse(x, y, 16, 16);
 		g.line(x, y - 8, x, y + 8);
 		g.line(x - 8, y, x + 8, y);
+	}
+	
+	public void rotateCornerPoints(int direction){
+		PVector[] sourcePoints = cornerPoints.clone();
+		switch(direction){
+		case SuperSurface.CLOCKWISE:
+			cornerPoints[0] = sourcePoints[1];
+			cornerPoints[1] = sourcePoints[2];
+			cornerPoints[2] = sourcePoints[3];
+			cornerPoints[3] = sourcePoints[0];
+			this.updateTransform();
+			break;
+		case SuperSurface.COUNTERCLOCKWISE:
+			cornerPoints[0] = sourcePoints[3];
+			cornerPoints[1] = sourcePoints[0];
+			cornerPoints[2] = sourcePoints[1];
+			cornerPoints[3] = sourcePoints[2];
+			this.updateTransform();
+			break;
+		}
 	}
 
 }
